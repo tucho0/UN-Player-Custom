@@ -11,9 +11,8 @@
 #define URL_WEB								"~w~www.~b~un~g~player~w~.com"
 #define URL_WEB_SHADOW						URL_WEB
 #define WEBPAGE 							"www.empty.com"
-#define	GAMEMODE_VERSION					"RolePlay | 0.3.7"
+#define	GAMEMODE_VERSION					"RolePlay | 0.3.DL"
 #define PASSWORD_EMAIL                      "SetPassword"
-//Ultimo Error ID 1620
 
 #define COLOR_TITULO_DIALOGS				"006CAA"
 #define COLOR_TEXTO_DIALOGS					"F0F0F0"
@@ -65,7 +64,6 @@
 #define INFINITY_HEALTH 					(Float:0x7F800000)
 #define MAX_FACCION_NAME       				30
 #define MAX_FACCION_COUNT      				25
-#define MAX_BUFFER_IP_ATTACK                500
 #define MAX_FACCION_SLOT                    61
 #define MAX_FACCION_RANGOS                  10
 #define MAX_FACCION_SKIN                    15
@@ -160,10 +158,17 @@
 #define BOMBA_TYPE_NONE						0
 #define BOMBA_TYPE_FOOT      				1
 #define BOMBA_TYPE_CAR						2
-//#define MAX_BOMBA_TIME_INACTIVE             1800000
+//Defines
 #define MAX_COUNT_CARTERA                   6
 #define MAX_COUNT_CHEQUES                   15
+
 #define MAX_FRENO_DISTANCE 					1.0
+
+#define MAX_LOCAL_COUNT						10
+#define MAX_LOCAL_TYPE_COUNT				3
+#define LOCAL_PICKUP_MODEL					19197
+
+#define MAX_PICKUP_DISTANCE                 300.0
 
 #define CARTERA_TYPE_NADA                   0
 #define CARTERA_TYPE_CHEQUE                 1
@@ -239,6 +244,9 @@ forward GetSpawnInfo(playerid);
 forward GetPlayerStats(playerid, playeridshow);
 forward SetSpawnInfoEx(playerid);
 forward SendInfoMessage(playerid, type, optional[], message[]);
+forward SendSintaxisError(playerid, command[], example[]);
+forward SendAccessError(playerid, command[]);
+forward SendAdviseMessage(playerid, advise[]);
 forward Acciones(playerid, type, text[]);
 forward SendChatStream(playerid, text[]);
 forward SendChatStreamNormal(playerid, text[], type[]);
@@ -247,6 +255,8 @@ forward SendChatStreamAnonymous(text[], WorldStream, Float:X, Float:Y, Float:Z);
 forward SendChatStreamAnonymousPlayerid(playerid, text[], WorldStream, Float:X, Float:Y, Float:Z);
 forward SendChatStreamGritar(playerid, text[]);
 forward IsPlayerNear(myplayerid, playerid, iderror1[], iderror2[], iderror3[], stringerror1[], stringerror2[], stringerror3[]);
+forward IsPlayerLogued(playerid);
+forward IsPlayerLoguedEx(playerid, playeridCheck);
 forward GetMaxFaccionRango(faccionid);
 forward GetMaxFaccionRangoSkin(faccionid, rangoid);
 forward SendMessageFamily(playerid, text[]);
@@ -790,8 +800,6 @@ forward ShowHomeAgendaOptions(playerid, agendaid);
 forward ShowBuscarAgenda(playerid);
 forward ShowBuscarResultAgenda(playerid, text[]);
 forward ShowSendSMSAgenda(playerid, agendaid);
-forward GetDataPlayersInt(playerid, data[], &savedata, &lastpos, &afterpos);
-forward GetDataPlayersFloat(playerid, data[], &Float:savedata, &lastpos, &afterpos);
 forward UpdatePlayerDescrription(playerid);
 forward AddPlayerDescription(playerid, option);
 forward RemovePlayerDescription(playerid, option, optiontwo);
@@ -888,26 +896,17 @@ forward LockGuantera(playerid);
 forward IsPlayerInsideVehicle(playerid);
 forward IsOpenGaveta(playerid, houseid);
 forward IsGuanteraOpen(playerid);
-// DDoS SYSTEM //
-forward CheckFilesDDoS();
-forward GetMaxCountForIP(ip[]);
-forward AddIpToList(ip[], port);
-forward IsSpecificIPOnTheList(ip[], port);
-forward ClearIPFromList(ip[]);
-forward IsIpBanned(ip[]);
-forward IsPlayerIpConnected(ip[]);
 forward SetPlayerInteriorEx(playerid, newinterior);
 forward GetPlayerInteriorEx(playerid);
-forward SaveIpUser(playerid, option);
-// END DDoS SYSTEM
+
+forward GetNextLocalID();
+forward IsLocalForSale(localID);
+forward IsMyLocal(playerid, localID);
+forward SaveLocal(localID, update);
+forward LoadLocales();
 /////////////////// END FORWARDS ///////////////////
 
 /// 				ENUMS
-enum LastIPAttackInfo
-{
-	aIP[20],
-	aPort
-}
 enum RobosInfoEnum
 {
 	FaccionIDR,
@@ -1553,7 +1552,9 @@ enum DataUsers
 	Objetos[MAX_OBJECTS_PLAYERS],
 	ObjetosVision[MAX_OBJECTS_PLAYERS],
 	TypePhone,
-	Ayudante
+	Ayudante,
+	Local,
+	InLocal
 };
 enum Agenda
 {
@@ -1711,7 +1712,8 @@ enum DataUsersOnline
 	CountIntentarVehicle,
 	Float:CurrentHealth,
 	Float:CurrentArmour,
-	LastInterior
+	LastInterior,
+	InLocalPickup
 };
 enum FaccionesData
 {
@@ -1766,11 +1768,40 @@ enum JailType
 	Interior_Liberado,
 	WorldLiberado
 }
-/// 				NEW
+enum LocalDataEnum
+{
+	Float:PosX,
+	Float:PosY,
+	Float:PosZ,
+	Float:PosZZ,
+	Pickup,
+	Text3D:TextLabel,
+	Owner[MAX_PLAYER_NAME],
+	Nivel,
+	Precio,
+	Tipo,
+	Seguro,
+	PrecioEntrada
+};
+/*
+enum LocalTipoData
+{
+    Float:PosX,
+	Float:PosY,
+	Float:PosZ,
+	Float:PosZZ,
+	Interior
+};
+*/
+/// 				NEWS
 new MySQL:dataBase;
 new ResetGM;
 new Bonus;
-new SERVER_PORT_;
+new LocalData[MAX_LOCAL_COUNT][LocalDataEnum];
+new MAX_LOCAL;
+new MAX_LOCAL_ID;
+//new LocalTipo[MAX_LOCAL_TYPE_COUNT][LocalTipoData];
+new LocalTipoString[MAX_LOCAL_TYPE_COUNT][8] = {"Pequeño", "Mediano", "Grande"};
 new TramSFID;
 new TimeTren;
 new bool:WeaponEnableDM[47];
@@ -1790,7 +1821,6 @@ new RobosInfo[MAX_ROBOS_COUNT][RobosInfoEnum];
 new Float:PosDM[2][4] = {{-1496.1182,2600.6624,55.6875,358.7807}, {-1496.1182,2600.6624,55.6875,358.7807}};
 new TrainGroups[MAX_TRAINS][4];
 new Text:ScoreRaceBox;
-new LastIPAttack[MAX_BUFFER_IP_ATTACK][LastIPAttackInfo];
 new Text:ScorePosRace[MAX_COUNT_PISTAS];
 new PistasTop[MAX_COUNT_PISTAS][MAX_COUNT_PISTAS_TOP][PistasTopEnum];
 new Pistas[MAX_COUNT_PISTAS][PistasEnum];
@@ -1852,10 +1882,7 @@ new DIR_GARAGES_EX[13]	= "GaragesEx/";
 new DIR_BOMBAS[10] 		= "Bombas/";
 new DIR_VCP[7] 			= "VCP/";
 new DIR_ACCOUNT_BANK[15]= "users_banco";
-new DIR_DDOS[24]        = "DDoS/connections.dat";
-new DIR_DDOS_BAN[24]    = "DDoS/ban.dat";
-new DIR_CONNECTIONS[16]    = "Connections/";
-new bool:CheckByTwo;
+new DIR_LOCALES[8] = "locales";
 new MAX_CAMERAS_LOGIN;
 new PickupidPoliceFurgo;
 new PickupidAmbulance;
@@ -5200,7 +5227,7 @@ public OnGameModeInit()
 	FaccionesRangos[YKZ][5]  = "Shatei"; 			RangosSkins[YKZ][5][0] 	= 121; 	RangosSkins[YKZ][5][1] 	= 169;										FaccionData[YKZ][Paga][5] = 370;
 
 // TAXIS ID - 6
-	format(FaccionData[TAXI][NameFaccion], MAX_FACCION_NAME, "Tax\xa2stas");
+	format(FaccionData[TAXI][NameFaccion], MAX_FACCION_NAME, "Taxistas");
 	FaccionData[TAXI][Extorsion] 		= 0;
 	FaccionData[TAXI][Spawn_X][0]		= 1754.0756;
 	FaccionData[TAXI][Spawn_Y][0]		= -1912.3319;
@@ -5917,6 +5944,8 @@ public OnGameModeInit()
 
 	LoadLastOptionsServer();
 	
+	LoadLocales();
+	
 	ShowServerStats(-1);
 	print("___________________ GAMEMODE CARGADO CORRECTAMENTE! ___________________");
 	print("\n______________ NO SE CARGARÓN FILESCRIPTS/FILTERSCRIPTS ________________");
@@ -6028,7 +6057,6 @@ public OnPlayerConnect(playerid)
 	DataUserClean(playerid);
 	GetPlayerName(playerid, PlayersDataOnline[playerid][NameOnline], MAX_PLAYER_NAME);
 	PlayersDataOnline[playerid][TimerLoginId] = SetTimerEx("IsPlayerOff", 60000, false, "d", playerid);
-    SaveIpUser(playerid, true);
 	if (IsValidName(PlayersDataOnline[playerid][NameOnline]))
 	{
 		if ( RemoveRallaName(playerid) )
@@ -6858,20 +6886,18 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		                        return 1;
 		                    }
 		                    new getid;
-		                    new string[1024];
+		                    new string[150], stringA[150], stringB[150];
 		                    if (!sscanf(cmdtext[10], "u", getid))
 		                    {
 		                        if (IsPlayerConnected(getid) && PlayersDataOnline[getid][State] == 3)
 			                    {
 			                    	if (!PlayersData[getid][Ayudante])
 				                    {
-							            format(string, sizeof(string), "Le diste ayudante a %s[%i].", PlayersDataOnline[getid][NameOnline], getid);
-				                        SendInfoMessage(playerid, 2, "0", string);
-
-				                        format(string, sizeof(string), "%s[%i] te metio a formar parte de ayudantes. Usa /Ayudante.", PlayersDataOnline[playerid][NameOnline], playerid);
-				                        SendInfoMessage(getid, 2, "0", string);
-
-				                        format(string, sizeof(string), "%s %s[%i] metió a %s[%i] como ayudante.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
+							            format(stringA, sizeof(stringA), "Le diste ayudante a %s[%i].", PlayersDataOnline[getid][NameOnline], getid);
+							            format(string, sizeof(string), "%s[%i] te metio a formar parte de ayudantes. Usa /Ayudante.", PlayersDataOnline[playerid][NameOnline], playerid);
+							            format(stringB, sizeof(stringB), "%s %s[%i] metió a %s[%i] como ayudante.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
+				                        SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
+                        				SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
 							            MsgCheatsReportsToAdminsEx(string, 9);
 
 							            PlayersData[getid][Ayudante] = true;
@@ -6879,13 +6905,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				                    }
 				                    else
 				                    {
-				                        format(string, sizeof(string), "Expulsaste a %s[%i] de ayudante.", PlayersDataOnline[getid][NameOnline], getid);
-				                        SendInfoMessage(playerid, 2, "0", string);
-
-				                        format(string, sizeof(string), "%s[%i] te ha expulsado de ayudantes.", PlayersDataOnline[playerid][NameOnline], playerid);
-				                        SendInfoMessage(getid, 2, "0", string);
-
-				                        format(string, sizeof(string), "%s %s[%i] expulso a %s[%i] de ayudantes.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
+				                        format(stringA, sizeof(stringA), "Expulsaste a %s[%i] de ayudante.", PlayersDataOnline[getid][NameOnline], getid);
+										format(string, sizeof(string), "%s[%i] te ha expulsado de ayudantes.", PlayersDataOnline[playerid][NameOnline], playerid);
+										format(stringB, sizeof(stringB), "%s %s[%i] expulso a %s[%i] de ayudantes.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
+										SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
+                        				SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
 							            MsgCheatsReportsToAdminsEx(string, 9);
 
 				                        PlayersData[getid][Ayudante] = false;
@@ -8638,9 +8662,85 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "1155", "No tienes acceso al comando /Crear Casa");
 						}
 					}
+				    //      /Crear Local [Tipo] [Precio] [Nivel]
+					else if (strfind(cmdtext, "/Crear Local ", true) == 0)
+					{
+					    if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "Crear Local.");
+					    new type, price, level ;
+					    new string[MAX_TEXT_CHAT];
+					    if (sscanf(cmdtext[13], "iii", type, price, level) == 0)
+					    {
+					        if (type > 0 && type <= MAX_LOCAL_TYPE_COUNT)
+					        {
+					            if (price >= 0 && price <= 1000000)
+					            {
+					                if (level >= 0 && level <= 99)
+					                {
+					                    new localID = GetNextLocalID();
+					                    if (localID != -1)
+					                    {
+					                        new Float:Pos[4];
+						                    GetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
+						                    GetPlayerFacingAngle(playerid, Pos[3]);
+
+						                    LocalData[localID][PosX] = Pos[0];
+				                            LocalData[localID][PosY] = Pos[1];
+				                            LocalData[localID][PosZ] = Pos[2];
+				                            LocalData[localID][PosZZ] = Pos[3]-180.0;
+				                            format(LocalData[localID][Owner], MAX_PLAYER_NAME,"No");
+				                            LocalData[localID][Nivel] = level;
+				                            LocalData[localID][Precio] = price;
+				                            LocalData[localID][Tipo] = type;
+				                            LocalData[localID][Seguro] = true;
+				                            LocalData[localID][PrecioEntrada] = 0;
+				                            LocalData[localID][Pickup] = -1;
+				                            LocalData[localID][TextLabel] = Text3D:INVALID_3DTEXT_ID;
+				                            MAX_LOCAL++;
+				                            SaveLocal(localID, true);
+
+						                    format(string,sizeof(string),
+           									"%s Has creado un local tipo \"%s\" [%i] con ID %i, Precio: $%i, Nivel: %i.", LOGO_STAFF, LocalTipoString[type-1], type, localID+1, price, level);
+						                    SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, string);
+						                    return 1;
+					                    }
+										else
+										{
+										    SendInfoMessage(playerid, 0, "", "Ya no se pueden agregar mas locales, se ha alcanzado el limite!");
+										    return 1;
+										}
+					                }
+					                else
+							        {
+							            SendInfoMessage(playerid, 0, "", "El nivel del local debe ser entre 0 y 99");
+							            return 1;
+							        }
+					            }
+					            else
+						        {
+						            SendInfoMessage(playerid, 0, "", "El precio del local debe ser entre $0 y $1.000.000");
+						            return 1;
+						        }
+					        }
+					        else
+					        {
+					            SendInfoMessage(playerid, 0, "", "El tipo de local debe ser entre 1 y 3");
+					            return 1;
+					        }
+					    }
+					    else return SendSintaxisError(playerid, "Crear Local", "Crear Local 1 15000 5.");
+					}
 			    	else
 					{
 						SendInfoMessage(playerid, 0, "421", "Quizás quiso decir: /Crear {Arma, Cheque Efectivo [ID] [Cantidad], Cheque Personal [ID] [Cantidad]}");
+						if (PlayersData[playerid][Admin] >= 7)
+						{
+						    SendInfoMessage(playerid, 0, "421", "Quizás quiso decir: /Crear {Incendio [ID_Casa]}");
+						}
+						if (PlayersData[playerid][Admin] >= 8)
+						{
+						    SendInfoMessage(playerid, 0, "421", "Quizás quiso decir: /Crear {Casa [Tipo] [Precio] [Nivel], Garage [ID_Casa] [Tipo_Garage]}");
+						    SendInfoMessage(playerid, 0, "421", "Quizás quiso decir: /Crear {Negocio [Tipo] [Precio] [Nivel], Local [Tipo] [Precio] [Nivel]}");
+						}
 					}
 				}
 			// COMANDO: /Aceíte [ID] [Precio]
@@ -14595,9 +14695,29 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "439", "No estas en un bar");
 						}
 				    }
+				    else if (strcmp("/Comprar Local", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14 )
+				    {
+				        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+				        {
+				            new localID = PlayersDataOnline[playerid][InLocalPickup];
+				            if (!IsLocalForSale(localID)) return SendInfoMessage(playerid, 0, "", "Este local no esta a la venta.");
+				            if (GetPlayerScoreEx(playerid) < LocalData[localID][Nivel]) return SendInfoMessage(playerid, 0, "", "No tienes suficiente nivel para comprar este local.");
+				            if (PlayersData[playerid][Dinero] < LocalData[localID][Precio]) return SendInfoMessage(playerid, 0, "", "No tienes suficiente dinero para comprar este local.");
+
+	                        PlayersData[playerid][Local] = localID;
+                       		//////////////////
+							format(LocalData[localID][Owner], MAX_PLAYER_NAME, "%s", PlayersDataOnline[playerid][NameOnline]);
+				            SaveLocal(localID, true);
+
+				            GameTextForPlayer(playerid, "~B~Has ~G~comprado un Local!", 2000, 0);
+				            SendInfoMessage(playerid, 3, "", "Compraste este local.");
+				            return 1;
+				        }
+				        else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+				    }
 				    else
 				    {
-						SendInfoMessage(playerid, 0, "440", "Quizás quiso decir: /Comprar {Ropa, Negocio, Agua, Vodka, Refresco, Cerveza, Casa, Peluca, Lentes, Boina, Gorra, Reloj, Casco}");
+						SendInfoMessage(playerid, 0, "440", "Quizás quiso decir: /Comprar {Ropa, Negocio, Agua, Vodka, Refresco, Cerveza, Casa, Peluca, Lentes, Boina, Gorra, Reloj, Casco, Local}");
 					}
 			    }
 			    // /Contrato [ID] [Precio]
@@ -17675,9 +17795,29 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "1482", "Usted no es vendedor de móviles");
 						}
 				    }
+				    //      /Vender Local             - /Vender Local
+	                else if (strcmp("/Vender Local", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
+				    {
+				        if (PlayersData[playerid][Local] == -1) return SendInfoMessage(playerid, 0, "", "Tú no tienes local.");
+				        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+				        {
+							new localID = PlayersDataOnline[playerid][InLocalPickup];
+							if (PlayersData[playerid][Local] != localID) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
+							
+							LocalData[localID][Seguro] = true;
+                         	format(LocalData[localID][Owner], MAX_PLAYER_NAME, "No");
+				            SaveLocal(localID, true);
+				            
+				            PlayersData[playerid][Local] = -1;
+				            GivePlayerMoneyEx(playerid, LocalData[localID][Precio]);
+				            GameTextForPlayer(playerid, "~B~Ha ~R~vendido su local!", 2000, 0);
+				            return 1;
+				        }
+				        else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+				    }
 				    else
 				    {
-						SendInfoMessage(playerid, 0, "228", "Quizás quiso decir: /Vender {Coche [ID], Negocio, Mi Coche, Casa, Peces, Móvil [ID] [Precio] [Número]}");
+						SendInfoMessage(playerid, 0, "228", "Quizás quiso decir: /Vender {Coche [ID], Negocio, Local, Mi Coche, Casa, Peces, Móvil [ID] [Precio] [Número]}");
 					}
 				}
 				// COMANDO: /Cocinar [ID_Refrigerador]
@@ -24068,21 +24208,21 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			                        SendInfoMessage(playerid, 0, "1618", "El monto de dinero debe ser entre $-100.000 y $100.000.");
 							        return 1;
 			                    }
-			                    new string[1024];
+			                    new string[150], stringA[150];
 
-			                    if (monto > 0)
-			                    format(string, sizeof(string), "Le diste $%i a %s[%i].", monto, PlayersDataOnline[getid][NameOnline], getid);
-			                    else if (monto < 0)
-			                    format(string, sizeof(string), "Le quitaste $%i a %s[%i].", monto, PlayersDataOnline[getid][NameOnline], getid);
-			                    SendInfoMessage(playerid, 2, "0", string);
-
-			                    if (monto > 0)
-			                    format(string, sizeof(string), "%s[%i] te dio $%i.", PlayersDataOnline[playerid][NameOnline], playerid, monto);
-			                    else if (monto < 0)
-			                    format(string, sizeof(string), "%s[%i] te quito $%i.", PlayersDataOnline[playerid][NameOnline], playerid, monto);
-			                    SendInfoMessage(getid, 2, "0", string);
-
-			                    GivePlayerMoneyEx(getid, monto);
+			                    if (monto >= 0)
+			                    {
+			                        format(stringA, sizeof(stringA), "Le diste $%i a %s[%i].", monto, PlayersDataOnline[getid][NameOnline], getid);
+			                        format(string, sizeof(string), "%s[%i] te dio $%i.", PlayersDataOnline[playerid][NameOnline], playerid, monto);
+			                    }
+			                    else
+			                    {
+			                        format(stringA, sizeof(stringA), "Le quitaste $%i a %s[%i].", monto, PlayersDataOnline[getid][NameOnline], getid);
+			                        format(string, sizeof(string), "%s[%i] te quito $%i.", PlayersDataOnline[playerid][NameOnline], playerid, monto);
+			                    }
+			                    SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
+								SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
+								GivePlayerMoneyEx(getid, monto);
 			                    return 1;
 		                    }
 		                    else
@@ -24419,7 +24559,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				else if (strfind(cmdtext, "/Staff ", true) == 0)
 				{
 					MsgAdminUseCommands(9, playerid, cmdtext);
-					if (PlayersData[playerid][Admin] >= 9)
+					if (PlayersData[playerid][Admin] >= 9 || IsPlayerAdmin(playerid))
 					{
 						new Datos_Picados[4];
 						new DatosOriginales[120];
@@ -24577,7 +24717,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					    SendInfoMessage(playerid, 0, "1607", "Tú no tienes acceso a el comando /Bonus.");
 					    return 1;
 					}
-					new string[1024];
+					new string[150];
 					if (strfind(cmdtext, "/Bonus ", true) == 0)
 					{
 					    new nuevoBonus = strval(cmdtext[7]);
@@ -24734,7 +24874,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
                 {
                     if (PlayersData[playerid][Ayudante] || PlayersData[playerid][Admin])
                     {
-                        new string[1024];
+                        new string[150];
                         format(string, sizeof(string), "%s %s: %s", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], cmdtext[3]);
                         MsgHelperChat(string);
                         return 1;
@@ -24747,7 +24887,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
                 }
                 else if (strfind(cmdtext, "/Materiales ", true) == 0)
                 {
-                    new getid, monto, string[1024];
+                    new getid, monto, string[150], stringA[150];
 				    if (sscanf(cmdtext[12], "ui", getid, monto))
 				    {
 				        SendInfoMessage(playerid, 0, "160", "Ha introducído mal el sintaxis del comando /Materiales. Ejemplo correcto: /Materiales Jose 5");
@@ -24764,10 +24904,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	                    {
 	                        PlayersData[getid][Materiales] += monto;
 
-	                        format(string, sizeof(string), "Estableciste los materiales de %s[%i] en %i.", PlayersDataOnline[getid][NameOnline], getid, PlayersData[getid][Materiales]);
-	                        SendInfoMessage(playerid, 2, "0", string);
+	                        format(stringA, sizeof(stringA), "Estableciste los materiales de %s[%i] en %i.", PlayersDataOnline[getid][NameOnline], getid, PlayersData[getid][Materiales]);
 	                        format(string, sizeof(string), "%s[%i] establecio tus materiales en %i.", PlayersDataOnline[playerid][NameOnline], playerid, PlayersData[getid][Materiales]);
-	                        SendInfoMessage(getid, 2, "0", string);
+	                        SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
+                        	SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
 	                        return 1;
 	                    }
 	                    else
@@ -24784,7 +24924,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
                 }
                 else if (strfind(cmdtext, "/Ganzuas ", true) == 0)
                 {
-                    new getid, monto, string[1024];
+                    new getid, monto, string[150], stringA[150];
 				    if (sscanf(cmdtext[9], "ui", getid, monto))
 				    {
 				        SendInfoMessage(playerid, 0, "160", "Ha introducído mal el sintaxis del comando /Ganzuas. Ejemplo correcto: /Ganzuas Pepito 5");
@@ -24793,11 +24933,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    if (IsPlayerConnected(getid) && PlayersDataOnline[getid][State] == 3)
                     {
                         PlayersData[getid][Ganzuas] += monto;
-                        
-	                    format(string, sizeof(string), "Estableciste las ganzuas de %s[%i] en %i.", PlayersDataOnline[getid][NameOnline], getid, PlayersData[getid][Ganzuas]);
-                        SendInfoMessage(playerid, 2, "0", string);
-                        format(string, sizeof(string), "%s[%i] establecio tus ganzuas en %i.", PlayersDataOnline[playerid][NameOnline], playerid, PlayersData[getid][Ganzuas]);
-                        SendInfoMessage(getid, 2, "0", string);
+
+	                    format(stringA, sizeof(stringA), "Estableciste las ganzuas de %s[%i] en %i.", PlayersDataOnline[getid][NameOnline], getid, PlayersData[getid][Ganzuas]);
+	                    format(string, sizeof(string), "%s[%i] establecio tus ganzuas en %i.", PlayersDataOnline[playerid][NameOnline], playerid, PlayersData[getid][Ganzuas]);
+                        SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
+                        SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
                         return 1;
 					}
 					else
@@ -24806,6 +24946,131 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					    return 1;
 					}
                 }
+                //      /IrL [ID]       - Ir Local
+                else if (strfind(cmdtext, "/IrL ", true) == 0)
+                {
+                    if (PlayersData[playerid][Admin] < 7) return SendAccessError(playerid, "IrL.");
+                    new getID = strval(cmdtext[5]);
+                    if (getID >= 1 && getID <= MAX_LOCAL)
+                    {
+                        new string[150], localID = getID-1;
+
+                        SetPlayerPos(playerid, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ]);
+                        SetPlayerInteriorEx(playerid, 0);
+                        SetPlayerVirtualWorldEx(playerid, WORLD_NORMAL);
+
+                        format(string,sizeof(string),"%s Has ido hacia el local %i.", LOGO_STAFF, getID);
+                        SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, string);
+                        return 1;
+                    }
+                    else
+                    {
+                        SendInfoMessage(playerid, 0, "204", "El ID de local introducido es invalido o no existe.");
+                        return 1;
+                    }
+                }
+                //      /LPos [ID]      - /LocalPos
+                else if (strfind(cmdtext, "/LPos ", true) == 0)
+				{
+					if (PlayersData[playerid][Admin] < 7) return SendAccessError(playerid, "LPos.");
+					new getID = strval(cmdtext[5]);
+					if (getID >= 1 && getID <= MAX_LOCAL)
+					{
+						new string[150], localID = getID-1;
+						new Float:Pos[4];
+
+						GetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
+						GetPlayerFacingAngle(playerid, Pos[3]);
+
+						LocalData[localID][PosX] = Pos[0];
+						LocalData[localID][PosY] = Pos[1];
+						LocalData[localID][PosZ] = Pos[2];
+						LocalData[localID][PosZZ] = Pos[3]-180.0;
+						SaveLocal(localID, true);
+
+						format(string,sizeof(string),"%s Moviste el local %i a tu posicion.", LOGO_STAFF, getID);
+						SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, string);
+						return 1;
+					}
+					else
+					{
+						SendInfoMessage(playerid, 0, "204", "El ID de local introducido es invalido o no existe.");
+						return 1;
+                    }
+                }
+                //      /LPrecio [Precio]       - /Local Precio
+                else if (strfind(cmdtext, "/LPrecio ", true) == 0)
+			    {
+			        if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "LPrecio.");
+			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+			        {
+				        new price = strval(cmdtext[9]);
+				        if (price < 0 || price > 1000000) return SendInfoMessage(playerid, 0, "", "El precio del local debe ser entre $0 y $1.000.000");
+				        
+			            new localID = PlayersDataOnline[playerid][InLocalPickup];
+			            
+                        LocalData[localID][Precio] = price;
+			            SaveLocal(localID, true);
+			            return 1;
+			        }
+			        else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+			    }
+			    //      /LNivel [Precio]       - /Local Nivel
+                else if (strfind(cmdtext, "/LNivel ", true) == 0)
+			    {
+			        if (PlayersData[playerid][Admin] < 7) return SendAccessError(playerid, "LNivel.");
+			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+			        {
+				        new level = strval(cmdtext[8]);
+				        if (level < 0 || level > 99) return SendInfoMessage(playerid, 0, "", "El nivel del local debe ser entre 0 y 99");
+				        
+			            new localID = PlayersDataOnline[playerid][InLocalPickup];
+
+                        LocalData[localID][Nivel] = level;
+			            SaveLocal(localID, true);
+			            return 1;
+			        }
+			        else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+			    }
+			    //      /VLocal             - /Vender Local Admin
+                else if (strcmp("/VLocal", cmdtext, true, 7) == 0 && strlen(cmdtext) == 7)
+                {
+			        if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "VLocal.");
+			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+			        {
+			            new localID = PlayersDataOnline[playerid][InLocalPickup];
+			            
+			            if (IsLocalForSale(localID)) return SendInfoMessage(playerid, 0, "", "Este local ya esta a la venta.");
+			            
+			            LocalData[localID][Seguro] = true;
+			            format(LocalData[localID][Owner], MAX_PLAYER_NAME, "No");
+			            SaveLocal(localID, true);
+			            
+			            new string[500], ownerID = -1;
+			            
+			            for(new i=0; i <= MAX_PLAYERS; i++){
+			            if (IsPlayerLogued(i))
+			            {
+		                    ownerID = i;
+		                    break;
+						}}
+							
+						if (ownerID == -1)
+						{
+						    format(string, sizeof(string), "UPDATE %s SET `Local`='-1' WHERE Local=%i;", DIR_USERS, localID);
+						    mysql_query(dataBase, string, false);
+						}
+						else
+						{
+						    PlayersData[ownerID][Local] = -1;
+						    DataUserSave(ownerID);
+						}
+			            format(string, sizeof(string), "Has vendido este local [%i]. El propietario era %s", localID, LocalData[localID][Owner]);
+				        SendAdviseMessage(playerid, string);     
+			            return 1;
+			        }
+			        else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+			    }
 			    // NO COMMANDS SEND
 				else
 				{
@@ -25082,6 +25347,7 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 	{
 		HideTextDrawsTelesAndInfo(playerid);
 	    PlayersDataOnline[playerid][InPickup] = pickupid;
+	    
 		// FACCIONES
         if ( pickupid >= FaccionData[GOBIERNO][PickupidOutF] &&
              pickupid <= FaccionData[MAX_FACCION][PickupidInF] )
@@ -25438,6 +25704,18 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 	            }
             }
         }
+        //Locales
+	    else if (pickupid >= LocalData[0][Pickup] && pickupid <= LocalData[MAX_LOCAL_ID][Pickup])
+	    {
+	        for(new i=0; i <= MAX_LOCAL_ID; i++)
+		    {
+		        if (pickupid == LocalData[i][Pickup])
+		        {
+		            PlayersDataOnline[playerid][InLocalPickup] = i;
+		            break;
+		        }
+		    }
+	    }
 		else if (IsPlayerInPincho(playerid, pickupid))
 		{
 
@@ -25449,6 +25727,30 @@ public OnPlayerPickUpPickup(playerid, pickupid)
 	}
 	return 1;
 }
+/*
+public OnPlayerPickUpDynamicPickup(playerid, pickupid)
+{
+	if ( PlayersDataOnline[playerid][InPickup] != pickupid )
+	{
+		HideTextDrawsTelesAndInfo(playerid);
+		PlayersDataOnline[playerid][InPickup] = pickupid;
+
+	    //Locales
+	    if (pickupid >= LocalData[0][Pickup] && pickupid <= LocalData[MAX_LOCAL_ID][Pickup])
+	    {
+	        for(new i=0; i <= MAX_LOCAL_ID; i++)
+		    {
+		        if (pickupid == LocalData[i][Pickup])
+		        {
+		            PlayersDataOnline[playerid][InLocalPickup] = i;
+		            break;
+		        }
+		    }
+	    }
+	}
+	return 1;
+}
+*/
 public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 {
 
@@ -31393,7 +31695,7 @@ public SendInfoMessage(playerid, type, optional[], message[])
 	    // Error
 	    case 0:
 	    {
-	        format(MsgInfo, sizeof(MsgInfo), "Error Nº %s: %s", optional, message);
+	        format(MsgInfo, sizeof(MsgInfo), "Error: %s", message);
 		}
 		// Ayuda
 	    case 1:
@@ -31411,7 +31713,61 @@ public SendInfoMessage(playerid, type, optional[], message[])
 	        format(MsgInfo, sizeof(MsgInfo), "Importante: %s", message);
 		}
 	}
-	SendClientMessage(playerid, COLOR_MESSAGES[type], MsgInfo);
+	return SendClientMessage(playerid, COLOR_MESSAGES[type], MsgInfo);
+}
+
+public IsPlayerLogued(playerid)
+{
+	if (IsPlayerConnected(playerid))
+	{
+	    if (PlayersDataOnline[playerid][State] == 3)
+	    {
+	        return 1;
+	    }
+	}
+	return 0;
+}
+
+public IsPlayerLoguedEx(playerid, playeridCheck)
+{
+	if (IsPlayerConnected(playeridCheck))
+	{
+	    if (PlayersDataOnline[playeridCheck][State] == 3)
+	    {
+	        return 1;
+	    }
+	    else
+		{
+		    SendClientMessage(playerid, COLOR_MESSAGES[0], "El jugador no se encuentra logueado.");
+		    return 0;
+		}
+	}
+	else
+	{
+		SendClientMessage(playerid, COLOR_MESSAGES[0], "El jugador no se encuentra conectado.");
+		return 0;
+	}
+}
+
+public SendSintaxisError(playerid, command[], example[])
+{
+	new SintaxisErro[MAX_TEXT_CHAT];
+	format(SintaxisErro, sizeof(SintaxisErro), "Ha introducído mal el sintaxis del comando /%s. Ejemplo correcto: /%s", command, example );
+	return SendClientMessage(playerid, COLOR_MESSAGES[0], SintaxisErro);
+}
+
+public SendAccessError(playerid, command[])
+{
+	new AcessError[MAX_TEXT_CHAT];
+	format(AcessError, sizeof(AcessError), "Tú no tienes acceso a el comando /%s", command);
+	return SendClientMessage(playerid, COLOR_MESSAGES[0], AcessError);
+}
+
+public SendAdviseMessage(playerid, advise[])
+{
+	new adviseText[150];
+    format(adviseText, sizeof(adviseText), "%s %s", LOGO_STAFF, advise);
+	return SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, adviseText);
 }
 
 //////////////////// CLEAN
@@ -31604,6 +31960,9 @@ public DataUserClean(playerid)
 	PlayersData[playerid][ObjetosVision][7]		= 0;
 	PlayersData[playerid][ObjetosVision][8]		= 0;
 	PlayersData[playerid][TypePhone]			= 0;
+	PlayersData[playerid][Ayudante] = 0;
+	PlayersData[playerid][Local] = -1;
+	PlayersData[playerid][InLocal] = -1;
 
 
     // DATA USERS ONLINE
@@ -46317,6 +46676,102 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1215,-2887.63134800,495.01590000,4.47089400,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1215,-2866.72143600,493.72381600,4.47089400,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
     CreateDynamicObjectExULP(697,-2853.77026400,511.37951700,7.94962300,0,0,11.25002631, -1, -1, -1, MAX_RADIO_STREAM);
+    
+    //		Job_Basureros
+	CreateObjectEx(1337,2536.4621600,-1592.0335700,23.6154700,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(binnt07_la) (1)
+	CreateObjectEx(1337,2520.5527300,-1674.5980200,18.1461700,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(binnt07_la) (2)
+	CreateObjectEx(18251,-387.0000000,-1463.9000000,32.7000000,-0.3790000,-0.2140000,91.2440000, MAX_RADIO_STREAM); //object(cuntwjunk07) (1)
+	CreateObjectEx(18245,-415.1000100,-1474.1000000,35.3000000,0.0000000,0.0000000,-89.7540000, MAX_RADIO_STREAM); //object(cuntwjunk02) (1)
+	CreateObjectEx(1638,-411.3999900,-1447.1000000,26.4000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(od_pat_hut) (1)
+	CreateObjectEx(3626,-406.1000100,-1452.0000000,26.0000000,0.0000000,0.0000000,-176.0000000, MAX_RADIO_STREAM); //object(dckwrkhut) (1)
+	CreateObjectEx(2372,-408.3999900,-1453.0000000,24.8000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(clothes_rail2) (1)
+	CreateObjectEx(1358,-393.5000000,-1452.0000000,26.2000000,-2.6810000,-0.5160000,3.6380000, MAX_RADIO_STREAM); //object(cj_skip_rubbish) (1)
+	CreateObjectEx(2372,-405.7000100,-1453.1000000,24.8000000,0.0000000,0.0000000,92.0000000, MAX_RADIO_STREAM); //object(clothes_rail2) (2)
+	CreateObjectEx(2382,-408.6000100,-1452.8000000,25.5000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(cj_8_jeans_light) (1)
+	CreateObjectEx(2394,-406.2999900,-1453.3000000,25.5000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(cj_clothes_step_1) (1)
+	CreateObjectEx(2382,-408.6000100,-1452.1000000,25.5000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(cj_8_jeans_light) (2)
+	CreateObjectEx(2845,-407.2999900,-1452.8000000,24.8000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(gb_bedclothes04) (1)
+	CreateObjectEx(1432,-403.3999900,-1452.5000000,24.8000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(dyn_table_2) (1)
+	CreateObjectEx(1810,-407.2000100,-1451.1000000,24.8000000,0.0000000,0.0000000,3.2500000, MAX_RADIO_STREAM); //object(cj_foldchair) (1)
+	CreateObjectEx(1810,-406.5000000,-1451.1000000,24.8000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(cj_foldchair) (2)
+	CreateObjectEx(1810,-405.8999900,-1451.1000000,24.8000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(cj_foldchair) (3)
+	CreateObjectEx(10985,-413.7999900,-1421.2000000,23.8000000,2.6520000,-0.9040000,-144.9630000, MAX_RADIO_STREAM); //object(rubbled02_sfs) (1)
+	CreateObjectEx(18253,-427.2000100,-1472.1000000,25.8000000,0.0000000,0.0000000,6.0000000, MAX_RADIO_STREAM); //object(cuntwjunk09) (1)
+	CreateObjectEx(984,-402.7999900,-1437.4000000,25.4000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(fenceshit2) (1)
+	CreateObjectEx(984,-403.0000000,-1424.6000000,25.4000000,0.0000000,0.0000000,2.0000000, MAX_RADIO_STREAM); //object(fenceshit2) (2)
+	CreateObjectEx(984,-367.1000100,-1435.8000000,25.4000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(fenceshit2) (3)
+	CreateObjectEx(984,-367.1000100,-1422.9000000,25.4000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(fenceshit2) (4)
+	CreateObjectEx(983,-400.0000000,-1417.9000000,25.4000000,0.0000000,0.0000000,-86.0000000, MAX_RADIO_STREAM); //object(fenceshit3) (1)
+	CreateObjectEx(983,-399.6000100,-1443.7000000,25.4000000,0.0000000,0.0000000,-88.0000000, MAX_RADIO_STREAM); //object(fenceshit3) (2)
+	CreateObjectEx(983,-370.2999900,-1416.3000000,25.4000000,0.0000000,0.0000000,-94.0000000, MAX_RADIO_STREAM); //object(fenceshit3) (3)
+	CreateObjectEx(983,-370.2000100,-1442.3000000,25.4000000,0.0000000,0.0000000,-88.0000000, MAX_RADIO_STREAM); //object(fenceshit3) (4)
+	CreateObjectEx(10984,-375.5000000,-1468.5000000,25.9000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(rubbled01_sfs) (1)
+	CreateObjectEx(1440,-380.0000000,-1459.1000000,25.4000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(dyn_box_pile_3) (1)
+	CreateObjectEx(10984,-387.5000000,-1468.6000000,26.1000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(rubbled01_sfs) (2)
+	CreateObjectEx(1438,-393.2000100,-1457.9000000,24.8000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(dyn_box_pile_2) (1)
+	CreateObjectEx(1438,-371.6000100,-1457.2000000,25.0000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(dyn_box_pile_2) (2)
+	CreateObjectEx(13591,-388.5000000,-1469.0000000,26.9000000,6.9930000,-0.3070000,-57.4810000, MAX_RADIO_STREAM); //object(kickcar28) (2)
+	CreateObjectEx(13591,-375.0000000,-1469.8000000,26.7000000,8.9860000,-0.4760000,4.7890000, MAX_RADIO_STREAM); //object(kickcar28) (3)
+	CreateObjectEx(1358,-394.1000100,-1481.7000000,25.7000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(cj_skip_rubbish) (2)
+	CreateObjectEx(1299,-391.7000100,-1482.2000000,25.2000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(smashboxpile) (1)
+	CreateObjectEx(1299,-395.6000100,-1484.3000000,24.8000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(smashboxpile) (2)
+	CreateObjectEx(1299,-393.5000000,-1484.2000000,25.0000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(smashboxpile) (3)
+	CreateObjectEx(1299,-397.3999900,-1482.4000000,25.2000000,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(smashboxpile) (4)
+	CreateObjectEx(18249,-363.2999900,-1462.4000000,27.3000000,0.0000000,0.0000000,1.5000000, MAX_RADIO_STREAM); //object(cuntwjunk05) (1)
+	CreateObjectEx(2890,-357.0000000,-1447.5000000,22.8000000,0.0000000,0.0000000,-176.0000000, MAX_RADIO_STREAM); //object(kmb_skip) (1)
+
+	//		Licencieros
+	CreateObjectEx(11015, 1802.1, -1751.1, 14.5, 0.001, -0.209, 0.001, MAX_RADIO_STREAM);
+	CreateObjectEx(1536, 1804.3, -1742.3, 12.7, 0, 0, -178, MAX_RADIO_STREAM);
+	CreateObjectEx(1536, 1799.6, -1759.9, 12.6, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(8615, 1806.9, -1761, 14.8, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1811.6, -1757.5, 13.7, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1811.6, -1788, 13.7, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1765.5, -1742, 13.7, 0, 0, 90, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1796, -1802.8, 13.7, 0, 0, -90, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1765.5, -1742, 15.9, 0.02, 0, 90, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1765.6, -1802.8, 13.7, 0, 0, -90, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1750.8, -1787.9, 13.7, 0, 0, -179.79, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1750.7, -1757.6, 13.7, 0, 0, -179.865, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1811.6, -1788, 15.9, 0.016, 0.747, -0.005, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1811.5996, -1757.5, 15.9, 0.011, 0.742, -0.011, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1750.7, -1757.6, 15.9, 0, 0, -179.868, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1796, -1802.8, 15.9, 0.011, 0.742, -90.011, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1765.6, -1802.8, 15.9, 0.006, -0.708, -90.016, MAX_RADIO_STREAM);
+	CreateObjectEx(8650, 1750.8, -1787.8, 15.9, 0, 0, -179.791, MAX_RADIO_STREAM);
+	CreateObjectEx(7893, 1755.4, -1794.1, 13.1, -0.14, -1.995, -88.002, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1762.6, -1800, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(1251, 1755, -1745.9, 12.6, 0, 0, -2.204, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1772, -1800, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1781.3, -1800, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1790.7, -1800, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(7893, 1808.8, -1794.2, 13.1, -0.143, -1.999, 87.994, MAX_RADIO_STREAM);
+	CreateObjectEx(1251, 1758.7, -1745.9, 12.6, 0, 0, -2.208, MAX_RADIO_STREAM);
+	CreateObjectEx(1251, 1762.9, -1745.8, 12.6, 0, 0, -2.208, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1800, -1800.1, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(1251, 1767.3, -1745.8, 12.7, 0, 0, -2.208, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1797.4, -1794.6, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(1251, 1772.4, -1745.8, 12.7, 0, 0, -2.208, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1788.1, -1794.6, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1778.7998, -1794.5, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1769.6, -1794.5, 13.4, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1778.6, -1788.8, 13.4, -2, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1769.3, -1789, 13.4, -4.166, -1.977, 1.263, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1787.9, -1788.8, 13.4, -2.005, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(984, 1804.7, -1742.2, 17.1, 0, 0, 90.128, MAX_RADIO_STREAM);
+	CreateObjectEx(978, 1797.2, -1788.9, 13.4, -2.005, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(1251, 1801.3, -1791.7, 12.7, 0, 0, 179.792, MAX_RADIO_STREAM);
+	CreateObjectEx(1251, 1763.5, -1792.2, 12.7, 0, 0, 179.791, MAX_RADIO_STREAM);
+	CreateObjectEx(984, 1799.9, -1742.2, 17.1, 0, 0, 90.126, MAX_RADIO_STREAM);
+	CreateObjectEx(1237, 1802.3, -1789.3, 12.5, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(1237, 1763.8, -1789, 12.5, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(984, 1793.4, -1748.7, 17, -0.228, -0.003, 179.822, MAX_RADIO_STREAM);
+	CreateObjectEx(878, 1781, -1773, 14.3, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(879, 1783.6, -1775.4, 15.5, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(869, 1784.2, -1772.4, 13, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(984, 1793.4, -1753.5, 17, -0.231, -0.005, 179.819, MAX_RADIO_STREAM);
+	CreateObjectEx(869, 1778.9, -1771.4, 13, 0, 0, 0, MAX_RADIO_STREAM);
+	CreateObjectEx(736, 1777.3, -1777, 23.7, 0, 0, 0, MAX_RADIO_STREAM);
 }
 public LoadTelesPublics()
 {
@@ -58231,15 +58686,6 @@ public CheckVehicleGas()
 	format(RconCommand, sizeof(RconCommand), "worldtime Son las %i:%i", SaveTime[0], SaveTime[1], SaveTime[2]);
 	SendRconCommand(RconCommand);
 	SetTimer("CheckVehicleGas", TIME_CHECK_GAS_VEHICLES, false);
-	if ( CheckByTwo )
-	{
-	    CheckByTwo = false;
-		CheckFilesDDoS();
-	}
-	else
-	{
-	    CheckByTwo = true;
-	}
 }
 public SetPlayerSelectedTypeHair(playerid)
 {
@@ -58748,7 +59194,6 @@ public SaveDatosPlayerDisconnect(playerid)
 {
 	if ( IsPlayerConnected(playerid) )
 	{
-	    SaveIpUser(playerid, false);
 	    if ( PlayersDataOnline[playerid][State] == 3 )
 	    {
 			RemovePlayerDescription(playerid, false, false);
@@ -59307,7 +59752,15 @@ public LoadGaragesExLock()
 
 public HideTextDrawsTelesAndInfo(playerid)
 {
-	if ( PlayersDataOnline[playerid][InPickupTele] || PlayersDataOnline[playerid][InPickupInfo] )
+	if ( PlayersDataOnline[playerid][InLocalPickup] != -1 )
+	{
+	    if ( !IsPlayerInRangeOfPoint(playerid, 2.0, LocalData[PlayersDataOnline[playerid][InLocalPickup]][PosX], LocalData[PlayersDataOnline[playerid][InLocalPickup]][PosY], LocalData[PlayersDataOnline[playerid][InLocalPickup]][PosZ]) )
+	    {
+	        PlayersDataOnline[playerid][InLocalPickup] = -1;
+			PlayersDataOnline[playerid][InPickup] 		= -1;
+	    }
+	}
+	if ( PlayersDataOnline[playerid][InPickupTele] || PlayersDataOnline[playerid][InPickupInfo])
 	{
 	    if ( !IsPlayerInRangeOfPoint(playerid, 2.0, PlayersDataOnline[playerid][MyPickupX_Now], PlayersDataOnline[playerid][MyPickupY_Now], PlayersDataOnline[playerid][MyPickupZ_Now]) )
 	    {
@@ -60978,6 +61431,12 @@ public OnGameModeExitEx()
 	SaveGaragesExLock();
 
 	DestroyAllDynamicObjects();
+	
+	for (new i=0; i <= MAX_LOCAL_ID; i++ )
+	{
+		SaveLocal(i, false);
+	}
+	
 	mysql_close(dataBase);
 	print("___________________ GAMEMODE DESCARGADO CORRECTAMENTE! ___________________");
 	print("___________________ GAMEMODE DESCARGADO CORRECTAMENTE! ___________________");
@@ -65324,6 +65783,10 @@ public ShowServerStats(playerid)
 		"\r\n22- MAX_OBJECT_FIJOS\t\t%i", MAX_OBJECT_FIJOS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
+		format(TempConvert, sizeof(TempConvert),
+		"\r\n22- MAX_LOCAL\t\t%i", MAX_LOCAL);
+		strcat(ListDialog, TempConvert, sizeof(ListDialog));
+
 		printf("%s", ListDialog);
 	}
 }
@@ -66597,9 +67060,6 @@ public SetCameraPresentRace(playerid, raceid, point, Float:Porcent, Float:Camera
 }
 public LoadLastOptionsServer()
 {
-	// DDoS Protection.
-    SERVER_PORT_ = GetServerVarAsInt("port");
-    
 	SetTimer("CheckVehicleGas", TIME_CHECK_GAS_VEHICLES, false);
 
 	for ( new i = 0; i < MAX_OBJECT_MAPPING_COUNT;i++)
@@ -69922,20 +70382,6 @@ public ShowSendSMSAgenda(playerid, agendaid)
 
 	ShowPlayerDialogEx(playerid,128,DIALOG_STYLE_INPUT, TempFormat, TempFormat1, "Enviar", "Cancelar");
 }
-public GetDataPlayersInt(playerid, data[], &savedata, &lastpos, &afterpos)
-{
-	afterpos = strfind(data, "³", false, lastpos);
-	strmid(PlayersDataOnline[playerid][NameProject], data, lastpos, afterpos, MAX_PLAYER_NAME);
-	savedata = strval(PlayersDataOnline[playerid][NameProject]);
-	lastpos = afterpos + 1;
-}
-public GetDataPlayersFloat(playerid, data[], &Float:savedata, &lastpos, &afterpos)
-{
-	afterpos = strfind(data, "³", false, lastpos);
-	strmid(PlayersDataOnline[playerid][NameProject], data, lastpos, afterpos, MAX_PLAYER_NAME);
-	savedata = floatstr(PlayersDataOnline[playerid][NameProject]);
-	lastpos = afterpos + 1;
-}
 public SetPlayerVirtualWorldEx(playerid, wolrdid)
 {
 	SetPlayerVirtualWorld(playerid, wolrdid);
@@ -70974,7 +71420,37 @@ public RemoveBuildingForPlayerEx(playerid)
 	RemoveBuildingForPlayer(playerid, 3276, 1071.9375, -368.5156, 73.8438, 0.25);
 	RemoveBuildingForPlayer(playerid, 3276, 1060.2109, -368.4922, 73.8438, 0.25);
 	RemoveBuildingForPlayer(playerid, 3276, 1107.1172, -368.5703, 73.8438, 0.25);
+	
+	//      Job_Basureros
+	RemoveBuildingForPlayer(playerid, 790, -448.0938, -1442.9531, 23.2422, 0.25);
+	RemoveBuildingForPlayer(playerid, 790, -425.9531, -1432.7813, 25.0547, 0.25);
+	RemoveBuildingForPlayer(playerid, 735, -420.5547, -1459.5703, 21.2578, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -419.7500, -1412.9766, 23.1250, 0.25);
+	RemoveBuildingForPlayer(playerid, 17000, -406.9141, -1448.9688, 24.6406, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -378.7734, -1459.0234, 25.4766, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -384.2344, -1455.8281, 25.4766, 0.25);
+	RemoveBuildingForPlayer(playerid, 17005, -391.1406, -1432.9922, 32.4297, 0.25);
+	RemoveBuildingForPlayer(playerid, 17006, -394.9609, -1433.9688, 32.4453, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -396.8047, -1411.5469, 25.3906, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -408.5625, -1412.2891, 24.8281, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -368.7813, -1454.3672, 25.4766, 0.25);
+	RemoveBuildingForPlayer(playerid, 3425, -370.3750, -1446.9688, 35.9531, 0.25);
+	RemoveBuildingForPlayer(playerid, 17298, -366.6719, -1422.6875, 30.3750, 0.25);
+	RemoveBuildingForPlayer(playerid, 1454, -372.1797, -1434.6094, 25.5156, 0.25);
+	RemoveBuildingForPlayer(playerid, 1454, -369.1953, -1434.6094, 25.5156, 0.25);
+	RemoveBuildingForPlayer(playerid, 1454, -366.2031, -1434.6094, 25.4375, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -362.4844, -1446.1250, 25.4766, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -361.8125, -1407.5391, 25.4766, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -360.7188, -1435.2578, 24.8984, 0.25);
+	RemoveBuildingForPlayer(playerid, 1454, -363.2109, -1434.6094, 25.3984, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -358.7578, -1423.8203, 24.7500, 0.25);
+	RemoveBuildingForPlayer(playerid, 3276, -356.8594, -1412.5547, 25.2500, 0.25);
+	RemoveBuildingForPlayer(playerid, 790, -396.6484, -1482.0078, 29.6484, 0.25);
 
+	//      Licencieros
+	RemoveBuildingForPlayer(playerid, 4025, 1777.8359, -1773.9063, 12.5234, 0.25);
+	RemoveBuildingForPlayer(playerid, 4215, 1777.5547, -1775.0391, 36.7500, 0.25);
+	RemoveBuildingForPlayer(playerid, 4019, 1777.8359, -1773.9063, 12.5234, 0.25);
 }
 public IsPlayerNotFullObjects(playerid, msg)
 {
@@ -71374,165 +71850,6 @@ public HaveObjectByTypeAndShow(playerid, type)
 	}
 	return false;
 }
-public CheckFilesDDoS()
-{
-	if ( fexist(DIR_DDOS)  )
-	{
-	    new DataSaveRead[200];
-		new File:CheckConnections = fopen(DIR_DDOS, io_read);
-		new stringSearch[10];
-		new PosFind;
-		format(stringSearch, sizeof(stringSearch), ":%i", SERVER_PORT_);
-		while ( fread(CheckConnections, DataSaveRead) )
-		{
-		    PosFind = strfind(DataSaveRead, stringSearch, false, 0);
-      		if ( PosFind != -1  && PosFind <= 27 )
-		    {
-		        //printf("DataSaveRead: %s", DataSaveRead);
-		        PosFind += strlen(stringSearch);
-				new IpGet[20];
-				new Port[6];
-				new PortInt;
-				new FormatDir[40];
-		     	for( new i = PosFind; i <= strlen(DataSaveRead); i++ )
-		     	{
-		     	    if ( DataSaveRead[i] != ' ' )
-		     	    {
-						PosFind = strfind(DataSaveRead, ":", false, i);
-						strmid(IpGet, DataSaveRead, i, PosFind);
-						strmid(Port, DataSaveRead, PosFind + 1, strlen(DataSaveRead));
-						PortInt = strval(Port);
-						format(FormatDir, sizeof(FormatDir), "%s%s.ulp", DIR_CONNECTIONS, IpGet);
-						if ( !fexist(FormatDir) && IsSpecificIPOnTheList(IpGet, PortInt) == -1 )
-						{
-							AddIpToList(IpGet, PortInt);
-						}
-						if ( GetMaxCountForIP(IpGet) >= 5 )
-						{
-						    if ( !IsIpBanned(IpGet) )
-						    {
-							    new MsgBanRcon[50];
-							    format(MsgBanRcon, sizeof(MsgBanRcon), "banip %s", IpGet);
-							    SendRconCommand(MsgBanRcon);
-						    }
-							ClearIPFromList(IpGet);
-
-							/*new MsgBanDDoS[MAX_TEXT_CHAT];
-						    format(MsgBanDDoS, sizeof(MsgBanDDoS), "%s Anti-DDoS - Desde la IP %s posible ataque DDoS, baneado... :)", LOGO_STAFF, IpGet);
-							MsgCheatsReportsToAdmins(MsgBanDDoS);*/
-						}
-						break;
-		     	    }
-		     	}
-		    }
-		}
-		fclose(CheckConnections);
-	 	fremove(DIR_DDOS);
-		for ( new i = 0; i < MAX_BUFFER_IP_ATTACK; i++ )
-		{
-		    if ( LastIPAttack[i][aPort] )
-		    {
-                ClearIPFromList( LastIPAttack[i][aIP] );
-			}
-		}
-	}
-	else
-	{
-	    printf("[ERROR]: No se encontró el archivo \"connections.dat\" del sistema AntDDoS");
-	}
-}
-public AddIpToList(ip[], port)
-{
-	for ( new i = 0; i < MAX_BUFFER_IP_ATTACK; i++ )
-	{
-	    if ( !LastIPAttack[i][aPort] )
-	    {
-	        format(LastIPAttack[i][aIP], 20, "%s", ip);
-	        LastIPAttack[i][aPort] = port;
-			return i;
-	    }
-	}
-	return -1;
-}
-public GetMaxCountForIP(ip[])
-{
-	new saveCount;
-	for ( new i = 0; i < MAX_BUFFER_IP_ATTACK; i++ )
-	{
-	    if ( strfind(LastIPAttack[i][aIP], ip, false, 0) == 0 && strlen(ip) == strlen(LastIPAttack[i][aIP]) )
-	    {
-	        saveCount++;
-	    }
-	}
-	return saveCount;
-}
-public IsSpecificIPOnTheList(ip[], port)
-{
-	for ( new i = 0; i < MAX_BUFFER_IP_ATTACK; i++ )
-	{
-	    if ( strfind(LastIPAttack[i][aIP], ip, false, 0) == 0 && strlen(ip) == strlen(LastIPAttack[i][aIP]) && LastIPAttack[i][aPort] == port )
-	    {
-			return i;
-	    }
-	}
-	return -1;
-}
-public ClearIPFromList(ip[])
-{
-	for ( new i = 0; i < MAX_BUFFER_IP_ATTACK; i++ )
-	{
-	    if ( strfind(LastIPAttack[i][aIP], ip, false, 0) == 0 && strlen(ip) == strlen(LastIPAttack[i][aIP]) )
-	    {
-	        format(LastIPAttack[i][aIP], 20, "");
-	        LastIPAttack[i][aPort] = 0;
-	    }
-	}
-}
-public IsIpBanned(ip[])
-{
-	new File:CheckConnections;
-	if ( fexist(DIR_DDOS_BAN)  )
-	{
-	    new DataSaveRead[200];
-		CheckConnections = fopen(DIR_DDOS_BAN, io_read);
-		while ( fread(CheckConnections, DataSaveRead) )
-		{
-		    if ( strfind(DataSaveRead, ip, false, 0) == 0 )
-		    {
-			    fclose(CheckConnections);
-		    	return true;
-	    	}
-		}
-		fclose(CheckConnections);
-	}
-	CheckConnections = fopen(DIR_DDOS_BAN, io_append);
-	new FormatBan[20];
-	format(FormatBan, sizeof(FormatBan), "%s\r\n", ip);
-	fwrite(CheckConnections, FormatBan);
-	fclose(CheckConnections);
-	return false;
-}
-public IsPlayerIpConnected(ip[])
-{
-	new IpBan[20];
-	for (new i = 0; i < MAX_PLAYERS; i++)
-	{
-	    if ( IsPlayerConnected(i) )
-		{
-			GetPlayerIp(i, IpBan, sizeof(IpBan));
-		}
-		else
-		{
-		    continue;
-		}
-
-	    if ( strcmp(ip, IpBan, true) == 0 )
-	    {
-	        return true;
-		}
-	}
-	return false;
-}
 public GetPlayerInteriorEx(playerid)
 {
 	return PlayersDataOnline[playerid][LastInterior];
@@ -71548,26 +71865,6 @@ public SetPlayerInteriorEx(playerid, newinterior)
    	{
 	   	KickEx(playerid, 10);
    	}
-}
-public SaveIpUser(playerid, option)
-{
-	new DirBD[50], FormatConnections[80], IpGet[20], DateGet[3], TimeGet[3];
-	GetPlayerIp(playerid, IpGet, sizeof(IpGet));
-	format(DirBD, sizeof(DirBD), "%s%s.ulp", DIR_CONNECTIONS, IpGet);
-	getdate(DateGet[0], DateGet[1], DateGet[2]);
-	gettime(TimeGet[0], TimeGet[1], TimeGet[2]);
-	if ( option )
-	{
-		format(FormatConnections, sizeof(FormatConnections), "%s [%i/%i/%i %i:%i:%i] Conectó\r\n", PlayersDataOnline[playerid][NameOnline], IpGet, DateGet[1], DateGet[2], DateGet[0], TimeGet[0], TimeGet[1], TimeGet[2]);
-	}
-	else
-	{
-		format(FormatConnections, sizeof(FormatConnections), "%s [%i/%i/%i %i:%i:%i] Desconectó\r\n", PlayersDataOnline[playerid][NameOnline], IpGet, DateGet[1], DateGet[2], DateGet[0], TimeGet[0], TimeGet[1], TimeGet[2]);
-	}
-	
-	new File:SaveConnections = fopen(DirBD, io_append);
-	fwrite(SaveConnections, FormatConnections);
-	fclose(SaveConnections);
 }
 public OnUnoccupiedVehicleUpdate(vehicleid, playerid, passenger_seat, Float:new_x, Float:new_y, Float:new_z, Float:vel_x, Float:vel_y, Float:vel_z)
 {
@@ -71596,4 +71893,133 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	    SetPlayerInteriorEx(playerid, 0);
 	}
     return 1;
+}
+public GetNextLocalID()
+{
+    new nextLocalID = -1;
+	for (new i=0; i != MAX_LOCAL_COUNT; i++)
+	{
+	    if (LocalData[i][Tipo] == 0)
+	    {
+	        nextLocalID = i;
+	        break;
+	    }
+	}
+	return nextLocalID;
+}
+public IsLocalForSale(localID)
+{
+	if (strlen(LocalData[localID][Owner]) > 2) return 0;
+	else return 1;
+}
+public SaveLocal(localID, update)
+{
+	new query[1000], Cache:cacheid;
+
+	mysql_format(dataBase, query, sizeof(query), "SELECT ID FROM %s WHERE ID=%i;", DIR_LOCALES, localID);
+	cacheid = mysql_query(dataBase, query);
+
+	new localExiste = cache_num_rows();
+	cache_delete(cacheid);
+
+	if (!localExiste)
+	{
+	    format(query, sizeof(query), "INSERT INTO %s (ID) VALUES ('%i');", DIR_LOCALES, localID);
+		mysql_query(dataBase, query, false);
+	}
+
+	//, LocalData[localID][]
+	format(query, sizeof(query), "UPDATE %s SET ", DIR_LOCALES);
+    strcat(query, "`PosX`='%f',`PosY`='%f',`PosZ`='%f',`PosZZ`='%f',");
+    strcat(query, "`Owner`='%e',`Nivel`='%i',`Precio`='%i',`Tipo`='%i',");
+    strcat(query, "`Seguro`='%i',`PrecioEntrada`='%i'");
+    strcat(query, " WHERE ID=%i;");
+    mysql_format(dataBase, query, sizeof(query), query,
+		LocalData[localID][PosX],LocalData[localID][PosY], LocalData[localID][PosZ], LocalData[localID][PosZZ],
+		LocalData[localID][Owner], LocalData[localID][Nivel], LocalData[localID][Precio], LocalData[localID][Tipo],
+		LocalData[localID][Seguro], LocalData[localID][PrecioEntrada],
+		localID);
+	mysql_query(dataBase, query, false);
+
+	if (update)
+	{
+	    //if (IsValidDynamicPickup(LocalData[localID][Pickup])) DestroyDynamicPickup(LocalData[localID][Pickup]);
+	    //LocalData[localID][Pickup] = CreateDynamicPickup(LOCAL_PICKUP_MODEL, 1, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	    DestroyPickup(LocalData[localID][Pickup]);
+	    LocalData[localID][Pickup] = CreatePickup(LOCAL_PICKUP_MODEL, 1, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ], WORLD_NORMAL);
+
+	    new LocalText[1024];
+	    if (IsLocalForSale(localID))
+	    {
+	        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local\n");
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[localID][Tipo]-1]);
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Estado: {"COLOR_CREMA"}¡En Venta!\n", LocalText);
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Precio: {"COLOR_CREMA"}$%i\n", LocalText, LocalData[localID][Precio]);
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Nivel: {"COLOR_CREMA"}%i\n", LocalText, LocalData[localID][Nivel]);
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Use {"COLOR_ROJO"}/Comprar Local", LocalText);
+	    }
+	    else
+	    {
+	        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local\n");
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[localID][Tipo]-1]);
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}%s\n", LocalText, LocalData[localID][Owner]);
+	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Entrada: {"COLOR_CREMA"}$%i", LocalText, LocalData[localID][PrecioEntrada]);
+	    }
+	    if (IsValidDynamic3DTextLabel(LocalData[localID][TextLabel])) DestroyDynamic3DTextLabel(LocalData[localID][TextLabel]);
+	    LocalData[localID][TextLabel] = CreateDynamic3DTextLabel(LocalText, 0x00A5FFFF, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ], 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_NORMAL, 0, -1, 20.0);
+	}
+}
+public LoadLocales()
+{
+	for (new i=0; i != MAX_LOCAL_COUNT; i++)
+	{
+	    new query[500], Cache:cacheid;
+		mysql_format(dataBase, query, sizeof(query), "SELECT * FROM %s WHERE ID=%i;", DIR_LOCALES, i);
+		cacheid = mysql_query(dataBase, query);
+
+		new localExiste = cache_num_rows();
+		if (localExiste)
+		{
+		    //LocalData[i][]
+		    cache_get_value_name_float(0, "PosX", LocalData[i][PosX]);
+		    cache_get_value_name_float(0, "PosY", LocalData[i][PosY]);
+		    cache_get_value_name_float(0, "PosZ", LocalData[i][PosZ]);
+		    cache_get_value_name_float(0, "PosZZ", LocalData[i][PosZZ]);
+		    cache_get_value_name(0, "Owner", LocalData[i][Owner], MAX_PLAYER_NAME);
+			cache_get_value_name_int(0, "Nivel", LocalData[i][Nivel]);
+			cache_get_value_name_int(0, "Precio", LocalData[i][Precio]);
+			cache_get_value_name_int(0, "Tipo", LocalData[i][Tipo]);
+			cache_get_value_name_int(0, "Seguro", LocalData[i][Seguro]);
+			cache_get_value_name_int(0, "PrecioEntrada", LocalData[i][PrecioEntrada]);
+
+			if (LocalData[i][Tipo] != 0)
+			{
+			    //LocalData[i][Pickup] = CreateDynamicPickup(LOCAL_PICKUP_MODEL, 1, LocalData[i][PosX], LocalData[i][PosY], LocalData[i][PosZ], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+			    LocalData[i][Pickup] = CreatePickup(LOCAL_PICKUP_MODEL, 1, LocalData[i][PosX], LocalData[i][PosY], LocalData[i][PosZ], WORLD_NORMAL);
+
+			    new LocalText[1024];
+			    if (IsLocalForSale(i))
+			    {
+			        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local\n");
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[i][Tipo]-1]);
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Estado: {"COLOR_CREMA"}¡En Venta!\n", LocalText);
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Precio: {"COLOR_CREMA"}$%i\n", LocalText, LocalData[i][Precio]);
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Nivel: {"COLOR_CREMA"}%i\n", LocalText, LocalData[i][Nivel]);
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Use {"COLOR_ROJO"}/Comprar Local", LocalText);
+			    }
+			    else
+			    {
+			        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local\n");
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[i][Tipo]-1]);
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}%s\n", LocalText, LocalData[i][Owner]);
+			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Entrada: {"COLOR_CREMA"}$%i", LocalText, LocalData[i][PrecioEntrada]);
+			    }
+			    LocalData[i][TextLabel] = CreateDynamic3DTextLabel(LocalText, 0x00A5FFFF, LocalData[i][PosX], LocalData[i][PosY], LocalData[i][PosZ], 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_NORMAL, 0, -1, 20.0);
+			    MAX_LOCAL++;
+			    MAX_LOCAL_ID = i;
+			}
+		}
+		cache_delete(cacheid);
+	}
+	return 1;
 }

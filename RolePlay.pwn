@@ -163,12 +163,6 @@
 #define MAX_COUNT_CHEQUES                   15
 
 #define MAX_FRENO_DISTANCE 					1.0
-
-#define MAX_LOCAL_COUNT						10
-#define MAX_LOCAL_TYPE_COUNT				3
-#define LOCAL_PICKUP_MODEL					19197
-#define MAX_LOCAL_KEYS                  	5
-
 #define MAX_PICKUP_DISTANCE                 300.0
 
 #define CARTERA_TYPE_NADA                   0
@@ -900,17 +894,6 @@ forward IsOpenGaveta(playerid, houseid);
 forward IsGuanteraOpen(playerid);
 forward SetPlayerInteriorEx(playerid, newinterior);
 forward GetPlayerInteriorEx(playerid);
-//Locales
-forward GetNextLocalID();
-forward IsLocalForSale(localID);
-forward IsMyLocal(playerid, localID);
-forward SaveLocal(localID, update);
-forward LoadLocales();
-forward IsPlayerInLocalKeys(playerid, localID);
-forward AddPlayerInLocalKeys(playerid, localID);
-forward RemoveLocalKey(localID, keyid);
-forward ShowLocalKeys(playerid, localid);
-forward PlayerHaveLocalKeys(playerid, localid);
 /////////////////// END FORWARDS ///////////////////
 
 /// 				ENUMS
@@ -1775,41 +1758,10 @@ enum JailType
 	Interior_Liberado,
 	WorldLiberado
 }
-enum LocalDataEnum
-{
-	Float:PosX,
-	Float:PosY,
-	Float:PosZ,
-	Float:PosZZ,
-	Pickup,
-	Text3D:TextLabel,
-	Text3D:TextLabelIn,
-	Owner[MAX_PLAYER_NAME],
-	Nivel,
-	Precio,
-	Tipo,
-	Seguro,
-	PrecioEntrada
-};
-enum LocalTipoData
-{
-    Float:PosX,
-	Float:PosY,
-	Float:PosZ,
-	Float:PosZZ,
-	Interior,
-	Pickup
-};
 /// 				NEWS
 new MySQL:dataBase;
 new ResetGM;
 new Bonus;
-new LocalData[MAX_LOCAL_COUNT][LocalDataEnum];
-new LocalKeys[MAX_LOCAL_COUNT][MAX_LOCAL_KEYS][MAX_PLAYER_NAME];
-new MAX_LOCAL;
-new MAX_LOCAL_ID;
-new LocalTipo[MAX_LOCAL_TYPE_COUNT][LocalTipoData];
-new LocalTipoString[MAX_LOCAL_TYPE_COUNT][8] = {"Pequeño", "Mediano", "Grande"};
 new TramSFID;
 new TimeTren;
 new bool:WeaponEnableDM[47];
@@ -1890,7 +1842,6 @@ new DIR_GARAGES_EX[13]	= "GaragesEx/";
 new DIR_BOMBAS[10] 		= "Bombas/";
 new DIR_VCP[7] 			= "VCP/";
 new DIR_ACCOUNT_BANK[15]= "users_banco";
-new DIR_LOCALES[8] = "locales";
 new MAX_CAMERAS_LOGIN;
 new PickupidPoliceFurgo;
 new PickupidAmbulance;
@@ -4864,6 +4815,9 @@ new ARMA_ANIMATIONS      	[17][30];	// ARMA - 16
 new WUZI_ANIMATIONS      	[12][30];	// WUZI - 11
 new PED_ANIMATIONS      	[286][30]; 	// PED - 285
 
+//      Modulos
+#include "Modulos/locales.pwn"
+
 main()
 {
 }
@@ -6799,8 +6753,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    	//      /Ayuda Local
 			    	else if (strcmp("/Ayuda Local", cmdtext, true, 12) == 0 && strlen(cmdtext) == 12)
 		            {
-		                SendInfoMessage(playerid, 1, "/Llaves Local - /Dar Llaves Amigo [Usuario] - /Llaves Amigos - /Comprar Local - /Vender Local", "Local: ");
-		                SendInfoMessage(playerid, 1, "/Cambiar Precio Entrada [Precio]", "Local: ");
+		                SendInfoMessage(playerid, 1, "/Comprar Local - /Vender Local - /Cambiar Precio Entrada [Precio] - /Consultar Local - /Retirar Local", "Local: ");
+		                SendInfoMessage(playerid, 1, "/Llaves Local - /Llaves PuertaEx - /Dar Llaves Amigo [ID] - /Llaves Amigos - /Llaves Garage", "Local: ");
+		                SendInfoMessage(playerid, 1, "/Llaves Armario - /Armario - /Llaves Gaveta - /Gaveta - /Llaves Refrigerador - /Refrigerador - /Cocinar [ID_Refrigerador]", "Local: ");
+		                SendInfoMessage(playerid, 1, "/Ayuda Coger - /Ayuda Dejar - /Música - /Timbre", "Local: ");
 		                return 1;
 		            }
 					// COMANDO: /Ayuda Owned
@@ -10650,9 +10606,30 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						    SendInfoMessage(playerid, 0, "886", MsgRingHouse);
 						}
 					}
+					else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+					{
+						if ( gettime() - LocalData[PlayersDataOnline[playerid][InLocalPickup]][TimbreTime] >= 20 )
+	                    {
+							for (new i = 0; i < MAX_PLAYERS; i++)
+							{
+							    if (i != playerid && IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && PlayersData[i][InLocal] == PlayersDataOnline[playerid][InLocalPickup])
+							    {
+							        SendClientMessage(i, COLOR_DE_WISPEO, "** TIMBRE: RING RING!!!");
+							    }
+						    }
+					        Acciones(playerid, 8, "tocó el timbre del local");
+					        LocalData[PlayersDataOnline[playerid][InLocalPickup]][TimbreTime] = gettime();
+						}
+						else
+						{
+						    new MsgRingHouse[MAX_TEXT_CHAT];
+						    format(MsgRingHouse, sizeof(MsgRingHouse), "El timbre de este local ha sido tocado recientemente, tiene que esperar %i segundos para volver a usarlo", 20 - (gettime() - LocalData[PlayersDataOnline[playerid][InLocalPickup]][TimbreTime]));
+						    SendInfoMessage(playerid, 0, "886", MsgRingHouse);
+						}
+					}
 					else
 					{
-						SendInfoMessage(playerid, 0, "885", "No te encuentras en la puerta de ninguna casa");
+						SendInfoMessage(playerid, 0, "885", "No te encuentras en la puerta de ninguna casa o local");
 					}
 				}
 				// COMANDO: /Online
@@ -12955,9 +12932,26 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								SendInfoMessage(playerid, 0, "750", "Ésta no es su casa");
 							}
 				        }
+				        else if (PlayersData[playerid][InLocal] != -1)
+				        {
+				            new localid = PlayersData[playerid][InLocal];
+				            //LocalData[localid][]
+				            if (PlayerHaveLocalKeys(playerid, localid))
+				            {
+				            	LocalData[localid][LGavetaSeguro] = !LocalData[localid][LGavetaSeguro];
+				            	PlayPlayerStreamSound(playerid, 1002);
+				            	
+				            	if (LocalData[localid][LGavetaSeguro])
+				            	GameTextForPlayer(playerid, "~W~Gaveta ~R~Cerrada!", 1000, 6);
+				            	else
+				            	GameTextForPlayer(playerid, "~W~Gaveta ~G~Abierta!", 1000, 6);
+				            	return 1;
+				            }
+				            else return SendInfoMessage(playerid, 0, "", "No tienes llaves de este local.");
+				        }
 				        else
 				        {
-							SendInfoMessage(playerid, 0, "749", "No te encuentras en ninguna casa");
+							SendInfoMessage(playerid, 0, "749", "No te encuentras en ninguna casa o local");
 						}
 			    	}
 					// COMANDO: /Llaves Maletero
@@ -12991,9 +12985,24 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								SendInfoMessage(playerid, 0, "1112", "Ésta no es su casa");
 							}
 				        }
+				        else if (PlayersData[playerid][InLocal] != -1)
+				        {
+				            new localid = PlayersData[playerid][InLocal];
+				            if (PlayerHaveLocalKeys(playerid, localid))
+							{   
+							    LocalData[localid][LArmarioSeguro] = !LocalData[localid][LArmarioSeguro];
+							    PlayPlayerStreamSound(playerid, 1027);
+							    
+							    if (LocalData[localid][LArmarioSeguro])
+							    GameTextForPlayer(playerid, "~W~Armario ~R~Cerrado!", 1000, 6);
+							    else
+							    GameTextForPlayer(playerid, "~W~Armario ~G~Abierto!", 1000, 6);
+							}
+							else return SendInfoMessage(playerid, 0, "", "No tienes llaves de este local.");
+				        }
 				        else
 				        {
-							SendInfoMessage(playerid, 0, "1113", "No te encuentras en ninguna casa");
+							SendInfoMessage(playerid, 0, "1113", "No te encuentras en ninguna casa o local");
 						}
 			    	}
 	 				// COMANDO: /Llaves Refrigerador
@@ -13022,9 +13031,24 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								SendInfoMessage(playerid, 0, "1220", "Ésta no es su casa");
 							}
 				        }
+				        else if (PlayersData[playerid][InLocal] != -1)
+				        {
+				            new localid = PlayersData[playerid][InLocal];
+				            if (PlayerHaveLocalKeys(playerid, localid))
+							{
+								LocalData[localid][LRefrigeradorSeguro] = !LocalData[localid][LRefrigeradorSeguro];
+							    PlayPlayerStreamSound(playerid, 1002);
+
+							    if (LocalData[localid][LRefrigeradorSeguro])
+							    GameTextForPlayer(playerid, "~W~Refrigerador ~R~Cerrado!", 1000, 6);
+							    else
+							    GameTextForPlayer(playerid, "~W~Refrigerador ~G~Abierto!", 1000, 6);
+							}
+							else return SendInfoMessage(playerid, 0, "", "No tienes llaves de este local.");
+				        }
 				        else
 				        {
-							SendInfoMessage(playerid, 0, "1221", "No te encuentras en ninguna casa");
+							SendInfoMessage(playerid, 0, "1221", "No te encuentras en ninguna casa o local");
 						}
 			    	}
 	 				// COMANDO: /Llaves GarageEx
@@ -13207,7 +13231,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								localID = PlayersData[playerid][InLocal];
 								if (localID != -1)
 								{
-								    if (!PlayerHaveLocalKeys(playerid, localID)) return SendInfoMessage(playerid, 0, "", "No tienes llaves de este local.");
+						            if (!PlayerHaveLocalKeys(playerid, localID)) return SendInfoMessage(playerid, 0, "", "No tienes llaves de este local.");
 								    if (!LocalData[localID][Seguro])
 								    {
 								        GameTextForPlayer(playerid, "~W~Local ~R~Cerrado!", 1000, 6);
@@ -16540,9 +16564,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							if (IsPlayerInLocalKeys(getid, localID)) return SendInfoMessage(playerid, 0, "", "Este jugador ya tiene las llaves de tu local");
 							if (AddPlayerInLocalKeys(getid, localID))
 							{
-							    new MsgLlavesLocalMe[MAX_TEXT_CHAT];
-								new MsgLlavesLocalToMe[MAX_TEXT_CHAT];
-								new MsgLlavesLocalToYou[MAX_TEXT_CHAT];
+							    new MsgLlavesLocalMe[150];
+								new MsgLlavesLocalToMe[150];
+								new MsgLlavesLocalToYou[150];
 								format(MsgLlavesLocalMe, sizeof(MsgLlavesLocalMe), "le da una copia de llaves de su local a %s", PlayersDataOnline[getid][NameOnlineFix]);
 								format(MsgLlavesLocalToMe, sizeof(MsgLlavesLocalToMe), "Le diste una copia de las llaves de tu local a %s", PlayersDataOnline[getid][NameOnlineFix]);
 								format(MsgLlavesLocalToYou, sizeof(MsgLlavesLocalToYou), "%s te dió una copia de las llaves de su local", PlayersDataOnline[playerid][NameOnlineFix]);
@@ -17916,17 +17940,25 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /Cocinar [ID_Refrigerador]
 		  		else if (strfind(cmdtext, "/Cocinar ", true) == 0)
 			    {
+			        new RefrigeradorID;
+					if (sscanf(cmdtext[9], "i", RefrigeradorID)) return SendSyntaxError(playerid, "Cocinar", "Cocinar 1");
+					
 			        if( PlayersData[playerid][IsPlayerInHouse] )
 			        {
 			            if ( IsOpenRefrigerador(playerid, PlayersData[playerid][IsPlayerInHouse]) )
 			            {
-							new RefrigeradorID = strval(cmdtext[GetPosSpace(cmdtext, 1)]);
 			                Cocinar(playerid, PlayersData[playerid][IsPlayerInHouse], RefrigeradorID);
 		                }
                 	}
+                	else if (PlayersData[playerid][InLocal] != -1)
+			        {
+			            new localid = PlayersData[playerid][InLocal];
+			            if (LocalData[localid][LRefrigeradorSeguro]) return SendInfoMessage(playerid, 0, "", "El refrigerador se encuentra cerrado!");
+			            Cocinar(playerid, localid, RefrigeradorID);
+			        }
                 	else
                 	{
-						SendInfoMessage(playerid, 0, "1270", "No te encuentras en una casa");
+						SendInfoMessage(playerid, 0, "1270", "No te encuentras en una casa o local");
 					}
 			    }
 				// COMANDO: /Usar
@@ -17949,9 +17981,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				                EatArticleRefrigerador(playerid, PlayersData[playerid][IsPlayerInHouse], RefrigeradorID);
 			                }
 	                	}
+	                	else if( PlayersData[playerid][InLocal] != -1 )
+				        {
+				            if (LocalData[PlayersData[playerid][InLocal]][LRefrigeradorSeguro]) return SendInfoMessage(playerid, 0, "", "El refrigerador se encuentra cerrado!");
+				            {
+								new RefrigeradorID = strval(cmdtext[GetPosSpace(cmdtext, 2)]);
+				                EatArticleRefrigerador(playerid, PlayersData[playerid][InLocal], RefrigeradorID);
+			                }
+	                	}
 	                	else
 	                	{
-							SendInfoMessage(playerid, 0, "1267", "No te encuentras en una casa");
+							SendInfoMessage(playerid, 0, "1267", "No te encuentras en una casa o local");
 						}
 				    }
 				    else
@@ -17967,18 +18007,26 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			  		if ( strfind(cmdtext, "/Coger Artículo ", true) == 0 ||
 				  		 strfind(cmdtext, "/Coger Articulo ", true) == 0)
 				    {
-						new HouseId = PlayersData[playerid][IsPlayerInHouse];
-						if ( HouseId )
+				        new RefrigeradorID;
+						if (sscanf(cmdtext[16], "i", RefrigeradorID)) return SendSyntaxError(playerid, "Coger Articulo", "Coger Artículo 1");
+						
+						if ( PlayersData[playerid][IsPlayerInHouse] )
 						{
+							new HouseId = PlayersData[playerid][IsPlayerInHouse];
 						    if ( IsOpenRefrigerador(playerid, HouseId) )
 					        {
-						        new RefrigeradorID = strval(cmdtext[GetPosSpace(cmdtext, 2)]);
 								RemoveArticleRefrigeradorFun(playerid, HouseId, RefrigeradorID);
 							}
 						}
+						else if (PlayersData[playerid][InLocal] != -1)
+				        {
+				            new localid = PlayersData[playerid][InLocal];
+				            if (LocalData[localid][LRefrigeradorSeguro]) return SendInfoMessage(playerid, 0, "", "El refrigerador se encuentra cerrado!");
+				            RemoveArticleLRefrigerador(playerid, localid, RefrigeradorID);
+				        }
 						else
 						{
-								SendInfoMessage(playerid, 0, "1582", "No estas en una casa");
+							SendInfoMessage(playerid, 0, "1582", "No estas en una casa o local");
 						}
 			    	}
         			// COMANDO: /Coger Objeto
@@ -18066,9 +18114,47 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								    }
 								}
 	        			    }
+	        			    else if (PlayersData[playerid][InLocal] != -1)
+					        {
+					            new localid = PlayersData[playerid][InLocal];
+					            if (LocalData[localid][LGavetaSeguro]) return SendInfoMessage(playerid, 0, "", "La gaveta se encuentra cerrada!");
+	        			        new SlotIDGet = -1;
+								for (new i = 0; i < MAX_GUANTERA_GAVETA_SLOTS; i++)
+								{
+								    if ( LocalData[localid][LGavetaObjects][i] )
+								    {
+								        SlotIDGet = i;
+						                break;
+								    }
+								}
+								if ( SlotIDGet != -1 )
+								{
+								    new saveType = GetObjectByType(playerid, GetTypeObjectEx(LocalData[localid][LGavetaObjects][SlotIDGet]));
+								    if ( saveType == -1 )
+								    {
+										new MsgGiveGG[MAX_TEXT_CHAT];
+										new MsgGiveGGME[MAX_TEXT_CHAT];
+								        format(MsgGiveGG, sizeof(MsgGiveGG), "coge %s de la gaveta", ObjectsNames[GetTypeObjectEx(LocalData[localid][LGavetaObjects][SlotIDGet])]);
+								        format(MsgGiveGGME, sizeof(MsgGiveGGME), "has cogido %s de la gaveta", ObjectsNames[GetTypeObjectEx(LocalData[localid][LGavetaObjects][SlotIDGet])]);
+								        Acciones(playerid, 8, MsgGiveGG);
+								        SendInfoMessage(playerid, 2, "0", MsgGiveGGME);
+
+								        AddObjectHoldToPlayer(playerid, LocalData[localid][LGavetaObjects][SlotIDGet]);
+								        LocalData[localid][LGavetaObjects][SlotIDGet] = false;
+								    }
+								    else
+								    {
+										SendInfoMessage(playerid, 0, "1588", "No puedes llevar más objetos de este tipo!");
+								    }
+							    }
+							    else
+							    {
+									SendInfoMessage(playerid, 0, "1593", "La gaveta se encuentra vacía!");
+							    }
+					        }
 	        			    else
 	        			    {
-								SendInfoMessage(playerid, 0, "1589", "No te encuentras en la guantera del coche ni en la gaveta de la casa!");
+								SendInfoMessage(playerid, 0, "1589", "No te encuentras en la guantera de un coche ni en la gaveta de una casa o local!");
 	        			    }
         			    }
         			}
@@ -18160,9 +18246,48 @@ public OnPlayerCommandText(playerid, cmdtext[])
 									}
 								}
 	        			    }
+	        			    else if (PlayersData[playerid][InLocal] != -1)
+					        {
+					            new localid = PlayersData[playerid][InLocal];
+					            if (LocalData[localid][LGavetaSeguro]) return SendInfoMessage(playerid, 0, "", "La gaveta se encuentra cerrada!");
+								if ( SlotIDGet >= 1 && SlotIDGet <= MAX_GUANTERA_GAVETA_SLOTS )
+							    {
+							        SlotIDGet--;
+									if ( LocalData[localid][LGavetaObjects][SlotIDGet] )
+									{
+									    new saveType = GetObjectByType(playerid, GetTypeObjectEx(LocalData[localid][LGavetaObjects][SlotIDGet]));
+									    if ( saveType == -1 )
+									    {
+											new MsgGiveGG[MAX_TEXT_CHAT];
+											new MsgGiveGGME[MAX_TEXT_CHAT];
+									        format(MsgGiveGG, sizeof(MsgGiveGG), "coge %s de la gaveta", ObjectsNames[GetTypeObjectEx(LocalData[localid][LGavetaObjects][SlotIDGet])]);
+									        format(MsgGiveGGME, sizeof(MsgGiveGGME), "has cogido %s de la gaveta", ObjectsNames[GetTypeObjectEx(LocalData[localid][LGavetaObjects][SlotIDGet])]);
+									        Acciones(playerid, 8, MsgGiveGG);
+									        SendInfoMessage(playerid, 2, "0", MsgGiveGGME);
+
+									        AddObjectHoldToPlayer(playerid, LocalData[localid][LGavetaObjects][SlotIDGet]);
+									        LocalData[localid][LGavetaObjects][SlotIDGet] = false;
+									    }
+									    else
+									    {
+											SendInfoMessage(playerid, 0, "1594", "No puedes llevar más objetos de este tipo!");
+									    }
+									}
+									else
+									{
+							            new TempError[50];
+							            format(TempError, sizeof(TempError), "El Slot número \"%i\" esta vacío", SlotIDGet + 1 );
+							            SendInfoMessage(playerid, 0, "1595", TempError);
+									}
+								}
+								else
+								{
+ 									SendInfoMessage(playerid, 0, "1596", "El número del SLOT para la gaveta debe estar comprendido entre 1 y 8.");
+								}
+					        }
 	        			    else
 	        			    {
-								SendInfoMessage(playerid, 0, "1597", "No te encuentras en la guantera del coche ni en la gaveta de la casa!");
+								SendInfoMessage(playerid, 0, "", "No te encuentras en la guantera de un coche ni en la gaveta de una casa o local!");
 	        			    }
         			    }
 			    	}
@@ -18372,7 +18497,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}
 				    }
 				    // COGER COCHES
-				    else if ( GetPlayerInteriorEx(playerid) == 0 || PlayersData[playerid][IsPlayerInGarage] >= 0 || !PlayersData[playerid][IsPlayerInHouse] )
+				    else if ( GetPlayerInteriorEx(playerid) == 0 || PlayersData[playerid][IsPlayerInGarage] >= 0 || (!PlayersData[playerid][IsPlayerInHouse] && PlayersData[playerid][InLocal] == -1) )
 				    {
 					    new MyMalteroOpen = IsMaleteroOpen(playerid);
 					    if ( MyMalteroOpen )
@@ -18719,6 +18844,193 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "649", "Quizás quiso decir: /Coger {Materiales [Cantidad], Artículo [ID_Refrigerador], Objeto, ObjetoEx [ID_SLOT]}");
 						}
 					}
+					// Coger Locales
+					else if (PlayersData[playerid][InLocal] != -1)
+					{
+					    new localid = PlayersData[playerid][InLocal];
+					    // COMANDO: /Coger Chaleco
+					  	if (strcmp("/Coger Chaleco", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14)
+				    	{
+							if (LocalData[localid][LRefrigeradorSeguro]) return SendInfoMessage(playerid, 0, "", "El refrigerador se encuentra cerrado!");
+							if ( LocalData[localid][LArmarioChaleco] != 0 )
+							{
+								SetPlayerArmourEx(playerid, LocalData[localid][LArmarioChaleco]);
+							    LocalData[localid][LArmarioChaleco] = 0;
+						        Acciones(playerid, 8, "ha cogido un chaleco del armario");
+						        SendInfoMessage(playerid, 2, "0", "Has cogido un chaleco del armario.");
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "641", "En el armario no hay ningún chaleco.");
+							}
+				    	}
+	        			// COMANDO: /Coger Arma
+						else if (strcmp("/Coger Arma", cmdtext, true, 11) == 0 && strlen(cmdtext) == 11)
+				    	{
+							if (LocalData[localid][LArmarioSeguro] == 0)
+							{
+								new EmpySlot = -1;
+								for (new i = 0; i < 7; i++)
+								{
+								    if ( LocalData[localid][LArmarioArma][i] != 0 )
+								    {
+		                                EmpySlot = i;
+										break;
+								    }
+								}
+								if ( CheckWeapondCheat(playerid) && EmpySlot != -1 )
+								{
+		                            GivePlayerWeaponEx(playerid, LocalData[localid][LArmarioArma][EmpySlot], LocalData[localid][LArmarioAmmo][EmpySlot]);
+									new MsgCoger[MAX_TEXT_CHAT];
+									new MsgCogerMe[MAX_TEXT_CHAT];
+							        format(MsgCoger, sizeof(MsgCoger), "Has cogido un %s del armario.", SlotNameWeapon[LocalData[localid][LArmarioArma][EmpySlot]]);
+							        format(MsgCogerMe, sizeof(MsgCogerMe), "ha cogido %s del armario", SlotNameWeapon[LocalData[localid][LArmarioArma][EmpySlot]]);
+							        Acciones(playerid, 8, MsgCogerMe);
+							        SendInfoMessage(playerid, 2, "0", MsgCoger);
+		                            LocalData[localid][LArmarioArma][EmpySlot] = 0;
+		                            LocalData[localid][LArmarioAmmo][EmpySlot] = 0;
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "642", "El armario se encuentra vacío!");
+								}
+							}
+							else return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+				    	}
+	        			// COMANDO: /Coger ArmaEx [ID_Slot]
+				  		else if (strfind(cmdtext, "/Coger ArmaEx ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro] == 0)
+							{
+								if ( strval(cmdtext[14]) >= 1 && strval(cmdtext[14]) <= 7 )
+							    {
+							        if ( CheckWeapondCheat(playerid) && LocalData[localid][LArmarioArma][strval(cmdtext[14]) - 1] != 0 )
+							        {
+			                            GivePlayerWeaponEx(playerid, LocalData[localid][LArmarioArma][strval(cmdtext[14]) - 1], LocalData[localid][LArmarioAmmo][strval(cmdtext[14]) - 1]);
+										new MsgCoger[MAX_TEXT_CHAT];
+										new MsgCogerMe[MAX_TEXT_CHAT];
+								        format(MsgCoger, sizeof(MsgCoger), "Has cogido %s del armario.", SlotNameWeapon[LocalData[localid][LArmarioArma][strval(cmdtext[14]) - 1]]);
+								        format(MsgCogerMe, sizeof(MsgCogerMe), "ha cogido %s del armario", SlotNameWeapon[LocalData[localid][LArmarioArma][strval(cmdtext[14]) - 1]]);
+								        Acciones(playerid, 8, MsgCogerMe);
+								        SendInfoMessage(playerid, 2, "0", MsgCoger);
+		                                LocalData[localid][LArmarioArma][strval(cmdtext[14]) - 1] = 0;
+		                                LocalData[localid][LArmarioAmmo][strval(cmdtext[14]) - 1] = 0;
+									}
+									else
+									{
+							            new TempError[50];
+							            format(TempError, sizeof(TempError), "En Slot número \"%i\" esta vacío", strval(cmdtext[14]) );
+							            SendInfoMessage(playerid, 0, "643", TempError);
+									}
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "644", "La ID de el Slot a coger el arma tiene que estar comprendio entre 1 y 7");
+								}
+							}
+							else return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+					    }
+	        			// COMANDO: /Coger Drogas [Cantidad]
+				  		else if (strfind(cmdtext, "/Coger Drogas ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro] == 0)
+							{
+						        if ( LocalData[localid][LArmarioDrogas] > 0 && LocalData[localid][LArmarioDrogas] >= strval(cmdtext[14]) )
+						        {
+							        PlayersData[playerid][Drogas] = PlayersData[playerid][Drogas] + strval(cmdtext[14]);
+							        LocalData[localid][LArmarioDrogas] = LocalData[localid][LArmarioDrogas] - strval(cmdtext[14]);
+
+									new MsgCoger[MAX_TEXT_CHAT];
+							        format(MsgCoger, sizeof(MsgCoger), "Has cogido %i drogas del armario.", strval(cmdtext[14]));
+							        Acciones(playerid, 8, "ha cogido drogas del armario");
+							        SendInfoMessage(playerid, 2, "0", MsgCoger);
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "645", "El armario no tiene esa cantidad de drogas a coger!");
+								}
+							}
+							else return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+				    	}
+	        			// COMANDO: /Coger Ganzúas [Cantidad]
+				  		else if (strfind(cmdtext, "/Coger Ganzúas ", true) == 0 || strfind(cmdtext, "/Coger Ganzuas ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro] == 0)
+							{
+						        if ( LocalData[localid][LArmarioGanzuas] > 0 && LocalData[localid][LArmarioGanzuas] >= strval(cmdtext[15]) )
+						        {
+							        PlayersData[playerid][Ganzuas] = PlayersData[playerid][Ganzuas] + strval(cmdtext[15]);
+							        LocalData[localid][LArmarioGanzuas] = LocalData[localid][LArmarioGanzuas] - strval(cmdtext[15]);
+
+									new MsgCoger[MAX_TEXT_CHAT];
+							        format(MsgCoger, sizeof(MsgCoger), "Has cogido %i ganzúas del armario.", strval(cmdtext[15]));
+							        Acciones(playerid, 8, "ha cogido ganzúas del armario");
+							        SendInfoMessage(playerid, 2, "0", MsgCoger);
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "646", "El armario no tiene esa cantidad de ganzúas a coger!");
+								}
+							}
+							else return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+				    	}
+	        			// COMANDO: /Coger Materiales [Cantidad]
+				  		else if (strfind(cmdtext, "/Coger Materiales ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro] == 0)
+							{
+						        if ( LocalData[localid][LArmarioMateriales] > 0 && LocalData[localid][LArmarioMateriales] >= strval(cmdtext[17]) )
+						        {
+					                if ( IsNotFullMaterialsPlayer(playerid, strval(cmdtext[17])) )
+						            {
+								        PlayersData[playerid][Materiales] = PlayersData[playerid][Materiales] + strval(cmdtext[17]);
+								        LocalData[localid][LArmarioMateriales] = LocalData[localid][LArmarioMateriales] - strval(cmdtext[17]);
+
+										new MsgCoger[MAX_TEXT_CHAT];
+								        format(MsgCoger, sizeof(MsgCoger), "Has cogido %i materiales del armario.", strval(cmdtext[17]));
+								        Acciones(playerid, 8, "ha cogido materiales del armario");
+								        SendInfoMessage(playerid, 2, "0", MsgCoger);
+							        }
+							        else
+							        {
+								    	SendInfoMessage(playerid, 0, "1042", "No puedes cargar esa cantidad de materiales encima! Recuerda que el máximo es 2500");
+									}
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "647", "El maletero no tiene esa cantidad de materiales a coger!");
+								}
+							}
+							else return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+				    	}
+	        			// COMANDO: /Coger Bombas [Cantidad]
+				  		else if (strfind(cmdtext, "/Coger Bombas ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro] == 0)
+							{
+						        if ( LocalData[localid][LArmarioBombas] > 0 && LocalData[localid][LArmarioBombas] >= strval(cmdtext[14]) )
+						        {
+							        PlayersData[playerid][Bombas] = PlayersData[playerid][Bombas] + strval(cmdtext[14]);
+							        LocalData[localid][LArmarioBombas] = LocalData[localid][LArmarioBombas] - strval(cmdtext[14]);
+
+									new MsgCoger[MAX_TEXT_CHAT];
+							        format(MsgCoger, sizeof(MsgCoger), "Has cogido %i bombas del armario.", strval(cmdtext[14]));
+							        Acciones(playerid, 8, "ha cogido bombas del armario");
+							        SendInfoMessage(playerid, 2, "0", MsgCoger);
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "648", "El armario no tiene esa cantidad de bombas a coger!");
+								}
+							}
+							else return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+				    	}
+				    	else
+				    	{
+							SendInfoMessage(playerid, 0, "649", "Quizás quiso decir: /Coger {Arma, ArmaEx [ID_SLOT], Chaleco, Drogas [Cantidad], Bombas [Cantidad], Ganzúas [Cantidad]}");
+							SendInfoMessage(playerid, 0, "649", "Quizás quiso decir: /Coger {Materiales [Cantidad], Artículo [ID_Refrigerador], Objeto, ObjetoEx [ID_SLOT]}");
+						}
+					}
 					else
 					{
 						SendInfoMessage(playerid, 0, "628", "No estas en una casa");
@@ -18732,9 +19044,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			  		if ( strfind(cmdtext, "/Dejar Artículo ", true) == 0 ||
 				  		 strfind(cmdtext, "/Dejar Articulo ", true) == 0)
 				    {
-						new HouseId = PlayersData[playerid][IsPlayerInHouse];
-						if ( HouseId )
+						if ( PlayersData[playerid][IsPlayerInHouse] )
 						{
+						    new HouseId = PlayersData[playerid][IsPlayerInHouse];
 					        if ( IsOpenRefrigerador(playerid, HouseId) )
 					        {
 						        new BolsaID = strval(cmdtext[GetPosSpace(cmdtext, 2)]);
@@ -18744,9 +19056,20 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								}
 							}
 						}
+                        else if (PlayersData[playerid][InLocal] != -1)
+				        {
+				            new localid = PlayersData[playerid][InLocal];
+				            if (LocalData[localid][LRefrigeradorSeguro]) return SendInfoMessage(playerid, 0, "", "El refrigerador se encuentra cerrado!");
+				            new BolsaID = strval(cmdtext[GetPosSpace(cmdtext, 2)]);
+				            if ( AddArticleLRefrigerador(playerid, localid, BolsaID) == -1)
+							{
+								SendInfoMessage(playerid, 0, "1590", "El refrigerador se encuentra lleno!");
+							}
+							return 1;
+				        }
 						else
 						{
-							SendInfoMessage(playerid, 0, "1591", "No estas en una casa");
+							SendInfoMessage(playerid, 0, "1591", "No estas en una casa o local");
 						}
 			    	}
 				    // DEJAR ALAMACENES
@@ -18950,7 +19273,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}
 					}
 					// DEJAR COCHES
-				    else if ( GetPlayerInteriorEx(playerid) == 0 || PlayersData[playerid][IsPlayerInGarage] >= 0 || !PlayersData[playerid][IsPlayerInHouse])
+				    else if ( GetPlayerInteriorEx(playerid) == 0 || PlayersData[playerid][IsPlayerInGarage] >= 0 || (!PlayersData[playerid][IsPlayerInHouse] && PlayersData[playerid][InLocal] == -1) )
 				    {
 					    new MyMalteroOpen = IsMaleteroOpen(playerid);
 					    if ( MyMalteroOpen )
@@ -19323,9 +19646,192 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "631", "Quizás quiso decir: /Dejar {Materiales [Cantidad], Bombas [Cantidad], Artículo [ID_Bolsa]}");
 						}
 					}
+					// Dejar Locales
+					else if (PlayersData[playerid][InLocal] != -1)
+			        {
+			            new localid = PlayersData[playerid][InLocal];
+			            if (strcmp("/Dejar Chaleco", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14)
+				    	{
+							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+							
+						    new Float:Chaleco1;
+							GetPlayerArmour(playerid, Chaleco1);
+							if ( Chaleco1 != 0.0 )
+							{
+								LocalData[localid][LArmarioChaleco] = PlayersData[playerid][Chaleco];
+								SetPlayerArmourEx(playerid, -Chaleco1);
+						        Acciones(playerid, 8, "ha dejado un chaleco en el armario");
+						        SendInfoMessage(playerid, 2, "0", "Has dejado un chaleco en el armario");
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "640", "Usted no tienes ningún chaleco puesto encima.");
+							}
+				    	}
+	        			// COMANDO: /Dejar Arma
+					  	else if (strcmp("/Dejar Arma", cmdtext, true, 11) == 0 && strlen(cmdtext) == 11)
+				    	{
+							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+							
+							new MyWeapons, MyAmmo; MyWeapons = GetPlayerWeapon(playerid); MyAmmo = GetPlayerAmmo(playerid);
+					        if ( MyWeapons != 0 )
+					        {
+								new EmpySlot = -1;
+								for (new i = 0; i < 7; i++)
+								{
+								    if ( LocalData[localid][LArmarioArma][i] == 0 )
+								    {
+	                                    EmpySlot = i;
+										break;
+								    }
+								}
+								if ( EmpySlot != -1 )
+								{
+		                            LocalData[localid][LArmarioArma][EmpySlot] = MyWeapons;
+		                            LocalData[localid][LArmarioAmmo][EmpySlot] = MyAmmo;
+		                            RemovePlayerWeapond(playerid, MyWeapons);
+
+									new MsgDejar[MAX_TEXT_CHAT];
+									new MsgDejarMe[MAX_TEXT_CHAT];
+							        format(MsgDejar, sizeof(MsgDejar), "Has dejado un %s en el armario", SlotNameWeapon[MyWeapons]);
+							        format(MsgDejarMe, sizeof(MsgDejarMe), "ha dejado %s en el armario", SlotNameWeapon[MyWeapons]);
+							        Acciones(playerid, 8, MsgDejarMe);
+							        SendInfoMessage(playerid, 2, "0", MsgDejar);
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "639", "El armario se encuentra lleno!");
+								}
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "638", "No tienes un arma en las manos!");
+							}
+				    	}
+	        			// COMANDO: /Dejar ArmaEx [ID_Slot]
+				  		else if (strfind(cmdtext, "/Dejar ArmaEx ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+							new MyWeapons, MyAmmo; MyWeapons = GetPlayerWeapon(playerid); MyAmmo = GetPlayerAmmo(playerid);
+					        if ( MyWeapons != 0 )
+					        {
+							    if ( strval(cmdtext[14]) >= 1 && strval(cmdtext[14]) <= 7 )
+							    {
+							        if ( LocalData[localid][LArmarioArma][strval(cmdtext[14]) - 1] == 0 )
+							        {
+		                                LocalData[localid][LArmarioArma][strval(cmdtext[14]) - 1] = MyWeapons;
+		                                LocalData[localid][LArmarioAmmo][strval(cmdtext[14]) - 1] = MyAmmo;
+		                                RemovePlayerWeapond(playerid, MyWeapons);
+
+										new MsgDejar[MAX_TEXT_CHAT];
+										new MsgDejarMe[MAX_TEXT_CHAT];
+								        format(MsgDejar, sizeof(MsgDejar), "Has dejado un %s en el armario", SlotNameWeapon[MyWeapons]);
+								        format(MsgDejarMe, sizeof(MsgDejarMe), "ha dejado %s en el armario", SlotNameWeapon[MyWeapons]);
+								        Acciones(playerid, 8, MsgDejarMe);
+								        SendInfoMessage(playerid, 2, "0", MsgDejar);
+									}
+									else
+									{
+							            new TempError[50];
+							            format(TempError, sizeof(TempError), "En Slot número \"%i\" ya esta ocupado por otra arma", strval(cmdtext[14]) );
+							            SendInfoMessage(playerid, 0, "630", TempError);
+									}
+								}
+								else
+								{
+									SendInfoMessage(playerid, 0, "637", "La ID de el Slot a dejar el arma tiene que estar comprendio entre 1 y 7");
+								}
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "636", "No tienes un arma en las manos!");
+							}
+					    }
+	        			// COMANDO: /Dejar Drogas [Cantidad]
+				  		else if (strfind(cmdtext, "/Dejar Drogas ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+					        if ( PlayersData[playerid][Drogas] > 0 && PlayersData[playerid][Drogas] >= strval(cmdtext[14]) )
+					        {
+						        LocalData[localid][LArmarioDrogas] = LocalData[localid][LArmarioDrogas] + strval(cmdtext[14]);
+						        PlayersData[playerid][Drogas] = PlayersData[playerid][Drogas] - strval(cmdtext[14]);
+
+								new MsgDejar[MAX_TEXT_CHAT];
+						        format(MsgDejar, sizeof(MsgDejar), "Has dejado %i drogas en el armario", strval(cmdtext[14]));
+						        Acciones(playerid, 8, "ha dejado drogas en el armario");
+						        SendInfoMessage(playerid, 2, "0", MsgDejar);
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "635", "No tienes esa cantidad de drogas para dejar!");
+							}
+				    	}
+	        			// COMANDO: /Dejar Ganzúas [Cantidad]
+				  		else if (strfind(cmdtext, "/Dejar Ganzúas ", true) == 0 || strfind(cmdtext, "/Dejar Ganzuas ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+					        if ( PlayersData[playerid][Ganzuas] > 0 && PlayersData[playerid][Ganzuas] >= strval(cmdtext[15]) )
+					        {
+						        LocalData[localid][LArmarioGanzuas] = LocalData[localid][LArmarioGanzuas] + strval(cmdtext[15]);
+						        PlayersData[playerid][Ganzuas] = PlayersData[playerid][Ganzuas] - strval(cmdtext[15]);
+
+								new MsgDejar[MAX_TEXT_CHAT];
+						        format(MsgDejar, sizeof(MsgDejar), "Has dejado %i ganzúas en el armario.", strval(cmdtext[15]));
+						        Acciones(playerid, 8, "ha dejado ganzúas en el armario");
+						        SendInfoMessage(playerid, 2, "0", MsgDejar);
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "634", "No tienes esa cantidad de ganzúas para dejar!");
+							}
+				    	}
+	        			// COMANDO: /Dejar Materiales [Cantidad]
+				  		else if (strfind(cmdtext, "/Dejar Materiales ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+					        if ( PlayersData[playerid][Materiales] > 0 && PlayersData[playerid][Materiales] >= strval(cmdtext[17]) )
+					        {
+						        LocalData[localid][LArmarioMateriales] = LocalData[localid][LArmarioMateriales] + strval(cmdtext[17]);
+						        PlayersData[playerid][Materiales] = PlayersData[playerid][Materiales] - strval(cmdtext[17]);
+
+								new MsgDejar[MAX_TEXT_CHAT];
+						        format(MsgDejar, sizeof(MsgDejar), "Has dejado %i materiales en el armario.", strval(cmdtext[17]));
+						        Acciones(playerid, 8, "ha dejado materiales en el armario");
+						        SendInfoMessage(playerid, 2, "0", MsgDejar);
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "633", "No tienes esa cantidad de materiales para dejar!");
+							}
+				    	}
+	        			// COMANDO: /Dejar Bombas [Cantidad]
+				  		else if (strfind(cmdtext, "/Dejar Bombas ", true) == 0)
+					    {
+							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+					        if ( PlayersData[playerid][Bombas] > 0 && PlayersData[playerid][Bombas] >= strval(cmdtext[14]) )
+					        {
+						        LocalData[localid][LArmarioBombas] = LocalData[localid][LArmarioBombas] + strval(cmdtext[14]);
+						        PlayersData[playerid][Bombas] = PlayersData[playerid][Bombas] - strval(cmdtext[14]);
+
+								new MsgDejar[MAX_TEXT_CHAT];
+						        format(MsgDejar, sizeof(MsgDejar), "Has dejado %i bombas en el armario.", strval(cmdtext[14]));
+						        Acciones(playerid, 8, "ha dejado bombas en el armario");
+						        SendInfoMessage(playerid, 2, "0", MsgDejar);
+							}
+							else
+							{
+								SendInfoMessage(playerid, 0, "632", "No tienes esa cantidad de bombas para dejar!");
+							}
+				    	}
+						else
+				    	{
+							SendInfoMessage(playerid, 0, "", "Quizás quiso decir: /Dejar {Arma, ArmaEx [ID_SLOT], Chaleco [ID_SLOT], Drogas [Cantidad], Ganzúas [Cantidad]}");
+							SendInfoMessage(playerid, 0, "", "Quizás quiso decir: /Dejar {Materiales [Cantidad], Bombas [Cantidad], Artículo [ID_Bolsa]}");
+						}
+			        }
 					else
 					{
-						SendInfoMessage(playerid, 0, "629", "No estas en una casa");
+						SendInfoMessage(playerid, 0, "629", "No estas en una casa o local");
 					}
 				}
 				// COMANDO: /SuperMercado
@@ -19389,9 +19895,33 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							player_pos_z);
 						}
 					}
+					else if (PlayersData[playerid][InLocal] != -1)
+			        {
+			            new localid = PlayersData[playerid][InLocal];
+			            if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
+						new string[150];
+						Acciones(playerid, 8, "mira haciendo dentro del armario");
+						SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE, ">>>>>>>>>> .:Armario:. <<<<<<<<<");
+						for(new i=0; i != 7; i++)
+						{
+						    if (LocalData[localid][LArmarioArma][i] == 0)
+						    format(string, sizeof(string), "** Armario Slot %i: Vacio", i + 1);
+						    else
+						    format(string, sizeof(string), "** Armario Slot %i: %s ::: Municion: %i", i + 1, SlotNameWeapon[LocalData[localid][LArmarioArma][i]], LocalData[localid][LArmarioAmmo][i]);
+						    SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE, string);
+						}
+						format(string, sizeof(string), "** Armario Chaleco: %.2f | Drogas: %i | Ganzúas: %i | Materiales: %i | Bombas: %i",
+						    LocalData[localid][LArmarioChaleco],
+						    LocalData[localid][LArmarioDrogas],
+						    LocalData[localid][LArmarioGanzuas],
+						    LocalData[localid][LArmarioMateriales],
+						    LocalData[localid][LArmarioBombas]);
+						SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE, string);
+						return 1;
+			        }
 					else
 					{
-						SendInfoMessage(playerid, 0, "610", "No se encuentra dentro de una casa");
+						SendInfoMessage(playerid, 0, "610", "No se encuentra dentro de una casa o local");
 					}
 				}
 				// COMANDO: /Almacén
@@ -19476,9 +20006,30 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							player_pos_z);
 						}
 					}
+					else if (PlayersData[playerid][InLocal] != -1)
+			        {
+			            new localid = PlayersData[playerid][InLocal];
+			            //LocalData[localid][]
+			            if (LocalData[localid][LRefrigeradorSeguro]) return SendInfoMessage(playerid, 0, "", "El refrigerador se encuentra cerrado!");
+			            new MsgRefrigerador[150];
+	                    Acciones(playerid, 8, "mira dentro del refrigerador");
+						SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE, ">>>>>>>>>> .:Refrigerador:. <<<<<<<<<");
+						for (new i = 0; i != MAX_REFRIGERADOR_SLOTS_COUNT; i++)
+						{
+							format( MsgRefrigerador, sizeof(MsgRefrigerador), "** Refrigerador Artículo %i: %s (%i)", i + 1, Articulos[LRefrigerador[localid][Articulo][i]][NameA], LRefrigerador[localid][Cantidad][i]);
+							SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE,	MsgRefrigerador);
+						}
+						new Float:player_pos_x, Float:player_pos_y, Float:player_pos_z;
+						GetPlayerPos(playerid, player_pos_x, player_pos_y, player_pos_z);
+						PlayerPlaySound(playerid, 1002,
+						player_pos_x,
+						player_pos_y,
+						player_pos_z);
+						return 1;
+			        }
 					else
 					{
-						SendInfoMessage(playerid, 0, "610", "No se encuentra dentro de una casa");
+						SendInfoMessage(playerid, 0, "610", "No se encuentra dentro de una casa o local");
 					}
 				}
 				// COMANDO: /Guantera
@@ -19536,11 +20087,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							{
 							    if ( !HouseData[Houseid][GavetaObjects][i] )
 							    {
-							        format(MsgGaveta, sizeof(MsgGaveta), "** Guantera Slot %i: %s", i + 1, ObjectsNames[0]);
+							        format(MsgGaveta, sizeof(MsgGaveta), "** Gaveta Slot %i: %s", i + 1, ObjectsNames[0]);
 							    }
 							    else
 							    {
-									format( MsgGaveta, sizeof(MsgGaveta), "** Guantera Slot %i: %s", i + 1, ObjectsNames[GetTypeObjectEx(HouseData[Houseid][GavetaObjects][i])]);
+									format( MsgGaveta, sizeof(MsgGaveta), "** Gaveta Slot %i: %s", i + 1, ObjectsNames[GetTypeObjectEx(HouseData[Houseid][GavetaObjects][i])]);
 								}
 								SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE,	MsgGaveta);
 							}
@@ -19552,9 +20103,33 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							player_pos_z);
 						}
 					}
+					else if (PlayersData[playerid][InLocal] != -1)
+			        {
+			            new localid = PlayersData[playerid][InLocal];
+			            //LocalData[localid][]
+						if (LocalData[localid][LGavetaSeguro]) return SendInfoMessage(playerid, 0, "", "La gaveta se encuentra cerrada!");
+						new MsgGaveta[MAX_TEXT_CHAT];
+	                    Acciones(playerid, 8, "mira dentro de la gaveta");
+						SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE,
+						 ">>>>>>>>>> .:Gaveta:. <<<<<<<<<");
+						for (new i = 0; i < MAX_GUANTERA_GAVETA_SLOTS; i++)
+						{
+						    if ( LocalData[localid][LGavetaObjects][i] == 0)
+						    format(MsgGaveta, sizeof(MsgGaveta), "** Gaveta Slot %i: %s", i + 1, ObjectsNames[0]);
+						    else
+							format( MsgGaveta, sizeof(MsgGaveta), "** Gaveta Slot %i: %s", i + 1, ObjectsNames[GetTypeObjectEx(LocalData[localid][LGavetaObjects][i])]);
+							SendClientMessage(playerid, COLOR_MALETERO_ARMARIO_CAJA_FUERTE,	MsgGaveta);
+						}
+						new Float:player_pos_x, Float:player_pos_y, Float:player_pos_z;
+						GetPlayerPos(playerid, player_pos_x, player_pos_y, player_pos_z);
+						PlayerPlaySound(playerid, 1002,
+						player_pos_x,
+						player_pos_y,
+						player_pos_z);
+			        }
 					else
 					{
-						SendInfoMessage(playerid, 0, "1584", "No se encuentra dentro de una casa");
+						SendInfoMessage(playerid, 0, "1584", "No se encuentra dentro de una casa o local");
 					}
 				}
 				// COMANDO: /Maletero
@@ -24873,7 +25448,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
                         else
 						format(FechaHoraFormateada, sizeof(FechaHoraFormateada), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
 
-						new MensajeBanco[3][70];
+						new MensajeBanco[4][70];
 						new Intereses;
 						new Float:Xpaga, Float:Ypaga, Float:Zpaga;
 
@@ -25044,9 +25619,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
                 {
                     if (PlayersData[playerid][Admin] < 7) return SendAccessError(playerid, "IrL.");
                     new getID = strval(cmdtext[5]);
-                    if (getID >= 1 && getID <= MAX_LOCAL)
+                    new localID = getID-1;
+					if (localID >= 0 && localID <= MAX_LOCAL_ID && LocalData[localID][Tipo] != 0)
                     {
-                        new string[150], localID = getID-1;
+                        new string[150];
 
                         SetPlayerPos(playerid, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ]);
                         SetPlayerInteriorEx(playerid, 0);
@@ -25067,9 +25643,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				{
 					if (PlayersData[playerid][Admin] < 7) return SendAccessError(playerid, "LPos.");
 					new getID = strval(cmdtext[5]);
-					if (getID >= 1 && getID <= MAX_LOCAL)
+					new localID = getID-1;
+					if (localID >= 0 && localID <= MAX_LOCAL_ID && LocalData[localID][Tipo] != 0)
 					{
-						new string[150], localID = getID-1;
+						new string[150];
 						new Float:Pos[4];
 
 						GetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
@@ -25103,7 +25680,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			            new localID = PlayersDataOnline[playerid][InLocalPickup];
 			            new string[150];
 			            
-			            format(string,sizeof(string), "Cambiaste el precio del local [%i] de $%i a $%i.", localID, LocalData[localID][Precio], price);
+			            format(string,sizeof(string), "Cambiaste el precio del local [%i] de $%i a $%i.", localID+1, LocalData[localID][Precio], price);
 			            SendAdviseMessage(playerid, string);
 			            
                         LocalData[localID][Precio] = price;
@@ -25124,7 +25701,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			            new localID = PlayersDataOnline[playerid][InLocalPickup];
 			            new string[150];
 			            
-			            format(string,sizeof(string), "Cambiaste el nivel del local [%i] de %i a %i.", localID, LocalData[localID][Nivel], level);
+			            format(string,sizeof(string), "Cambiaste el nivel del local [%i] de %i a %i.", localID+1, LocalData[localID][Nivel], level);
 			            SendAdviseMessage(playerid, string);
 
                         LocalData[localID][Nivel] = level;
@@ -25144,7 +25721,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			            if (IsLocalForSale(localID)) return SendInfoMessage(playerid, 0, "", "Este local ya esta a la venta.");
 			            
 			            new string[500];
-			            format(string, sizeof(string), "Has vendido este local [%i]. El propietario era %s", localID, LocalData[localID][Owner]);
+			            format(string, sizeof(string), "Has vendido este local [%i]. El propietario era %s", localID+1, LocalData[localID][Owner]);
 				        SendAdviseMessage(playerid, string);
 			            
 			            for(new i=0; i <= MAX_PLAYERS; i++){
@@ -25197,7 +25774,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		                    break;
 						}}
 						new string[150];
-						format(string,sizeof(string), "Borraste este local [%i].", localID);
+						format(string,sizeof(string), "Borraste este local [%i].", localID+1);
 						SendAdviseMessage(playerid, string);
 						return 1;
 				    }
@@ -31797,9 +32374,57 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 									ShowDejarObjeto(playerid);
 							    }
 							}
+							else if (PlayersData[playerid][InLocal] != -1)
+					        {
+					            new localid = PlayersData[playerid][InLocal];
+					            if (LocalData[localid][LGavetaSeguro] == 0)
+					            {
+						            SlotIDGet--;
+							        if ( SlotIDGet == -1)
+							        {
+								        for (new i = 0; i < MAX_GUANTERA_GAVETA_SLOTS; i++)
+								        {
+										    if ( !LocalData[localid][LGavetaObjects][i] )
+										    {
+										        SlotIDGet = i;
+								                break;
+										    }
+								        }
+								        if ( SlotIDGet == -1 )
+								        {
+											SendInfoMessage(playerid, 0, "1603", "La gaveta se encuentra llena!");
+											ShowDejarObjeto(playerid);
+								            return 1;
+								        }
+							        }
+							        else
+							        {
+							            if (LocalData[localid][LGavetaObjects][SlotIDGet] )
+							            {
+								            new TempError[MAX_TEXT_CHAT];
+								            format(TempError, sizeof(TempError), "El Slot número \"%i\" esta ocupado! Intente con otro ID de slot o deje en blanco para buscar uno disponible!", SlotIDGet + 1 );
+								            SendInfoMessage(playerid, 0, "1604", TempError);
+								            ShowDejarObjetoInput(playerid);
+							                return 1;
+							            }
+							        }
+							        LocalData[localid][LGavetaObjects][SlotIDGet] = PlayersData[playerid][Objetos][PlayersDataOnline[playerid][SaveAfterAgenda][10]];
+
+			                        new MsgTirarObjetos[MAX_TEXT_CHAT];
+									format(MsgTirarObjetos, sizeof(MsgTirarObjetos), "guarda %s en la gaveta", ObjectsNames[GetTypeObjectEx(PlayersData[playerid][Objetos][PlayersDataOnline[playerid][SaveAfterAgenda][10]])]);
+							        Acciones(playerid, 8, MsgTirarObjetos);
+									RemoveObjectHoldToPlayer(playerid, -1, PlayersDataOnline[playerid][SaveAfterAgenda][10]);
+									ShowObjectos(playerid);
+							    }
+							    else
+							    {
+									ShowDejarObjeto(playerid);
+									SendInfoMessage(playerid, 0, "", "La gaveta se encuentra cerrada!");
+							    }
+							}
 							else
 							{
-								SendInfoMessage(playerid, 0, "1605", "No se encuentra dentro de una casa");
+								SendInfoMessage(playerid, 0, "1605", "No se encuentra dentro de una casa o local");
 							}
 						}
 					}
@@ -34163,7 +34788,6 @@ public MostrarHora(Accion ,playerid)
 {
 	new Hora, Minutos, Segundos;
 	new Ano, Mes, Dia;
-	new FechaHoraFormateada[150];
 
 	gettime( Hora, Minutos, Segundos );
 	getdate(Ano, Mes, Dia);
@@ -34171,6 +34795,7 @@ public MostrarHora(Accion ,playerid)
 
 	if ( Accion == 0 )
 	{
+	    new FechaHoraFormateada[90];
 	    if ( PlayersData[playerid][Jail] == 0 )
 	    {
 			format(FechaHoraFormateada, sizeof(FechaHoraFormateada), "~W~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
@@ -34184,10 +34809,11 @@ public MostrarHora(Accion ,playerid)
 	}
 	else if ( Accion == 1 )
 	{
-        if (Bonus)
-        format(FechaHoraFormateada, sizeof(FechaHoraFormateada), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i~N~~p~¡~r~B~g~O~b~N~r~U~b~S~p~!", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
-        else
-		format(FechaHoraFormateada, sizeof(FechaHoraFormateada), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
+	    new MostrarHoraText[90];
+		if (Bonus)
+		format(MostrarHoraText, sizeof(MostrarHoraText), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i~N~~p~¡~r~B~g~O~b~N~r~U~b~S~p~!", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
+	    else
+	    format(MostrarHoraText, sizeof(MostrarHoraText), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
 		new MensajeBanco[5][70];
 		new Intereses;
 		new TimeNow = gettime();
@@ -34197,6 +34823,8 @@ public MostrarHora(Accion ,playerid)
 	    {
 			if ( IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && ((TimeNow - PlayersDataOnline[i][IsPagaO]) + PlayersData[i][IsPaga]) > 1200)
 			{
+			    GameTextForPlayer(i, MostrarHoraText, 6000, 1);
+			
 			    Intereses = PlayersData[i][Banco] / 2000;
 
 		   		PlayersData[i][Banco] = PlayersData[i][Banco] + FaccionData[PlayersData[i][Faccion]][Paga][PlayersData[i][Rango]] + Intereses + Bonus;
@@ -34207,8 +34835,6 @@ public MostrarHora(Accion ,playerid)
    				format(MensajeBanco[0], 70, "Nuevo Balance: $%i Paga: $%i", PlayersData[i][Banco], FaccionData[PlayersData[i][Faccion]][Paga][PlayersData[i][Rango]]);
 		   		format(MensajeBanco[1], 70, "Intereses: $%i", Intereses);
 		   		format(MensajeBanco[2], 70, "Antiguo Balance: $%i", PlayersData[i][Banco] - FaccionData[PlayersData[i][Faccion]][Paga][PlayersData[i][Rango]] - Intereses);
-
-				GameTextForPlayer(i, FechaHoraFormateada, 5000, 1 );
 
     			SendInfoMessage(i, 1, " ", "|___________________  Banco ___________________|");
     			SendInfoMessage(i, 1, MensajeBanco[0], "Banco: ");
@@ -34287,7 +34913,6 @@ public MostrarHora(Accion ,playerid)
 				PlayersData[i][IsPaga] = 0;
 				PlayersDataOnline[i][IsPagaO]			= TimeNow;
 				SetPlayerScore(i, GetPlayerScoreEx(i));
-				GameTextForPlayer(i, FechaHoraFormateada, 6000, 1 );
 				GetPlayerPos(i, Xpaga, Ypaga, Zpaga);
 			    PlayerPlaySound(i, 1133, Xpaga, Ypaga, Zpaga);
 			    SetPlayerOrginalTime(i);
@@ -46976,6 +47601,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1539.116577, 1324.825927, 11.595004, 0.0, 0.0, 90.0, -1, 10, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1534.415161, 1310.375244, 11.595004, 0.0, 0.0, 0.0, -1, 10, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1543.715576, 1310.768310, 16.814928, 180.0, 0.0, 0.0, -1, 10, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1543.715576, 1310.173706, 6.403772, 0.0, 0.0, 0.0, -1, 10, -1, MAX_RADIO_STREAM);
 	
 	//Local Mediano
 	CreateDynamicObjectExULP(19446, 1588.128051, 1291.892333, 11.658576, 0.000000, 0.000000, -89.599998, -1, 11, -1, MAX_RADIO_STREAM);
@@ -47004,6 +47630,8 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1432.734497, 1314.795410, 11.595004, 0.000000, 0.000022, 0.000000, -1, 11, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1568.948242, 1291.843017, 11.658576, -0.000007, 0.000000, -90.599983, -1, 11, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1578.516845, 1291.824707, 11.658576, -0.000007, 0.000000, -89.599975, -1, 11, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1580.274780, 1301.322998, 6.382473, 0.0, 0.0, 0.0, -1, 11, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1442.034912, 1308.407714, 6.324933, 0.0, 0.0, 0.0, -1, 11, -1, MAX_RADIO_STREAM);
 	
 	//Local Grande
 	CreateDynamicObjectExULP(19446, 1534.781616, 1294.253295, 11.622508, 0.000000, -0.000022, 179.699768, -1, 12, -1, MAX_RADIO_STREAM);
@@ -47062,7 +47690,12 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1538.459960, 1489.647338, 11.658576, -0.000000, 0.000038, -0.300023, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1538.408935, 1480.026245, 11.658576, -0.000000, 0.000038, -0.300023, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1514.965087, 1475.434936, 11.658576, -0.000045, -0.000000, -90.599868, -1, 12, -1, MAX_RADIO_STREAM);
-	CreateDynamicObjectExULP(19446, 1524.533691, 1475.416625, 11.658576, -0.000045, 0.000000, -89.599861, -1, 12, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(19446, 1524.533691, 1475.416625, 11.658576, -0.000045, 0.000000, -89.599861, -1, 12, -1, MAX_RADIO_STREAM);	
+	CreateDynamicObjectExULP(8435, 1547.178833, 1300.820556, 6.383771, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1526.291625, 1382.522949, 6.392467, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1526.291625, 1414.673339, 6.392461, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1526.291625, 1450.584838, 6.432457, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1526.291625, 1484.914916, 6.372469, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
 	
 	//Local Garage
 	CreateDynamicObjectExULP(19446, 1535.898925, 1343.425415, 11.514995, 0.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
@@ -47077,527 +47710,540 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1553.798950, 1343.425415, 14.994996, 0.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1540.219360, 1339.504516, 14.974996, 0.000022, 0.000000, 89.999931, -1, 13, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1549.824340, 1339.508911, 14.994992, 0.000022, 0.000000, 89.999931, -1, 13, -1, MAX_RADIO_STREAM);
-	CreateDynamicObjectExULP(8435, 1542.819091, 1343.250366, 20.160785, 180.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
+	CreateDynamicObjectExULP(8435, 1542.819091, 1343.250366, 20.160785, 180.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);	
+	CreateDynamicObjectExULP(8435, 1542.819091, 1343.250366, 6.390781, 0.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
 	
 	//Plaza Doherty
 	new plazaobject;
-	plazaobject = CreateObjectEx(18981, -2130.890869, 129.435638, 33.809520, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(14394, -2093.709960, 132.616241, 33.539661, 0.000000, -0.000007, 179.799880, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2128.514160, 154.418212, 33.809539, 0.000000, 89.999954, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2104.064453, 156.618225, 33.699996, 0.000000, 89.999954, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2107.157470, 132.818038, 33.799518, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(14394, -2091.790039, 132.609466, 31.999639, 0.000000, -0.000007, 179.799880, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(14394, -2089.599853, 132.601867, 30.409641, 0.000000, -0.000007, 179.799880, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2128.514160, 204.328598, 33.709541, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2128.514160, 179.308395, 33.709541, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2104.064453, 179.378402, 33.799995, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2104.064453, 204.398605, 33.780090, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2128.514160, 229.098831, 33.709541, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2104.064453, 229.168838, 33.799995, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2128.514160, 253.809066, 33.809539, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2104.064453, 253.879074, 33.799995, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2128.514160, 278.688995, 33.809539, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2104.064453, 278.759002, 33.799995, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2128.514160, 297.849365, 33.809539, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2104.064453, 297.919372, 33.799995, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2079.366455, 156.618225, 33.709541, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2054.916748, 156.688232, 33.800003, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2079.286376, 204.318908, 33.789554, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2079.366455, 179.338378, 33.809539, 0.000000, 89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2054.916748, 179.378402, 33.800003, 0.000000, 89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2054.916748, 204.398605, 33.800003, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2079.366455, 229.098831, 33.809539, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2054.916748, 229.168838, 33.800003, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2079.366455, 253.809066, 33.809539, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2054.916748, 253.879074, 33.800003, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2079.366455, 278.688995, 33.809539, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2054.916748, 278.759002, 33.800003, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2079.366455, 297.849365, 33.809539, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2054.916748, 297.919372, 33.800003, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2050.611816, 156.728073, 33.769538, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2029.162353, 156.688232, 33.700004, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2050.611816, 204.328598, 33.809539, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2050.611816, 179.308395, 33.809539, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2029.162353, 179.378402, 33.700004, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2029.162353, 204.398605, 33.700004, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2050.611816, 229.098831, 33.809539, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2029.222167, 229.168838, 33.700004, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2050.611816, 253.809066, 33.809539, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2029.162353, 253.879074, 33.700004, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2050.611816, 278.688995, 33.809539, 0.000000, 90.000022, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2029.162353, 278.759002, 33.700004, 0.000000, 90.000022, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2050.611816, 297.849365, 33.809539, 0.000000, 90.000030, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(18981, -2029.162353, 297.919372, 33.700004, 0.000000, 90.000030, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
-	plazaobject = CreateObjectEx(8620, -2081.647949, 307.060791, 57.129085, 0.000000, 0.000000, 0.899999, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 5, 14581, "ab_mafiasuitea", "ab_pic_bridge", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 135.147644, 34.226116, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 125.607620, 34.246135, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 144.778198, 34.246128, -0.099999, -89.999969, -0.099999, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 154.287841, 34.216114, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 162.807800, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 229.657943, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 239.177978, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 248.827987, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2107.091308, 251.868286, 34.216110, 0.000000, -89.999969, 90.000022, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 172.327880, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2107.098144, 175.405258, 34.229026, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 181.837860, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 191.377868, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 200.927902, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 210.467849, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2113.650878, 220.067886, 34.216110, 0.000000, -89.999969, 0.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2107.091308, 228.068298, 34.216110, 0.000000, -89.999969, 90.000022, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2097.523193, 228.068298, 34.226108, -0.099999, -89.999969, 90.000022, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(16767, -2029.333129, 142.401351, 40.139938, 0.000000, 0.000000, 90.000000, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 14535, "ab_wooziec", "ab_woodborder", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2087.916259, 175.438781, 34.229026, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2097.496337, 175.422103, 34.229026, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2078.505859, 175.455261, 34.229026, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2068.953125, 175.471832, 34.229026, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2059.473632, 175.488433, 34.229026, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2049.973388, 175.505004, 34.229026, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2040.422241, 175.521575, 34.129047, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2030.792846, 175.538452, 34.149028, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2024.262084, 172.463729, 34.119022, 0.000000, -89.999977, -0.400020, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2042.912231, 175.517196, 34.239044, 0.000000, -89.999977, 90.099975, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2024.319946, 164.184020, 34.119022, 0.000000, -89.999977, -0.400020, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2088.000244, 228.068298, 34.242736, -0.099999, -89.999969, 90.000022, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.470458, 231.134017, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.520019, 240.773925, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.570800, 250.373855, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.620605, 259.903747, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.672363, 269.493530, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.723388, 279.073638, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.774414, 288.583526, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2088.310302, 284.233398, 34.227428, 0.000000, -89.999969, 90.600036, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2075.264648, 284.480041, 34.227428, 0.000000, -89.999969, 90.600036, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2065.744628, 284.569610, 34.227428, 0.000000, -89.999969, 90.600036, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.823974, 298.083312, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2081.862792, 305.543243, 34.227432, 0.000000, -89.999969, 0.300024, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2097.523681, 251.868286, 34.216110, 0.000000, -89.999969, 90.000022, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2087.921875, 251.868286, 34.236110, 0.000000, -89.999969, 90.000022, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(1280, -2082.435546, 173.201400, 34.694961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 10101, "2notherbuildsfe", "Bow_Abpave_Gen", 0x00000000);
-	SetObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
-	SetObjectMaterial(plazaobject, 2, 10101, "2notherbuildsfe", "Bow_Abpave_Gen", 0x00000000);
-	plazaobject = CreateObjectEx(1280, -2078.496582, 173.304504, 34.694961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
-	plazaobject = CreateObjectEx(1280, -2075.264404, 173.289016, 34.694961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
-	plazaobject = CreateObjectEx(1280, -2071.622070, 173.284271, 34.694961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2088.952636, 168.868118, 34.229026, -0.000011, -89.999977, 0.199990, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2088.919921, 159.478179, 34.229026, -0.000011, -89.999977, 0.199990, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(10757, -2059.814941, 153.397048, 35.849983, 0.000000, 0.000000, -152.400085, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 14653, "ab_trukstpb", "mustard", 0x00000000);
-	plazaobject = CreateObjectEx(1233, -2064.785644, 161.761688, 35.589984, 0.000000, 0.000000, -149.499984, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 1, 10101, "2notherbuildsfe", "ferry_build14", 0x00000000);
-	SetObjectMaterial(plazaobject, 2, 16093, "a51_ext", "a51_fencsign", 0x00000000);
-	SetObjectMaterial(plazaobject, 3, 16093, "a51_ext", "a51_fencsign", 0x00000000);
-	SetObjectMaterial(plazaobject, 4, 16093, "a51_ext", "a51_fencsign", 0x00000000);
-	plazaobject = CreateObjectEx(14467, -2038.117309, 185.670684, 36.969539, 0.000000, 0.000000, -91.799980, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 1683, "ap_jumbos", "airblock3", 0x00000000);
-	plazaobject = CreateObjectEx(1233, -2040.307861, 184.478225, 35.589984, 0.000000, 0.000000, -117.600013, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 1, 10101, "2notherbuildsfe", "ferry_build14", 0x00000000);
-	SetObjectMaterial(plazaobject, 2, 16093, "a51_ext", "a51_fencsign", 0x00000000);
-	SetObjectMaterial(plazaobject, 3, 16093, "a51_ext", "a51_fencsign", 0x00000000);
-	SetObjectMaterial(plazaobject, 4, 16093, "a51_ext", "a51_fencsign", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2049.900878, 181.883911, 34.239025, 0.200000, -89.999977, -0.000009, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2046.863403, 186.115325, 34.259025, 0.000000, -89.999977, 89.799995, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2049.900878, 231.133956, 34.239025, 0.000000, -89.999977, -0.000009, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2049.900878, 192.683883, 34.239025, 0.000000, -89.999977, -0.000009, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2049.900878, 202.313888, 34.239025, 0.000000, -89.999977, -0.000009, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2049.900878, 211.893844, 34.239025, 0.000000, -89.999977, -0.000009, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2049.900878, 221.503890, 34.239025, 0.000000, -89.999977, -0.000009, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2056.460693, 234.197799, 34.239025, 0.000007, -89.999977, 89.999969, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2066.069824, 234.180831, 34.229022, 0.000007, -89.999977, 89.999977, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	plazaobject = CreateObjectEx(19452, -2074.913085, 234.148864, 34.229007, 0.100008, -89.999977, 90.399963, MAX_RADIO_STREAM);
-	SetObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	plazaobject = CreateObjectEx(19129, -2046.391845, 125.497032, 27.679439, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2026.442382, 145.300552, 26.918724, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2046.252441, 145.436309, 27.749076, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2026.579345, 125.671295, 26.850208, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2066.272949, 125.632987, 28.512733, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 206.880828, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2066.135009, 145.492233, 28.582084, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 197.250793, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 187.630691, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 177.980682, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19454, -2071.224365, 119.858695, 28.755439, 9.199981, 0.899999, 86.099975, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19449, -2094.639404, 125.166488, 32.292507, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19454, -2061.775390, 119.174720, 27.282371, 8.699975, 3.699995, 86.699996, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2085.378417, 125.763824, 29.313400, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2085.243408, 145.073135, 29.380813, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19454, -2080.598144, 120.204818, 30.270542, 9.199981, 0.899999, 89.599929, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19454, -2090.093017, 120.271240, 31.818466, 9.199981, 0.899999, 89.599929, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19454, -2090.644287, 120.220558, 28.393545, 9.199981, 0.899999, 89.599929, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 283.780975, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19449, -2094.649414, 134.656524, 32.292507, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 274.170959, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 226.150787, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19449, -2094.639404, 144.226577, 32.292507, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 264.550964, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 254.960983, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 245.330871, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19449, -2094.639404, 125.166488, 28.822483, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19449, -2094.639404, 134.616561, 29.822483, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19449, -2094.639404, 144.186645, 28.822483, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 235.790740, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 216.560745, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 168.360733, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 158.750854, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2088.167968, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2078.538574, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2069.004882, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2059.482177, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19454, -2091.793212, 128.558227, 30.407215, -35.000011, 0.599999, -91.699981, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19454, -2091.749023, 136.632339, 30.390478, -35.000011, 0.599999, -91.699981, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2049.952636, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2040.371459, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2030.911254, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2021.540527, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2016.729980, 149.160888, 27.887504, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1364, -2075.957763, 228.663986, 34.871356, 0.000000, 0.000020, 1.099997, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19377, -2097.687988, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(8131, -2075.607177, 222.055267, 44.588916, 0.000000, 0.000007, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2097.423828, 120.805076, 35.030307, 0.000000, 0.000000, 270.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2109.573486, 120.744079, 35.070304, 0.000000, 0.000000, -90.000030, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2103.432128, 120.744079, 35.070304, 0.000000, 0.000000, -90.000030, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2117.908447, 120.744079, 35.070304, 0.000000, 0.000000, -90.000030, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2125.279541, 120.744079, 35.140300, 0.000000, 0.000000, -90.000030, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2131.891601, 120.744079, 35.140300, 0.000000, 0.000000, -90.000030, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2138.604003, 120.744079, 35.140300, 0.000000, 0.000000, -90.000030, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2018.822143, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2141.535400, 127.470611, 34.850280, 0.000000, 0.000000, -101.800018, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2140.530761, 132.267074, 34.850280, 0.000000, 0.000000, -101.800018, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2139.439697, 137.872711, 34.850280, 0.000000, 0.000000, -100.700019, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3660, -2017.488281, 203.514770, 36.599994, 0.000000, 0.000000, -90.499984, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.825561, 306.936431, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3660, -2017.572998, 225.926269, 36.599994, 0.000000, 0.000000, -90.499984, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3660, -2017.647583, 247.257705, 36.599994, 0.000000, 0.000000, -90.499984, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2017.042236, 265.136932, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2017.065917, 260.386962, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19294, -2075.611328, 222.027709, 55.339424, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2138.612792, 143.202499, 34.850280, -0.000007, -0.000000, -98.500000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2142.115722, 120.723236, 34.810310, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2023.372314, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2137.834228, 148.385070, 34.850280, -0.000007, -0.000000, -98.500000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2137.041503, 153.686172, 34.850280, -0.000007, -0.000000, -98.500000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1237, -2016.712280, 128.554367, 26.607498, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(966, -2016.708862, 121.013732, 26.527502, 0.000000, 0.000000, -89.700012, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19279, -2075.627441, 218.640274, 34.520019, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(4641, -2018.385864, 119.491767, 28.351963, 0.599999, 0.000000, -178.299591, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19279, -2075.627929, 225.659774, 34.521293, -0.399998, 1.100000, -177.299880, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19279, -2079.070556, 222.201889, 34.610000, 0.000000, 0.000000, -91.999900, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19279, -2072.084228, 222.023300, 34.500007, 0.000000, 0.000000, 91.200119, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(966, -2020.501586, 118.419448, 26.757509, 0.000000, 0.000000, 0.599985, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1237, -2028.042480, 118.434341, 27.027492, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2027.932617, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2076.535644, 219.420944, 34.909561, 0.000007, 0.000000, 93.899971, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2016.571777, 135.461441, 27.327505, 0.000000, 0.000000, -0.499998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2032.413085, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2037.113037, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2055.874755, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2041.713134, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2046.363647, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2051.034667, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2060.515380, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2065.076171, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2089.227783, 309.932891, 34.534042, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2136.354248, 206.265457, 34.866451, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2091.587890, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2096.340576, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2100.938720, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2105.590087, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2110.429931, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2115.190185, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2119.290527, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2124.111328, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2128.952392, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2133.642333, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.337646, 169.399734, 34.770290, -0.000007, 0.000000, -89.800025, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.850463, 302.146423, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.874145, 297.586425, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.897949, 292.976470, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.922607, 288.236480, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.946166, 283.716583, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.969482, 279.306640, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2016.994628, 274.446685, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2017.017700, 269.856811, 34.806533, 0.000000, 0.000000, 89.699958, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2074.620361, 219.551498, 34.909561, 0.000007, 0.000000, 93.899971, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2073.277587, 221.167999, 34.920017, 0.000000, 0.000007, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1211, -2016.615600, 142.371810, 27.057497, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2073.277587, 223.078018, 34.920017, 0.000000, 0.000007, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2074.686523, 224.730545, 34.920017, -0.000007, 0.000000, -89.700004, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1227, -2015.978149, 143.969436, 27.517501, 0.000000, 0.000000, 91.200019, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2076.596923, 224.720489, 34.920017, -0.000007, 0.000000, -89.700004, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2078.279541, 223.058624, 34.900016, 0.000000, 0.000007, 0.399971, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.554443, 283.369110, 34.850280, -0.000014, -0.000000, -89.900001, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2142.582763, 122.449058, 34.850280, -0.000007, -0.000000, -101.799995, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1364, -2075.124511, 216.220733, 34.855792, 0.000000, -1.500012, 176.700241, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2135.199218, 120.689048, 34.750343, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2128.567871, 120.689048, 34.750343, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.403808, 158.729293, 34.850280, -0.000007, -0.000000, -94.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.296875, 163.600036, 34.850280, -0.000007, -0.000000, -89.600028, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.334228, 174.429443, 34.850280, -0.000007, -0.000000, -90.200019, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.316406, 180.199356, 34.850280, -0.000007, -0.000000, -90.200019, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.299316, 185.389266, 34.850280, -0.000007, -0.000000, -90.200019, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.281494, 190.799194, 34.850280, -0.000007, -0.000000, -90.200019, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.468017, 196.149246, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3660, -2017.676025, 182.005722, 36.599994, 0.000000, 0.000000, -90.499984, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.564453, 289.349121, 34.850280, -0.000014, -0.000000, -89.900001, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.475830, 202.509140, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.485107, 209.839172, 34.850280, -0.000007, 0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.519287, 235.708969, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.497314, 218.239135, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.503662, 224.469055, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.511474, 229.849075, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.527343, 241.388931, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.575195, 295.738922, 34.850280, -0.000014, -0.000000, -89.900001, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.585205, 302.238922, 34.850280, -0.000014, -0.000000, -89.900001, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.535644, 247.258911, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.544921, 253.138931, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.554443, 258.348937, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.564453, 264.328948, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.575195, 270.718750, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.595214, 307.959014, 34.850280, -0.000014, -0.000000, -89.900001, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2061.928955, 119.252853, 29.729700, -8.400000, 1.799999, -93.899963, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2121.708251, 121.019035, 34.750343, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2115.025390, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2136.585205, 277.218750, 34.850280, -0.000007, -0.000000, -89.900024, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2112.483154, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3660, -2017.867553, 160.006576, 36.599994, 0.000000, 0.000000, -90.499984, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2106.508544, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2100.368896, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1364, -2067.183105, 222.023101, 34.871356, -0.000022, 0.000000, -89.799949, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1364, -2082.887207, 221.890640, 34.811393, 0.000007, 0.000000, 90.099929, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2138.043457, 146.154388, 34.630302, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2136.431152, 177.607681, 34.550315, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2136.454345, 214.155471, 34.696434, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2135.998779, 244.437606, 34.560298, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2136.045410, 280.617370, 34.530277, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2136.162353, 309.817291, 34.582500, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2108.059570, 310.108398, 34.564029, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2067.367431, 309.882751, 34.454055, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2034.843872, 309.929382, 34.434066, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2078.264892, 221.138748, 34.900016, 0.000000, 0.000007, 0.399971, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2034.848999, 118.211471, 28.053525, -2.400000, 0.699998, -90.300018, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2047.712646, 118.509445, 28.545652, -1.800001, 0.600000, -92.199989, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3471, -2075.657226, 222.533996, 37.420001, -0.000007, 0.000000, -90.699928, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(18980, -2075.687744, 222.988052, 23.789579, 0.000000, 0.000000, -1.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1237, -2054.843261, 118.889472, 28.141853, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2074.598144, 119.906936, 31.636953, -8.400000, 1.799999, -91.899993, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2087.386474, 120.140579, 33.519924, -8.400000, 1.799999, -90.500015, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3810, -2075.468261, 219.685485, 40.969577, -0.000007, 0.000000, -91.599967, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3810, -2077.727539, 224.562957, 40.180831, -0.799998, 0.000000, 77.300033, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3873, -2112.615478, 282.391448, 51.443008, 0.000000, 0.000000, -93.699974, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3873, -2042.689453, 285.161560, 51.443008, 0.000000, 0.000000, 81.100021, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2072.622314, 215.882644, 38.259552, 0.000000, 0.000029, -5.299985, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2067.202880, 224.773986, 38.139556, 0.000000, 0.000022, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2073.304199, 228.354156, 38.139556, 0.000000, 0.000014, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2077.586914, 216.553909, 38.219554, 0.000000, 0.000020, -5.299985, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2078.509277, 228.429870, 38.139556, 0.000000, 0.000014, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2082.657226, 224.524200, 38.139556, 0.000000, 0.000029, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2082.887695, 219.463897, 38.139556, 0.000000, 0.000029, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3439, -2066.907958, 219.514007, 38.139556, 0.000000, 0.000014, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2108.401611, 129.699142, 33.932590, 0.000000, -179.900024, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(18980, -2075.705078, 222.058212, 23.789579, 0.000000, 0.000000, -1.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1594, -2045.687255, 158.006607, 34.719478, 0.000000, 0.000000, 25.400003, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1594, -2042.063476, 153.893798, 34.829471, 0.000000, 0.000000, -16.199998, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1594, -2046.821166, 153.848678, 34.839458, 0.000000, 0.000000, -58.499984, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1594, -2043.220336, 150.613449, 34.789443, 0.000000, 0.000000, -58.499984, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1594, -2046.275146, 148.983337, 34.989440, 0.000000, 0.000000, -178.799835, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1825, -2042.870361, 147.333114, 34.279556, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1536, -2025.498901, 159.412963, 34.210010, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1536, -2022.481689, 159.449676, 34.210010, 0.000000, 0.000000, 179.499801, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2069.836914, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2074.337646, 309.882751, 34.454055, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(970, -2071.905029, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2058.987060, 144.291397, 34.880840, 0.000000, 0.000000, -89.800003, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2046.196166, 144.336013, 34.880840, 0.000000, 0.000000, -89.800003, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2071.798339, 144.241424, 34.880840, 0.000000, 0.000000, -90.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2084.575683, 144.206161, 34.847881, 0.000000, 0.000000, -89.800003, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(984, -2089.390625, 144.227218, 34.881660, -0.300000, 1.299999, -90.300018, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2095.048583, 140.446014, 35.040313, 0.000000, 0.000000, 0.400007, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(640, -2094.940429, 124.946426, 35.040313, 0.000000, 0.000000, 0.400007, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2094.937744, 137.219116, 34.670341, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2094.937744, 143.719055, 34.670341, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2094.937744, 128.119018, 34.670341, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2094.937744, 121.549034, 34.670341, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2094.937744, 121.549034, 34.670341, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19129, -2105.052490, 129.699142, 33.926769, 0.000000, -179.900024, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(6010, -2042.992919, 204.187210, 35.354972, 0.000000, 0.000000, 89.400047, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(9507, -2129.811523, 214.138748, 46.142070, 0.000000, 0.000000, 90.399986, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(9507, -2129.555908, 177.269515, 46.062118, 0.000000, 0.000000, 90.399986, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(10357, -2109.757568, 282.634918, 54.619934, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(10357, -2039.488037, 283.914733, 54.910015, 0.000000, 0.000000, -37.600002, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1223, -2079.632812, 240.118041, 34.143341, 0.000000, 0.000000, -163.299926, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1223, -2079.560546, 264.862640, 34.143341, 0.000000, 0.000000, 178.100067, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1223, -2079.557861, 282.440948, 34.143341, 0.000000, 0.000000, 178.100067, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1223, -2079.835937, 297.567504, 34.143341, 0.000000, 0.000000, 178.100067, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1538, -2045.126220, 220.313919, 34.349536, 0.000000, 0.000000, -90.600028, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1506, -2121.485839, 168.266403, 34.159484, 0.000000, 0.000000, 91.699989, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1506, -2121.800048, 205.163040, 34.209548, 0.000000, 0.000000, 91.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2990, -2122.017578, 173.474014, 36.839965, 0.000000, 0.000000, 91.800033, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(6299, -2129.988525, 132.234588, 36.149520, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2990, -2122.414550, 210.319625, 36.839965, 0.000000, 0.000000, 91.800033, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(16442, -2134.786621, 137.265228, 38.270168, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3243, -2122.677001, 154.178924, 34.309520, 0.000000, 0.000000, -93.599975, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(3243, -2123.164550, 146.534301, 34.309520, 0.000000, 0.000000, -93.599975, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1227, -2127.930908, 157.660217, 35.169525, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1227, -2133.011230, 157.660217, 35.169525, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(18241, -2087.400390, 150.328720, 34.120002, 0.000000, 0.000000, 179.500000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(715, -2129.048339, 150.025024, 42.019523, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(738, -2096.156250, 122.346626, 34.379543, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(738, -2102.559814, 122.346626, 34.379543, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(738, -2110.212158, 122.346626, 34.379543, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1432, -2091.335693, 158.000732, 34.279510, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(11431, -2075.809570, 151.138977, 35.519554, 0.000000, 0.000000, 0.300000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1280, -2108.498291, 172.849472, 34.654945, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1280, -2104.647216, 172.950134, 34.764961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1280, -2101.247558, 173.039108, 34.764961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1280, -2097.978271, 173.124664, 34.764961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1280, -2094.359130, 173.219314, 34.764961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(1280, -2085.735107, 173.115097, 34.694961, 0.000000, 0.000000, -88.499977, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2106.508544, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2102.848144, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2099.628417, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2096.047851, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2092.787841, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2087.236572, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2084.036376, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2080.386718, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2076.776123, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2073.565917, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19126, -2070.014648, 173.199035, 34.700340, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(717, -2072.170166, 145.144638, 34.349540, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(717, -2061.739013, 145.144638, 34.399539, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2052.951904, 161.879821, 34.819530, 0.000000, 0.000000, 89.700004, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(717, -2049.109130, 145.144638, 34.459537, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2056.275634, 162.027633, 34.819530, 0.000000, 0.000000, 89.099983, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2059.249023, 161.984298, 34.819530, 0.000000, 0.000000, 89.099983, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2062.069091, 162.028579, 34.819530, 0.000000, 0.000000, 89.099983, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2067.631103, 158.516067, 34.819530, 0.000000, 0.000000, 150.099975, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2064.641845, 161.948928, 34.819530, 0.000000, 0.000000, 89.099983, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2066.414306, 160.631317, 34.819530, 0.000000, 0.000000, 150.099975, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2068.155273, 155.929794, 34.819530, 0.000000, 0.000000, -179.500106, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2068.130859, 153.159896, 34.819530, 0.000000, 0.000000, -179.500106, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2068.108642, 150.489990, 34.819530, 0.000000, 0.000000, -179.500106, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2051.219238, 160.018493, 34.819530, 0.000000, 0.000000, 10.400014, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2051.100585, 156.727005, 34.819530, 0.000000, 0.000000, -0.799983, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2051.146728, 153.477310, 34.819530, 0.000000, 0.000000, -0.799983, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2051.191894, 150.267608, 34.819530, 0.000000, 0.000000, -0.799983, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2039.510253, 185.897308, 34.809513, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2037.997436, 184.452117, 34.809516, 0.000000, 0.000000, 87.900001, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2036.680541, 186.014297, 34.809516, 0.000000, 0.000000, 179.699981, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(2773, -2038.046630, 187.360794, 34.819511, 0.000000, 0.000000, -90.600044, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19295, -2037.511718, 186.023391, 33.759559, 0.000000, 0.000000, -58.599994, MAX_RADIO_STREAM);
-	plazaobject = CreateObjectEx(19295, -2060.669921, 155.457885, 34.299999, 0.000000, 0.000000, 0.000000, MAX_RADIO_STREAM);
+    plazaobject = CreateObjectEx(18981, -2130.890869, 129.435638, 33.809520, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(14394, -2093.709960, 132.616241, 33.539661, 0.000000, -0.000007, 179.799880, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2128.514160, 154.418212, 33.809539, 0.000000, 89.999954, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2104.064453, 156.618225, 33.699996, 0.000000, 89.999954, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2107.157470, 132.818038, 33.799518, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(14394, -2091.790039, 132.609466, 31.999639, 0.000000, -0.000007, 179.799880, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(14394, -2089.599853, 132.601867, 30.409641, 0.000000, -0.000007, 179.799880, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2128.514160, 204.328598, 33.709541, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2128.514160, 179.308395, 33.709541, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2104.064453, 179.378402, 33.799995, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2104.064453, 204.398605, 33.780090, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2128.514160, 229.098831, 33.709541, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2104.064453, 229.168838, 33.799995, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2128.514160, 253.809066, 33.809539, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2104.064453, 253.879074, 33.799995, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2128.514160, 278.688995, 33.809539, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2104.064453, 278.759002, 33.799995, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2128.514160, 297.849365, 33.809539, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2104.064453, 297.919372, 33.799995, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2079.366455, 156.618225, 33.709541, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2054.916748, 156.688232, 33.800003, 0.000000, 89.999961, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2079.286376, 204.318908, 33.789554, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2079.366455, 179.338378, 33.809539, 0.000000, 89.999969, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2054.916748, 179.378402, 33.800003, 0.000000, 89.999969, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2054.916748, 204.398605, 33.800003, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2079.366455, 229.098831, 33.809539, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2054.916748, 229.168838, 33.800003, 0.000000, 89.999992, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2079.366455, 253.809066, 33.809539, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2054.916748, 253.879074, 33.800003, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2079.366455, 278.688995, 33.809539, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2054.916748, 278.759002, 33.800003, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2079.366455, 297.849365, 33.809539, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2054.916748, 297.919372, 33.800003, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2050.611816, 156.728073, 33.769538, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2029.162353, 156.688232, 33.700004, 0.000000, 89.999977, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2050.611816, 204.328598, 33.809539, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2050.611816, 179.308395, 33.809539, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2029.162353, 179.378402, 33.700004, 0.000000, 89.999984, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2029.162353, 204.398605, 33.700004, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2050.611816, 229.098831, 33.809539, 0.000000, 90.000007, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2029.222167, 229.168838, 33.700004, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2050.611816, 253.809066, 33.809539, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2029.162353, 253.879074, 33.700004, 0.000000, 90.000015, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2050.611816, 278.688995, 33.809539, 0.000000, 90.000022, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2029.162353, 278.759002, 33.700004, 0.000000, 90.000022, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2050.611816, 297.849365, 33.809539, 0.000000, 90.000030, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateObjectEx(18981, -2029.162353, 297.919372, 33.700004, 0.000000, 90.000030, 0.000000, MAX_RADIO_STREAM);
+    SetObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    CreateObjectEx(19129, -2046.391845, 125.497032, 27.679439, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2026.442382, 145.300552, 26.918724, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2046.252441, 145.436309, 27.749076, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2026.579345, 125.671295, 26.850208, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2066.272949, 125.632987, 28.512733, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2066.135009, 145.492233, 28.582084, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2085.378417, 125.763824, 29.313400, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2085.243408, 145.073135, 29.380813, -179.799972, -2.400000, -0.399998, MAX_RADIO_STREAM);
+    CreateObjectEx(19454, -2091.793212, 128.558227, 30.407215, -35.000011, 0.599999, -91.699981, MAX_RADIO_STREAM);
+    CreateObjectEx(19454, -2091.749023, 136.632339, 30.390478, -35.000011, 0.599999, -91.699981, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2108.401611, 129.699142, 33.932590, 0.000000, -179.900024, 0.000000, MAX_RADIO_STREAM);
+    CreateObjectEx(19129, -2105.052490, 129.699142, 33.926769, 0.000000, -179.900024, 0.000000, MAX_RADIO_STREAM);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    plazaobject = CreateDynamicObjectExULP(14394, -2093.709960, 132.616241, 33.539661, 0.000000, -0.000007, 179.799880, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(14394, -2091.790039, 132.609466, 31.999639, 0.000000, -0.000007, 179.799880, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(14394, -2089.599853, 132.601867, 30.409641, 0.000000, -0.000007, 179.799880, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 9515, "bigboxtemp1", "redbrickground256", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(8620, -2081.647949, 307.060791, 57.129085, 0.000000, 0.000000, 0.899999, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 5, 14581, "ab_mafiasuitea", "ab_pic_bridge", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 135.147644, 34.226116, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 125.607620, 34.246135, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 144.778198, 34.246128, -0.099999, -89.999969, -0.099999, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 154.287841, 34.216114, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 162.807800, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 229.657943, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 239.177978, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 248.827987, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2107.091308, 251.868286, 34.216110, 0.000000, -89.999969, 90.000022, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 172.327880, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2107.098144, 175.405258, 34.229026, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 181.837860, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 191.377868, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 200.927902, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 210.467849, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2113.650878, 220.067886, 34.216110, 0.000000, -89.999969, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2107.091308, 228.068298, 34.216110, 0.000000, -89.999969, 90.000022, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2097.523193, 228.068298, 34.226108, -0.099999, -89.999969, 90.000022, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(16767, -2029.333129, 142.401351, 40.139938, 0.000000, 0.000000, 90.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 14535, "ab_wooziec", "ab_woodborder", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2087.916259, 175.438781, 34.229026, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2097.496337, 175.422103, 34.229026, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2078.505859, 175.455261, 34.229026, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2068.953125, 175.471832, 34.229026, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2059.473632, 175.488433, 34.229026, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2049.973388, 175.505004, 34.229026, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2040.422241, 175.521575, 34.129047, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2030.792846, 175.538452, 34.149028, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2024.262084, 172.463729, 34.119022, 0.000000, -89.999977, -0.400020, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2042.912231, 175.517196, 34.239044, 0.000000, -89.999977, 90.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2024.319946, 164.184020, 34.119022, 0.000000, -89.999977, -0.400020, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2088.000244, 228.068298, 34.242736, -0.099999, -89.999969, 90.000022, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.470458, 231.134017, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.520019, 240.773925, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.570800, 250.373855, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.620605, 259.903747, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.672363, 269.493530, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.723388, 279.073638, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.774414, 288.583526, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2088.310302, 284.233398, 34.227428, 0.000000, -89.999969, 90.600036, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2075.264648, 284.480041, 34.227428, 0.000000, -89.999969, 90.600036, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2065.744628, 284.569610, 34.227428, 0.000000, -89.999969, 90.600036, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.823974, 298.083312, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2081.862792, 305.543243, 34.227432, 0.000000, -89.999969, 0.300024, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2097.523681, 251.868286, 34.216110, 0.000000, -89.999969, 90.000022, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2087.921875, 251.868286, 34.236110, 0.000000, -89.999969, 90.000022, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(1280, -2082.435546, 173.201400, 34.694961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 10101, "2notherbuildsfe", "Bow_Abpave_Gen", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 2, 10101, "2notherbuildsfe", "Bow_Abpave_Gen", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(1280, -2078.496582, 173.304504, 34.694961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(1280, -2075.264404, 173.289016, 34.694961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(1280, -2071.622070, 173.284271, 34.694961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 1, 14650, "ab_trukstpc", "mp_CJ_WOOD5", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2088.952636, 168.868118, 34.229026, -0.000011, -89.999977, 0.199990, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2088.919921, 159.478179, 34.229026, -0.000011, -89.999977, 0.199990, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(10757, -2059.814941, 153.397048, 35.849983, 0.000000, 0.000000, -152.400085, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 14653, "ab_trukstpb", "mustard", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(1233, -2064.785644, 161.761688, 35.589984, 0.000000, 0.000000, -149.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 1, 10101, "2notherbuildsfe", "ferry_build14", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 2, 16093, "a51_ext", "a51_fencsign", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 3, 16093, "a51_ext", "a51_fencsign", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 4, 16093, "a51_ext", "a51_fencsign", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(14467, -2038.117309, 185.670684, 36.969539, 0.000000, 0.000000, -91.799980, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 1683, "ap_jumbos", "airblock3", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(1233, -2040.307861, 184.478225, 35.589984, 0.000000, 0.000000, -117.600013, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 1, 10101, "2notherbuildsfe", "ferry_build14", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 2, 16093, "a51_ext", "a51_fencsign", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 3, 16093, "a51_ext", "a51_fencsign", 0x00000000);
+    SetDynamicObjectMaterial(plazaobject, 4, 16093, "a51_ext", "a51_fencsign", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2049.900878, 181.883911, 34.239025, 0.200000, -89.999977, -0.000009, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2046.863403, 186.115325, 34.259025, 0.000000, -89.999977, 89.799995, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2049.900878, 231.133956, 34.239025, 0.000000, -89.999977, -0.000009, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2049.900878, 192.683883, 34.239025, 0.000000, -89.999977, -0.000009, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2049.900878, 202.313888, 34.239025, 0.000000, -89.999977, -0.000009, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2049.900878, 211.893844, 34.239025, 0.000000, -89.999977, -0.000009, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2049.900878, 221.503890, 34.239025, 0.000000, -89.999977, -0.000009, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2056.460693, 234.197799, 34.239025, 0.000007, -89.999977, 89.999969, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2066.069824, 234.180831, 34.229022, 0.000007, -89.999977, 89.999977, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    plazaobject = CreateDynamicObjectExULP(19452, -2074.913085, 234.148864, 34.229007, 0.100008, -89.999977, 90.399963, -1, -1, -1, MAX_RADIO_STREAM);
+    SetDynamicObjectMaterial(plazaobject, 0, 982, "bar_chainlink", "sjmshopBK", 0x00000000);
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    CreateDynamicObjectExULP(19377, -2016.729980, 206.880828, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 197.250793, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 187.630691, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 177.980682, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19454, -2071.224365, 119.858695, 28.755439, 9.199981, 0.899999, 86.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19449, -2094.639404, 125.166488, 32.292507, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19454, -2061.775390, 119.174720, 27.282371, 8.699975, 3.699995, 86.699996, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19454, -2080.598144, 120.204818, 30.270542, 9.199981, 0.899999, 89.599929, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19454, -2090.093017, 120.271240, 31.818466, 9.199981, 0.899999, 89.599929, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19454, -2090.644287, 120.220558, 28.393545, 9.199981, 0.899999, 89.599929, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 283.780975, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19449, -2094.649414, 134.656524, 32.292507, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 274.170959, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 226.150787, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19449, -2094.639404, 144.226577, 32.292507, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 264.550964, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 254.960983, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 245.330871, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19449, -2094.639404, 125.166488, 28.822483, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19449, -2094.639404, 134.616561, 29.822483, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19449, -2094.639404, 144.186645, 28.822483, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 235.790740, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 216.560745, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 168.360733, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 158.750854, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2088.167968, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2078.538574, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2069.004882, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2059.482177, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19454, -2091.793212, 128.558227, 30.407215, -35.000011, 0.599999, -91.699981, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19454, -2091.749023, 136.632339, 30.390478, -35.000011, 0.599999, -91.699981, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2049.952636, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2040.371459, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2030.911254, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2021.540527, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2016.729980, 149.160888, 27.887504, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1364, -2075.957763, 228.663986, 34.871356, 0.000000, 0.000020, 1.099997, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19377, -2097.687988, 144.405364, 27.936992, -0.000007, 0.000000, -89.999992, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(8131, -2075.607177, 222.055267, 44.588916, 0.000000, 0.000007, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2097.423828, 120.805076, 35.030307, 0.000000, 0.000000, 270.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2109.573486, 120.744079, 35.070304, 0.000000, 0.000000, -90.000030, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2103.432128, 120.744079, 35.070304, 0.000000, 0.000000, -90.000030, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2117.908447, 120.744079, 35.070304, 0.000000, 0.000000, -90.000030, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2125.279541, 120.744079, 35.140300, 0.000000, 0.000000, -90.000030, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2131.891601, 120.744079, 35.140300, 0.000000, 0.000000, -90.000030, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2138.604003, 120.744079, 35.140300, 0.000000, 0.000000, -90.000030, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2018.822143, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2141.535400, 127.470611, 34.850280, 0.000000, 0.000000, -101.800018, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2140.530761, 132.267074, 34.850280, 0.000000, 0.000000, -101.800018, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2139.439697, 137.872711, 34.850280, 0.000000, 0.000000, -100.700019, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3660, -2017.488281, 203.514770, 36.599994, 0.000000, 0.000000, -90.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.825561, 306.936431, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3660, -2017.572998, 225.926269, 36.599994, 0.000000, 0.000000, -90.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3660, -2017.647583, 247.257705, 36.599994, 0.000000, 0.000000, -90.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2017.042236, 265.136932, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2017.065917, 260.386962, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19294, -2075.611328, 222.027709, 55.339424, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2138.612792, 143.202499, 34.850280, -0.000007, -0.000000, -98.500000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2142.115722, 120.723236, 34.810310, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2023.372314, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2137.834228, 148.385070, 34.850280, -0.000007, -0.000000, -98.500000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2137.041503, 153.686172, 34.850280, -0.000007, -0.000000, -98.500000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1237, -2016.712280, 128.554367, 26.607498, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(966, -2016.708862, 121.013732, 26.527502, 0.000000, 0.000000, -89.700012, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19279, -2075.627441, 218.640274, 34.520019, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(4641, -2018.385864, 119.491767, 28.351963, 0.599999, 0.000000, -178.299591, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19279, -2075.627929, 225.659774, 34.521293, -0.399998, 1.100000, -177.299880, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19279, -2079.070556, 222.201889, 34.610000, 0.000000, 0.000000, -91.999900, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19279, -2072.084228, 222.023300, 34.500007, 0.000000, 0.000000, 91.200119, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(966, -2020.501586, 118.419448, 26.757509, 0.000000, 0.000000, 0.599985, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1237, -2028.042480, 118.434341, 27.027492, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2027.932617, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2076.535644, 219.420944, 34.909561, 0.000007, 0.000000, 93.899971, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2016.571777, 135.461441, 27.327505, 0.000000, 0.000000, -0.499998, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2032.413085, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2037.113037, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2055.874755, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2041.713134, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2046.363647, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2051.034667, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2060.515380, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2065.076171, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2089.227783, 309.932891, 34.534042, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2136.354248, 206.265457, 34.866451, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2091.587890, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2096.340576, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2100.938720, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2105.590087, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2110.429931, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2115.190185, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2119.290527, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2124.111328, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2128.952392, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2133.642333, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.337646, 169.399734, 34.770290, -0.000007, 0.000000, -89.800025, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.850463, 302.146423, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.874145, 297.586425, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.897949, 292.976470, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.922607, 288.236480, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.946166, 283.716583, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.969482, 279.306640, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2016.994628, 274.446685, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2017.017700, 269.856811, 34.806533, 0.000000, 0.000000, 89.699958, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2074.620361, 219.551498, 34.909561, 0.000007, 0.000000, 93.899971, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2073.277587, 221.167999, 34.920017, 0.000000, 0.000007, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1211, -2016.615600, 142.371810, 27.057497, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2073.277587, 223.078018, 34.920017, 0.000000, 0.000007, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2074.686523, 224.730545, 34.920017, -0.000007, 0.000000, -89.700004, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1227, -2015.978149, 143.969436, 27.517501, 0.000000, 0.000000, 91.200019, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2076.596923, 224.720489, 34.920017, -0.000007, 0.000000, -89.700004, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2078.279541, 223.058624, 34.900016, 0.000000, 0.000007, 0.399971, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.554443, 283.369110, 34.850280, -0.000014, -0.000000, -89.900001, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2142.582763, 122.449058, 34.850280, -0.000007, -0.000000, -101.799995, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1364, -2075.124511, 216.220733, 34.855792, 0.000000, -1.500012, 176.700241, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2135.199218, 120.689048, 34.750343, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2128.567871, 120.689048, 34.750343, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.403808, 158.729293, 34.850280, -0.000007, -0.000000, -94.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.296875, 163.600036, 34.850280, -0.000007, -0.000000, -89.600028, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.334228, 174.429443, 34.850280, -0.000007, -0.000000, -90.200019, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.316406, 180.199356, 34.850280, -0.000007, -0.000000, -90.200019, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.299316, 185.389266, 34.850280, -0.000007, -0.000000, -90.200019, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.281494, 190.799194, 34.850280, -0.000007, -0.000000, -90.200019, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.468017, 196.149246, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3660, -2017.676025, 182.005722, 36.599994, 0.000000, 0.000000, -90.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.564453, 289.349121, 34.850280, -0.000014, -0.000000, -89.900001, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.475830, 202.509140, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.485107, 209.839172, 34.850280, -0.000007, 0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.519287, 235.708969, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.497314, 218.239135, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.503662, 224.469055, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.511474, 229.849075, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.527343, 241.388931, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.575195, 295.738922, 34.850280, -0.000014, -0.000000, -89.900001, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.585205, 302.238922, 34.850280, -0.000014, -0.000000, -89.900001, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.535644, 247.258911, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.544921, 253.138931, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.554443, 258.348937, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.564453, 264.328948, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.575195, 270.718750, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.595214, 307.959014, 34.850280, -0.000014, -0.000000, -89.900001, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2061.928955, 119.252853, 29.729700, -8.400000, 1.799999, -93.899963, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2121.708251, 121.019035, 34.750343, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2115.025390, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2136.585205, 277.218750, 34.850280, -0.000007, -0.000000, -89.900024, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2112.483154, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3660, -2017.867553, 160.006576, 36.599994, 0.000000, 0.000000, -90.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2106.508544, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2100.368896, 120.839042, 34.750343, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1364, -2067.183105, 222.023101, 34.871356, -0.000022, 0.000000, -89.799949, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1364, -2082.887207, 221.890640, 34.811393, 0.000007, 0.000000, 90.099929, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2138.043457, 146.154388, 34.630302, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2136.431152, 177.607681, 34.550315, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2136.454345, 214.155471, 34.696434, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2135.998779, 244.437606, 34.560298, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2136.045410, 280.617370, 34.530277, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2136.162353, 309.817291, 34.582500, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2108.059570, 310.108398, 34.564029, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2067.367431, 309.882751, 34.454055, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2034.843872, 309.929382, 34.434066, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2078.264892, 221.138748, 34.900016, 0.000000, 0.000007, 0.399971, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2034.848999, 118.211471, 28.053525, -2.400000, 0.699998, -90.300018, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2047.712646, 118.509445, 28.545652, -1.800001, 0.600000, -92.199989, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3471, -2075.657226, 222.533996, 37.420001, -0.000007, 0.000000, -90.699928, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(18980, -2075.687744, 222.988052, 23.789579, 0.000000, 0.000000, -1.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1237, -2054.843261, 118.889472, 28.141853, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2074.598144, 119.906936, 31.636953, -8.400000, 1.799999, -91.899993, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2087.386474, 120.140579, 33.519924, -8.400000, 1.799999, -90.500015, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3810, -2075.468261, 219.685485, 40.969577, -0.000007, 0.000000, -91.599967, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3810, -2077.727539, 224.562957, 40.180831, -0.799998, 0.000000, 77.300033, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3873, -2112.615478, 282.391448, 51.443008, 0.000000, 0.000000, -93.699974, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3873, -2042.689453, 285.161560, 51.443008, 0.000000, 0.000000, 81.100021, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2072.622314, 215.882644, 38.259552, 0.000000, 0.000029, -5.299985, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2067.202880, 224.773986, 38.139556, 0.000000, 0.000022, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2073.304199, 228.354156, 38.139556, 0.000000, 0.000014, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2077.586914, 216.553909, 38.219554, 0.000000, 0.000020, -5.299985, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2078.509277, 228.429870, 38.139556, 0.000000, 0.000014, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2082.657226, 224.524200, 38.139556, 0.000000, 0.000029, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2082.887695, 219.463897, 38.139556, 0.000000, 0.000029, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3439, -2066.907958, 219.514007, 38.139556, 0.000000, 0.000014, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(18980, -2075.705078, 222.058212, 23.789579, 0.000000, 0.000000, -1.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1594, -2045.687255, 158.006607, 34.719478, 0.000000, 0.000000, 25.400003, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1594, -2042.063476, 153.893798, 34.829471, 0.000000, 0.000000, -16.199998, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1594, -2046.821166, 153.848678, 34.839458, 0.000000, 0.000000, -58.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1594, -2043.220336, 150.613449, 34.789443, 0.000000, 0.000000, -58.499984, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1594, -2046.275146, 148.983337, 34.989440, 0.000000, 0.000000, -178.799835, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1825, -2042.870361, 147.333114, 34.279556, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1536, -2025.498901, 159.412963, 34.210010, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1536, -2022.481689, 159.449676, 34.210010, 0.000000, 0.000000, 179.499801, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2069.836914, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2074.337646, 309.882751, 34.454055, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(970, -2071.905029, 310.011993, 34.824050, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2058.987060, 144.291397, 34.880840, 0.000000, 0.000000, -89.800003, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2046.196166, 144.336013, 34.880840, 0.000000, 0.000000, -89.800003, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2071.798339, 144.241424, 34.880840, 0.000000, 0.000000, -90.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2084.575683, 144.206161, 34.847881, 0.000000, 0.000000, -89.800003, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(984, -2089.390625, 144.227218, 34.881660, -0.300000, 1.299999, -90.300018, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2095.048583, 140.446014, 35.040313, 0.000000, 0.000000, 0.400007, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(640, -2094.940429, 124.946426, 35.040313, 0.000000, 0.000000, 0.400007, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2094.937744, 137.219116, 34.670341, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2094.937744, 143.719055, 34.670341, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2094.937744, 128.119018, 34.670341, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2094.937744, 121.549034, 34.670341, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2094.937744, 121.549034, 34.670341, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(6010, -2042.992919, 204.187210, 35.354972, 0.000000, 0.000000, 89.400047, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(9507, -2129.811523, 214.138748, 46.142070, 0.000000, 0.000000, 90.399986, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(9507, -2129.555908, 177.269515, 46.062118, 0.000000, 0.000000, 90.399986, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(10357, -2109.757568, 282.634918, 54.619934, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(10357, -2039.488037, 283.914733, 54.910015, 0.000000, 0.000000, -37.600002, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1223, -2079.632812, 240.118041, 34.143341, 0.000000, 0.000000, -163.299926, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1223, -2079.560546, 264.862640, 34.143341, 0.000000, 0.000000, 178.100067, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1223, -2079.557861, 282.440948, 34.143341, 0.000000, 0.000000, 178.100067, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1223, -2079.835937, 297.567504, 34.143341, 0.000000, 0.000000, 178.100067, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1538, -2045.126220, 220.313919, 34.349536, 0.000000, 0.000000, -90.600028, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1506, -2121.485839, 168.266403, 34.159484, 0.000000, 0.000000, 91.699989, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1506, -2121.800048, 205.163040, 34.209548, 0.000000, 0.000000, 91.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2990, -2122.017578, 173.474014, 36.839965, 0.000000, 0.000000, 91.800033, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(6299, -2129.988525, 132.234588, 36.149520, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2990, -2122.414550, 210.319625, 36.839965, 0.000000, 0.000000, 91.800033, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(16442, -2134.786621, 137.265228, 38.270168, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3243, -2122.677001, 154.178924, 34.309520, 0.000000, 0.000000, -93.599975, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(3243, -2123.164550, 146.534301, 34.309520, 0.000000, 0.000000, -93.599975, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1227, -2127.930908, 157.660217, 35.169525, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1227, -2133.011230, 157.660217, 35.169525, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(18241, -2087.400390, 150.328720, 34.120002, 0.000000, 0.000000, 179.500000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(715, -2129.048339, 150.025024, 42.019523, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(738, -2096.156250, 122.346626, 34.379543, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(738, -2102.559814, 122.346626, 34.379543, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(738, -2110.212158, 122.346626, 34.379543, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1432, -2091.335693, 158.000732, 34.279510, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(11431, -2075.809570, 151.138977, 35.519554, 0.000000, 0.000000, 0.300000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1280, -2108.498291, 172.849472, 34.654945, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1280, -2104.647216, 172.950134, 34.764961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1280, -2101.247558, 173.039108, 34.764961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1280, -2097.978271, 173.124664, 34.764961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1280, -2094.359130, 173.219314, 34.764961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(1280, -2085.735107, 173.115097, 34.694961, 0.000000, 0.000000, -88.499977, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2106.508544, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2102.848144, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2099.628417, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2096.047851, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2092.787841, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2087.236572, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2084.036376, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2080.386718, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2076.776123, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2073.565917, 172.999069, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19126, -2070.014648, 173.199035, 34.700340, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(717, -2072.170166, 145.144638, 34.349540, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(717, -2061.739013, 145.144638, 34.399539, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2052.951904, 161.879821, 34.819530, 0.000000, 0.000000, 89.700004, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(717, -2049.109130, 145.144638, 34.459537, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2056.275634, 162.027633, 34.819530, 0.000000, 0.000000, 89.099983, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2059.249023, 161.984298, 34.819530, 0.000000, 0.000000, 89.099983, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2062.069091, 162.028579, 34.819530, 0.000000, 0.000000, 89.099983, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2067.631103, 158.516067, 34.819530, 0.000000, 0.000000, 150.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2064.641845, 161.948928, 34.819530, 0.000000, 0.000000, 89.099983, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2066.414306, 160.631317, 34.819530, 0.000000, 0.000000, 150.099975, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2068.155273, 155.929794, 34.819530, 0.000000, 0.000000, -179.500106, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2068.130859, 153.159896, 34.819530, 0.000000, 0.000000, -179.500106, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2068.108642, 150.489990, 34.819530, 0.000000, 0.000000, -179.500106, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2051.219238, 160.018493, 34.819530, 0.000000, 0.000000, 10.400014, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2051.100585, 156.727005, 34.819530, 0.000000, 0.000000, -0.799983, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2051.146728, 153.477310, 34.819530, 0.000000, 0.000000, -0.799983, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2051.191894, 150.267608, 34.819530, 0.000000, 0.000000, -0.799983, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2039.510253, 185.897308, 34.809513, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2037.997436, 184.452117, 34.809516, 0.000000, 0.000000, 87.900001, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2036.680541, 186.014297, 34.809516, 0.000000, 0.000000, 179.699981, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(2773, -2038.046630, 187.360794, 34.819511, 0.000000, 0.000000, -90.600044, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19295, -2037.511718, 186.023391, 33.759559, 0.000000, 0.000000, -58.599994, -1, -1, -1, MAX_RADIO_STREAM);
+    CreateDynamicObjectExULP(19295, -2060.669921, 155.457885, 34.299999, 0.000000, 0.000000, 0.000000, -1, -1, -1, MAX_RADIO_STREAM);
 }
 public LoadTelesPublics()
 {
@@ -64181,16 +64827,33 @@ public AddArticleRefrigeradorCocinar(playerid, houseid, lastrefrigeradorid, arti
 {
 	for(new i = 0; i<MAX_REFRIGERADOR_SLOTS_COUNT; i++)
 	{
-	    if (!Refrigerador[houseid][Articulo][i])
+	    if ( PlayersData[playerid][IsPlayerInHouse] )
 	    {
-	        Refrigerador[houseid][Articulo][i] = articleid;
-	        Refrigerador[houseid][Cantidad][i] += 1;
-	        Refrigerador[houseid][Cantidad][lastrefrigeradorid]--;
-	        if ( !Refrigerador[houseid][Cantidad][lastrefrigeradorid] )
-	        {
-	            Refrigerador[houseid][Articulo][lastrefrigeradorid] = false;
+		    if (!Refrigerador[houseid][Articulo][i])
+		    {
+		        Refrigerador[houseid][Articulo][i] = articleid;
+		        Refrigerador[houseid][Cantidad][i] += 1;
+		        Refrigerador[houseid][Cantidad][lastrefrigeradorid]--;
+		        if ( !Refrigerador[houseid][Cantidad][lastrefrigeradorid] )
+		        {
+		            Refrigerador[houseid][Articulo][lastrefrigeradorid] = false;
+				}
+				return true;
 			}
-			return true;
+		}
+		else
+		{
+		    if (!LRefrigerador[houseid][Articulo][i])
+		    {
+		        LRefrigerador[houseid][Articulo][i] = articleid;
+		        LRefrigerador[houseid][Cantidad][i] += 1;
+		        LRefrigerador[houseid][Cantidad][lastrefrigeradorid]--;
+		        if ( !LRefrigerador[houseid][Cantidad][lastrefrigeradorid] )
+		        {
+		            LRefrigerador[houseid][Articulo][lastrefrigeradorid] = false;
+				}
+				return true;
+			}
 		}
 	}
 	return false;
@@ -64335,21 +64998,43 @@ public EatArticleRefrigerador(playerid, houseid, refrigeradorid)
 	if ( refrigeradorid > 0 && refrigeradorid  < 11 )
 	{
 	    refrigeradorid--;
-	    if ( Refrigerador[houseid][Articulo][refrigeradorid] )
+	    if( PlayersData[playerid][IsPlayerInHouse] )
 	    {
-	        if ( UseAritcle(playerid, Refrigerador[houseid][Articulo][refrigeradorid]) )
-	        {
-	            Refrigerador[houseid][Cantidad][refrigeradorid]--;
-	            if ( !Refrigerador[houseid][Cantidad][refrigeradorid] )
-	            {
-	                Refrigerador[houseid][Articulo][refrigeradorid] = false;
-	                return true;
+		    if ( Refrigerador[houseid][Articulo][refrigeradorid] )
+		    {
+		        if ( UseAritcle(playerid, Refrigerador[houseid][Articulo][refrigeradorid]) )
+		        {
+		            Refrigerador[houseid][Cantidad][refrigeradorid]--;
+		            if ( !Refrigerador[houseid][Cantidad][refrigeradorid] )
+		            {
+		                Refrigerador[houseid][Articulo][refrigeradorid] = false;
+		                return true;
+					}
 				}
+			}
+			else
+			{
+				SendInfoMessage(playerid, 0, "1268", "No hay nada en esa parte del refrigerador!");
 			}
 		}
 		else
 		{
-			SendInfoMessage(playerid, 0, "1268", "No hay nada en esa parte del refrigerador!");
+		    if ( LRefrigerador[houseid][Articulo][refrigeradorid] )
+		    {
+		        if ( UseAritcle(playerid, LRefrigerador[houseid][Articulo][refrigeradorid]) )
+		        {
+		            LRefrigerador[houseid][Cantidad][refrigeradorid]--;
+		            if ( !LRefrigerador[houseid][Cantidad][refrigeradorid] )
+		            {
+		                LRefrigerador[houseid][Articulo][refrigeradorid] = false;
+		                return true;
+					}
+				}
+			}
+			else
+			{
+				SendInfoMessage(playerid, 0, "1268", "No hay nada en esa parte del refrigerador!");
+			}
 		}
 	}
 	else
@@ -64360,7 +65045,6 @@ public EatArticleRefrigerador(playerid, houseid, refrigeradorid)
 }
 public UseAritcle(playerid, articleid)
 {
-	new ErrorID;
 	switch(articleid)
 	{
 	    case A_CERVEZA:
@@ -64380,46 +65064,21 @@ public UseAritcle(playerid, articleid)
 		}
 	    case A_POLLO_C:
 	    {
-	        if ( PlayersData[playerid][IsPlayerInHouse] )
-			{
-		        Acciones(playerid, 8, "come pollo");
-        	}
-        	else
-        	{
-        	    ErrorID = true;
-			}
+	        Acciones(playerid, 8, "come pollo");
 		}
 	    case A_PAPAS_C:
 	    {
-	        if ( PlayersData[playerid][IsPlayerInHouse] )
-			{
-		        Acciones(playerid, 8, "come papas");
-        	}
-        	else
-        	{
-        	    ErrorID = true;
-			}
+	        Acciones(playerid, 8, "come papas");
 		}
 	    case A_ARROZ_C:
 	    {
-	        if ( PlayersData[playerid][IsPlayerInHouse] )
-			{
-	        	Acciones(playerid, 8, "come arroz");
-        	}
-        	else
-        	{
-        	    ErrorID = true;
-			}
+	        Acciones(playerid, 8, "come arroz");
 		}
 		default:
 		{
 			SendInfoMessage(playerid, 0, "1260", "Este artículo no se puede usar!");
 			return false;
 		}
-	}
-	if ( ErrorID )
-	{
-		SendInfoMessage(playerid, 0, "1261", "Este artículo sólo puedes consumirlo dentro de una casa!");
 	}
     SetPlayerHealthEx(playerid, Articulos[A_POLLO_C][Vida]);
 	return true;
@@ -64429,37 +65088,75 @@ public Cocinar(playerid, houseid, refrigeradorid)
 	if ( refrigeradorid > 0 && refrigeradorid  < 11 )
 	{
 	    refrigeradorid--;
-	    if ( Refrigerador[houseid][Articulo][refrigeradorid] )
+	    if( PlayersData[playerid][IsPlayerInHouse] )
 	    {
-	        if ( Refrigerador[houseid][Articulo][refrigeradorid] == A_POLLO ||
-	             Refrigerador[houseid][Articulo][refrigeradorid] == A_PAPAS ||
-	             Refrigerador[houseid][Articulo][refrigeradorid] == A_ARROZ )
-            {
-                new ArticuloN = Refrigerador[houseid][Articulo][refrigeradorid];
-				if (AddArticleRefrigeradorCocinar(playerid, houseid, refrigeradorid, Refrigerador[houseid][Articulo][refrigeradorid] + 1) )
-				{
-					new MsgGiveArticle[MAX_TEXT_CHAT];
-			        format(MsgGiveArticle, sizeof(MsgGiveArticle), "cocina %s", Articulos[ArticuloN][NameA]);
-			        Acciones(playerid, 8, MsgGiveArticle);
-
-					if ( !Refrigerador[houseid][Cantidad][refrigeradorid] )
+		    if ( Refrigerador[houseid][Articulo][refrigeradorid] )
+		    {
+		        if ( Refrigerador[houseid][Articulo][refrigeradorid] == A_POLLO ||
+		             Refrigerador[houseid][Articulo][refrigeradorid] == A_PAPAS ||
+		             Refrigerador[houseid][Articulo][refrigeradorid] == A_ARROZ )
+	            {
+	                new ArticuloN = Refrigerador[houseid][Articulo][refrigeradorid];
+					if (AddArticleRefrigeradorCocinar(playerid, houseid, refrigeradorid, Refrigerador[houseid][Articulo][refrigeradorid] + 1) )
 					{
-					    Refrigerador[houseid][Articulo][refrigeradorid] = false;
+						new MsgGiveArticle[MAX_TEXT_CHAT];
+				        format(MsgGiveArticle, sizeof(MsgGiveArticle), "cocina %s", Articulos[ArticuloN][NameA]);
+				        Acciones(playerid, 8, MsgGiveArticle);
+
+						if ( !Refrigerador[houseid][Cantidad][refrigeradorid] )
+						{
+						    Refrigerador[houseid][Articulo][refrigeradorid] = false;
+						}
+					}
+					else
+					{
+						SendInfoMessage(playerid, 0, "1262", "No hay más espacio para guardar la comida cocinada en el refrigerador!");
 					}
 				}
 				else
 				{
-					SendInfoMessage(playerid, 0, "1262", "No hay más espacio para guardar la comida cocinada en el refrigerador!");
+					SendInfoMessage(playerid, 0, "1263", "Este artículo no se puede cocinar!");
 				}
 			}
 			else
 			{
-				SendInfoMessage(playerid, 0, "1263", "Este artículo no se puede cocinar!");
+				SendInfoMessage(playerid, 0, "1264", "No hay nada en esa parte del refrigerador!");
 			}
 		}
 		else
 		{
-			SendInfoMessage(playerid, 0, "1264", "No hay nada en esa parte del refrigerador!");
+		    if ( LRefrigerador[houseid][Articulo][refrigeradorid] )
+		    {
+		        if ( LRefrigerador[houseid][Articulo][refrigeradorid] == A_POLLO ||
+		             LRefrigerador[houseid][Articulo][refrigeradorid] == A_PAPAS ||
+		             LRefrigerador[houseid][Articulo][refrigeradorid] == A_ARROZ )
+	            {
+	                new ArticuloN = LRefrigerador[houseid][Articulo][refrigeradorid];
+					if (AddArticleRefrigeradorCocinar(playerid, houseid, refrigeradorid, LRefrigerador[houseid][Articulo][refrigeradorid] + 1) )
+					{
+						new MsgGiveArticle[MAX_TEXT_CHAT];
+				        format(MsgGiveArticle, sizeof(MsgGiveArticle), "cocina %s", Articulos[ArticuloN][NameA]);
+				        Acciones(playerid, 8, MsgGiveArticle);
+
+						if ( !LRefrigerador[houseid][Cantidad][refrigeradorid] )
+						{
+						    LRefrigerador[houseid][Articulo][refrigeradorid] = false;
+						}
+					}
+					else
+					{
+						SendInfoMessage(playerid, 0, "1262", "No hay más espacio para guardar la comida cocinada en el refrigerador!");
+					}
+				}
+				else
+				{
+					SendInfoMessage(playerid, 0, "1263", "Este artículo no se puede cocinar!");
+				}
+			}
+			else
+			{
+				SendInfoMessage(playerid, 0, "1264", "No hay nada en esa parte del refrigerador!");
+			}
 		}
 	}
 	else
@@ -72294,10 +72991,14 @@ public RemoveBuildingForPlayerEx(playerid)
 	RemoveBuildingForPlayer(playerid, 4019, 1777.8359, -1773.9063, 12.5234, 0.25);
 	
 	//Plaza Doherty
-	RemoveBuildingForPlayer(playerid, -1, -2080.186, 255.958, 39.237, 30.000);
+	RemoveBuildingForPlayer(playerid, -1, -2080.186, 255.958, 60.237, 10.000);
 	RemoveBuildingForPlayer(playerid, -1, -2129.147, 306.078, 35.027, 3.000);
-	RemoveBuildingForPlayer(playerid, -1, -2104.827, 168.908, 33.997, 20.000);
 	RemoveBuildingForPlayer(playerid, -1, -2080.186, 273.049, 79.687, 35.000);
+	RemoveBuildingForPlayer(playerid, -1, -2068.6738,229.1401,39.0518, 3.0);
+	RemoveBuildingForPlayer(playerid, -1, -2095.2131,260.5896,38.6118, 3.0);
+	RemoveBuildingForPlayer(playerid, -1, -2076.6523,271.1129,37.7788, 3.0);
+	RemoveBuildingForPlayer(playerid, -1, -2107.5166,155.7573,38.0798, 3.0);
+	RemoveBuildingForPlayer(playerid, -1, -2089.0593,171.6382,38.0798, 3.0);
 	RemoveBuildingForPlayer(playerid, 3864, -2059.340, 205.531, 40.468, 0.250);
 	RemoveBuildingForPlayer(playerid, 11360, -2038.869, 170.320, 29.937, 0.250);
 	RemoveBuildingForPlayer(playerid, 11388, -2048.179, 166.718, 34.515, 0.250);
@@ -72793,251 +73494,4 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	    SetPlayerInteriorEx(playerid, 0);
 	}
     return 1;
-}
-public GetNextLocalID()
-{
-    new nextLocalID = -1;
-	for (new i=0; i != MAX_LOCAL_COUNT; i++)
-	{
-	    if (LocalData[i][Tipo] == 0)
-	    {
-	        nextLocalID = i;
-	        break;
-	    }
-	}
-	return nextLocalID;
-}
-public IsLocalForSale(localID)
-{
-	if (strlen(LocalData[localID][Owner]) > 2) return 0;
-	else return 1;
-}
-public SaveLocal(localID, update)
-{
-	new query[1000], Cache:cacheid;
-
-	mysql_format(dataBase, query, sizeof(query), "SELECT ID FROM %s WHERE ID=%i;", DIR_LOCALES, localID);
-	cacheid = mysql_query(dataBase, query);
-
-	new localExiste = cache_num_rows();
-	cache_delete(cacheid);
-
-	if (!localExiste)
-	{
-	    format(query, sizeof(query), "INSERT INTO %s (ID) VALUES ('%i');", DIR_LOCALES, localID);
-		mysql_query(dataBase, query, false);
-	}
-
-	//, LocalData[localID][]
-	new LlavesAmigos[125];
-	for(new i=0; i != MAX_LOCAL_KEYS; i++)
-    {
-        new string[30];
-        format(string,30,"%s,", LocalKeys[localID][i]);
-        strcat(LlavesAmigos, string);
-    }
-	
-	format(query, sizeof(query), "UPDATE %s SET ", DIR_LOCALES);
-    strcat(query, "`PosX`='%f',`PosY`='%f',`PosZ`='%f',`PosZZ`='%f',");
-    strcat(query, "`Owner`='%e',`Nivel`='%i',`Precio`='%i',`Tipo`='%i',");
-    strcat(query, "`Seguro`='%i',`PrecioEntrada`='%i',`LlavesAmigos`='%e'");
-    strcat(query, " WHERE ID=%i;");
-    mysql_format(dataBase, query, sizeof(query), query,
-		LocalData[localID][PosX],LocalData[localID][PosY], LocalData[localID][PosZ], LocalData[localID][PosZZ],
-		LocalData[localID][Owner], LocalData[localID][Nivel], LocalData[localID][Precio], LocalData[localID][Tipo],
-		LocalData[localID][Seguro], LocalData[localID][PrecioEntrada],
-		LlavesAmigos,
-		localID);
-	mysql_query(dataBase, query, false);
-	
-	if (LocalData[localID][Tipo] == 0)
-	{
-	    format(query, 200, "UPDATE %s SET `Local`='-1' WHERE `Local`=%i;", DIR_USERS, localID);    mysql_query(dataBase, query, false);
-	    if (localID == MAX_LOCAL_ID)
-	    {
-	    	format(query, 200, "DELETE FROM %s WHERE ID=%i;", DIR_LOCALES, localID);	mysql_query(dataBase, query, false);
-	        MAX_LOCAL_ID = 0;
-		    for (new i=0; i != MAX_LOCAL_COUNT; i++)
-		    {
-		        if (LocalData[i][Tipo] != 0)
-		        MAX_LOCAL_ID = i;
-		    }
-	    }	    
-	}
-
-	if (update)
-	{
-	    //if (IsValidDynamicPickup(LocalData[localID][Pickup])) DestroyDynamicPickup(LocalData[localID][Pickup]);
-	    //LocalData[localID][Pickup] = CreateDynamicPickup(LOCAL_PICKUP_MODEL, 1, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
-	    DestroyPickup(LocalData[localID][Pickup]);
-	    LocalData[localID][Pickup] = CreatePickup(LOCAL_PICKUP_MODEL, 1, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ], WORLD_NORMAL);
-
-	    new LocalText[1024];
-	    if (IsLocalForSale(localID))
-	    {
-	        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local PL-%i\n", localID+1);
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[localID][Tipo]-1]);
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Estado: {"COLOR_CREMA"}¡En Venta!\n", LocalText);
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Precio: {"COLOR_CREMA"}$%i\n", LocalText, LocalData[localID][Precio]);
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Nivel: {"COLOR_CREMA"}%i\n", LocalText, LocalData[localID][Nivel]);
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Use {"COLOR_ROJO"}/Comprar Local", LocalText);
-	    }
-	    else
-	    {
-	        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local PL-%i\n", localID+1);
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[localID][Tipo]-1]);
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}%s\n", LocalText, LocalData[localID][Owner]);
-	        if (LocalData[localID][PrecioEntrada] != 0)
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Entrada: {"COLOR_CREMA"}$%i", LocalText, LocalData[localID][PrecioEntrada]);
-	        else
-	        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Entrada: {"COLOR_CREMA"}Gratis", LocalText);
-	    }
-	    new type = LocalData[localID][Tipo]-1;
-	    if (IsValidDynamic3DTextLabel(LocalData[localID][TextLabel])) DestroyDynamic3DTextLabel(LocalData[localID][TextLabel]);
-	    if (IsValidDynamic3DTextLabel(LocalData[localID][TextLabelIn])) DestroyDynamic3DTextLabel(LocalData[localID][TextLabelIn]);
-	    LocalData[localID][TextLabel] = CreateDynamic3DTextLabel(LocalText, 0x00A5FFFF, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ], 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_NORMAL, 0, -1, 20.0);
-	    LocalData[localID][TextLabelIn] = CreateDynamic3DTextLabel(LocalText, 0x00A5FFFF, LocalTipo[type][PosX], LocalTipo[type][PosY], LocalTipo[type][PosZ], 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, localID+1, LocalTipo[type][Interior], -1, 20.0);
-	}
-}
-public LoadLocales()
-{
-    //	CreateDynamicPickup(LOCAL_PICKUP_MODEL, 1, LocalTipo[0][PosX], LocalTipo[0][PosY], LocalTipo[0][PosZ], -1, 10, -1, MAX_PICKUP_DISTANCE);
-    //////////////////
-	LocalTipo[0][PosX] = 1539.1654;
-	LocalTipo[0][PosY] = 1305.9552;
-	LocalTipo[0][PosZ] = 10.8750;
-	LocalTipo[0][PosZZ] = 0.0;
-	LocalTipo[0][Interior] = 10;
-	LocalTipo[0][Pickup] = CreatePickup(LOCAL_PICKUP_MODEL, 1, LocalTipo[0][PosX], LocalTipo[0][PosY], LocalTipo[0][PosZ], -1);
-	//////////////////
-	LocalTipo[1][PosX] = 1564.9307;
-	LocalTipo[1][PosY] = 1301.6255;
-	LocalTipo[1][PosZ] = 10.8470;
-	LocalTipo[1][PosZZ] = 270.0;
-	LocalTipo[1][Interior] = 11;
-	LocalTipo[1][Pickup] = CreatePickup(LOCAL_PICKUP_MODEL, 1, LocalTipo[1][PosX], LocalTipo[1][PosY], LocalTipo[1][PosZ], -1);
-	//////////////////
-	LocalTipo[2][PosX] = 1535.2672;
-	LocalTipo[2][PosY] = 1303.5206;
-	LocalTipo[2][PosZ] = 10.8770;
-	LocalTipo[2][PosZZ] = 270.0;
-	LocalTipo[2][Interior] = 12;
-	LocalTipo[2][Pickup] = CreatePickup(LOCAL_PICKUP_MODEL, 1, LocalTipo[2][PosX], LocalTipo[2][PosY], LocalTipo[2][PosZ], -1);
-	//////////////////
-	
-	for (new i=0; i != MAX_LOCAL_COUNT; i++)
-	{
-	    new query[500], Cache:cacheid;
-		mysql_format(dataBase, query, sizeof(query), "SELECT * FROM %s WHERE ID=%i;", DIR_LOCALES, i);
-		cacheid = mysql_query(dataBase, query);
-
-		new localExiste = cache_num_rows();
-		if (localExiste)
-		{
-		    //LocalData[i][]
-		    cache_get_value_name_float(0, "PosX", LocalData[i][PosX]);
-		    cache_get_value_name_float(0, "PosY", LocalData[i][PosY]);
-		    cache_get_value_name_float(0, "PosZ", LocalData[i][PosZ]);
-		    cache_get_value_name_float(0, "PosZZ", LocalData[i][PosZZ]);
-		    cache_get_value_name(0, "Owner", LocalData[i][Owner], MAX_PLAYER_NAME);
-			cache_get_value_name_int(0, "Nivel", LocalData[i][Nivel]);
-			cache_get_value_name_int(0, "Precio", LocalData[i][Precio]);
-			cache_get_value_name_int(0, "Tipo", LocalData[i][Tipo]);
-			cache_get_value_name_int(0, "Seguro", LocalData[i][Seguro]);
-			cache_get_value_name_int(0, "PrecioEntrada", LocalData[i][PrecioEntrada]);
-			new LlavesAmigos[125];cache_get_value_name(0, "LlavesAmigos", LlavesAmigos, 125);
-			for(new keyid=0; keyid != MAX_LOCAL_KEYS; keyid++)
-			{
-			    new SplitPos = strfind(LlavesAmigos, ",");
-			    strmid(LocalKeys[i][keyid], LlavesAmigos, 0, SplitPos, MAX_PLAYER_NAME);
-			    strdel(LlavesAmigos, 0, SplitPos+1);
-			}
-
-			if (LocalData[i][Tipo] != 0)
-			{
-			    //LocalData[i][Pickup] = CreateDynamicPickup(LOCAL_PICKUP_MODEL, 1, LocalData[i][PosX], LocalData[i][PosY], LocalData[i][PosZ], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
-			    LocalData[i][Pickup] = CreatePickup(LOCAL_PICKUP_MODEL, 1, LocalData[i][PosX], LocalData[i][PosY], LocalData[i][PosZ], WORLD_NORMAL);
-
-			    new LocalText[1024];
-			    if (IsLocalForSale(i))
-			    {
-			        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local PL-%i\n", i+1);
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[i][Tipo]-1]);
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Estado: {"COLOR_CREMA"}¡En Venta!\n", LocalText);
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Precio: {"COLOR_CREMA"}$%i\n", LocalText, LocalData[i][Precio]);
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Nivel: {"COLOR_CREMA"}%i\n", LocalText, LocalData[i][Nivel]);
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Use {"COLOR_ROJO"}/Comprar Local", LocalText);
-			    }
-			    else
-			    {
-			        format(LocalText,sizeof(LocalText), "Lugar: {"COLOR_CREMA"}Local PL-%i\n", i+1);
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n", LocalText, LocalTipoString[LocalData[i][Tipo]-1]);
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}%s\n", LocalText, LocalData[i][Owner]);
-			        if (LocalData[i][PrecioEntrada] != 0)
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Entrada: {"COLOR_CREMA"}$%i", LocalText, LocalData[i][PrecioEntrada]);
-			        else
-			        format(LocalText,sizeof(LocalText), "%s{"COLOR_VERDE"}Entrada: {"COLOR_CREMA"}Gratis", LocalText);
-			    }
-			    new type = LocalData[i][Tipo]-1;
-			    LocalData[i][TextLabel] = CreateDynamic3DTextLabel(LocalText, 0x00A5FFFF, LocalData[i][PosX], LocalData[i][PosY], LocalData[i][PosZ], 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_NORMAL, 0, -1, 20.0);
-			    LocalData[i][TextLabelIn] = CreateDynamic3DTextLabel(LocalText, 0x00A5FFFF, LocalTipo[type][PosX], LocalTipo[type][PosY], LocalTipo[type][PosZ], 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, i+1, LocalTipo[type][Interior], -1, 20.0);
-			    MAX_LOCAL++;
-			    MAX_LOCAL_ID = i;
-			}
-		}
-		cache_delete(cacheid);
-	}
-	return 1;
-}
-public IsPlayerInLocalKeys(playerid, localID)
-{
-	for (new i=0; i != MAX_LOCAL_KEYS; i++)
-	{
-	    if (strfind(LocalKeys[localID][i], PlayersDataOnline[playerid][NameOnline]) == 0 && strlen(LocalKeys[localID][i]) == strlen(PlayersDataOnline[playerid][NameOnline]))
-		{
-		    return true;
-		}
-	}
-	return false;
-}
-public AddPlayerInLocalKeys(playerid, localID)
-{
-	new FreeLocalKey = false;
-	for (new i=0; i != MAX_LOCAL_KEYS; i++)
-	{
-	    if (strlen(LocalKeys[localID][i]) <= 5)
-		{
-		    format(LocalKeys[localID][i], MAX_PLAYER_NAME, "%s", PlayersDataOnline[playerid][NameOnline]);
-		    FreeLocalKey = true;
-		    break;
-		}
-	}
-	return FreeLocalKey;
-}
-public RemoveLocalKey(localID, keyid)
-{
-	if (strlen(LocalKeys[localID][keyid]) > 5)
-	{
-	    format(LocalKeys[localID][keyid], MAX_PLAYER_NAME, "Nadie");
-	    return true;
-	}
-	return false;
-}
-public ShowLocalKeys(playerid, localid)
-{
-	new keysInfo[200];//~165
-	for (new i=0; i != MAX_LOCAL_KEYS; i++)
-	{
-	    if (strlen(LocalKeys[localid][i]) > 5)
-	    format(keysInfo, sizeof(keysInfo), "%s{"COLOR_VERDE"}Llave %i: {"COLOR_AZUL"}%s\n", keysInfo, i, LocalKeys[localid][i]);
-	    else
-	    format(keysInfo, sizeof(keysInfo), "%s{"COLOR_VERDE"}Llave %i: {"COLOR_ROJO"}Nadie\n", keysInfo, i);
-	}
-	ShowPlayerDialogEx(playerid, 154, DIALOG_STYLE_LIST, "{"COLOR_AZUL"}Local - Copias de llave", keysInfo, "Quitar", "Cerrar");
-}
-public PlayerHaveLocalKeys(playerid, localid)
-{
-	if (PlayersData[playerid][Local] == localid) return true;
-	else if (IsPlayerInLocalKeys(playerid, localid)) return true;
-	else return false;
 }

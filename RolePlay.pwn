@@ -7,8 +7,8 @@
 #include <sscanf2>
 
 /// 				DEFINE
-#define LOGO_UNPLAYER						"{FFFFFF}Bienvenido a la comunidad de {00A5FF}UN {2E6140}P{178527}layer{242F61}!"
-#define URL_WEB								"~w~www.~b~un~g~player~w~.com"
+#define LOGO_UNPLAYER						"{FFFFFF}Bienvenido a la comunidad de {00A5FF}Old {2E6140}P{178527}layer{242F61}!"
+#define URL_WEB								"~w~www.~b~Old~g~player~w~.com"
 #define URL_WEB_SHADOW						URL_WEB
 #define WEBPAGE 							"www.empty.com"
 #define	GAMEMODE_VERSION					"RolePlay | 0.3.DL"
@@ -113,7 +113,7 @@
 #define MAX_OBJECTS_VALLAS_CONOS_PINCHOS    100
 #define MAX_PEAJES_COUNT                    20
 #define MAX_JOB                             3
-#define MAX_TEXT_DRAW_INFO_COUNT            50
+#define MAX_PICKUP_INFO_COUNT	            50
 #define MAX_TAXIS_COUNT                     10
 #define MAX_OBJECT_MAPPING_COUNT            50
 #define MAX_TRAINS                          5
@@ -164,6 +164,22 @@
 
 #define MAX_FRENO_DISTANCE 					1.0
 #define MAX_PICKUP_DISTANCE                 300.0
+
+#define PICKUP_TYPE_NINGUNO                 0
+#define PICKUP_TYPE_FACCION                 1
+#define PICKUP_TYPE_FACCION_ALMACEN         2
+#define PICKUP_TYPE_TELE                    3
+#define PICKUP_TYPE_NEGOCIO                 4
+#define PICKUP_TYPE_NEGOCIO_TYPE            5
+#define PICKUP_TYPE_CASA            		6
+#define PICKUP_TYPE_CASA_TYPE            	7
+#define PICKUP_TYPE_GARAGE_CASA             8
+#define PICKUP_TYPE_GARAGE_CASA_TYPE        9
+#define PICKUP_TYPE_INFO				    10
+#define PICKUP_TYPE_GARAGE_EX			    11
+#define PICKUP_TYPE_LOCAL				    12
+#define PICKUP_TYPE_LOCAL_TYPE			    13
+#define PICKUP_TYPE_PINCHO				    14
 
 #define CARTERA_TYPE_NADA                   0
 #define CARTERA_TYPE_CHEQUE                 1
@@ -286,14 +302,14 @@ forward IsMaleteroOpen(playerid);
 forward RemovePlayerWeapond(playerid, weaponsid);
 forward LoadStaticObjects();
 forward LoadTelesPublics();
-forward SetStyleTextDrawTeles(textdrawid, text[]);
+forward SetText3DTele(teleid, text[]);
 forward LoadDataBizzType();
 forward SetFunctionsForBizz(playerid, bizzid);
 forward LoadCajeros();
 forward IsPlayerNearCajero(playerid);
 forward IsMyBizz(playerid, bizzid, msg);
 forward IsMyExtorsion(playerid, bizzid);
-forward ActTextDrawBizz(bizzid);
+forward UpdateTextLabelNegocio(bizzid);
 forward LoadMenuStatic();
 forward CleanDataDeath(playerid);
 forward SetMoneyExtorsion(bizzid, money);
@@ -339,7 +355,7 @@ forward LoadGarages();
 forward ExistGarageInHouse(houseid);
 forward LoadHouse(houseid);
 forward SaveHouse(houseid, bool:update);
-forward ActTextDrawHouse(houseid);
+forward UpdateTextLabelCasa(houseid);
 forward CheckIsPlayerRentAndRemove(playerid, houseid);
 forward IsMyHouse(playerid, houseid);
 forward UnBanUser(playerid_admin, playeridname[], option);
@@ -349,8 +365,8 @@ forward IsPlayerInTallerEx(playerid);
 forward IsPlayerInConcencionario(playerid);
 forward IsPlayerInAlmacen(playerid, option);
 forward IsPlayerNearAlmacen(playerid);
-forward LoadPickupsAlmacenes();
-forward LoadPickupsMisc();
+forward UpdateFaccionTextLabel(faccionid, update);
+forward LoadPickupsAlmacenes(faccionid);
 forward SendAlertCallRequest(faccionid, text[]);
 forward SendAlertCallRequestSAMD(type, text[], faccionid);
 forward LoadDoors();
@@ -400,7 +416,6 @@ forward IsVehicleWithInterior(playerid);
 forward RemoveRallaName(playerid);
 forward SendMessageToCallCNN(playerid);
 forward UpdateSpawnPlayer(playerid);
-forward IsPlayerInPincho(playerid, pickupid);
 forward IsVehicleNotBici(playerid, vehicleid);
 forward IsValidName(name[]);
 forward LoadDataPlayerEx(playername[]);
@@ -408,8 +423,7 @@ forward SetPlayerFaccion(playerid, cmdfaccion[]);
 forward SetPlayerFaccionEx(playerid, command[]);
 forward IsPlayerConnectedEx(playername[]);
 forward LoadJobs();
-forward LoadTextDrawInfo();
-forward SetStyleTextDrawTextDrawInfo(textdrawid, text[]);
+forward LoadInfoPickups();
 forward IsCheatMoney(playerid, lastmoney);
 forward CheckWeapondCheat(playerid);
 forward UpdateWeapon(playerid);
@@ -559,7 +573,7 @@ forward RemoveGarage(houseid, garageid);
 forward RemoveAllGarage(houseid);
 forward ShowGarages(playerid, houseid);
 forward ShowDetailsGarage(playerid, houseid, garageid);
-forward IsPlayerInGarageFun(playerid, &housesave, &garagesave, &locksave);
+forward IsPlayerInGarageFun(playerid, &housesave, &garagesave);
 forward LinkVehicleToInteriorEx(vehicleid, interiorid);
 forward SetVehicleVirtualWorldEx(vehicleid, worldid);
 forward IsPlayerNearGarage(vehicleid, playerid);
@@ -790,7 +804,6 @@ forward ComparePlayersRaceProgress(progress1, progress2, Float:Distance1, Float:
 forward ForcePutPlayerInVehicle(playerid, vehicleid, seat);
 forward ShowPistaCamOptions(playerid, pistaid, posid);
 forward SetCameraPresentRace(playerid, raceid, point, Float:Porcent, Float:CameraX, Float:CameraY, Float:CameraZ);
-forward IsPlayerNearGarageLC(playerid, &housesave, &locksave);
 forward DetectSpam(playerid, text[]);
 forward ShowHomeAgendaOptions(playerid, agendaid);
 forward ShowBuscarAgenda(playerid);
@@ -894,6 +907,19 @@ forward IsOpenGaveta(playerid, houseid);
 forward IsGuanteraOpen(playerid);
 forward SetPlayerInteriorEx(playerid, newinterior);
 forward GetPlayerInteriorEx(playerid);
+
+forward CreatePickupEx(modelid, type, Float:x, Float:y, Float:z, worldid, interiorid);
+forward DestroyPickupEx(pickupid);
+
+forward CreateFaccionDynamicPickup(modelid, faccionid, Float:x, Float:y, Float:z, worldid, interiorid, playerid, Float:streamdistance);
+forward CreateTeleDynamicPickup(modelid, teleid, Float:x, Float:y, Float:z, worldid, interiorid);
+forward CreateNegocioDynamicPickup(modelid, negociotipo, Float:x, Float:y, Float:z, worldid);
+forward CreateCasaTipoDynamicPickup(modelid, casatipo, Float:x, Float:y, Float:z, worldid);
+forward CreateGarageTipoDynamicPickup(modelid, garagetipo, Float:x, Float:y, Float:z, worldid);
+forward CreateInfoPickup(modelid, pickupinfoid, Float:x, Float:y, Float:z, worldid, interiorid);
+forward CreateGarageExPickup(modelid, garageid, Float:x, Float:y, Float:z, worldid, interiorid);
+
+forward IsPlayerInPickup(playerid);
 /////////////////// END FORWARDS ///////////////////
 
 /// 				ENUMS
@@ -1103,12 +1129,12 @@ enum TaxisTaximetroEnum
 	TaxiVehicleid,
 	Text:Seats[3]
 }
-enum TextDrawInfoEnum
+enum PickupInfoEnum
 {
 	Float:PosInfoX,
 	Float:PosInfoY,
 	Float:PosInfoZ,
-	PickupidTextInfo
+	PickupId
 }
 enum JobsDataEnum
 {
@@ -1236,6 +1262,7 @@ enum HouseEnums
 	Interior,
 	TypeHouseId,
 	PickupId,
+	Text3D:TextLabel,
 	PriceRent,
 	Level,
 	World,
@@ -1334,6 +1361,7 @@ enum NegociosEnum
 	Float:PosOutZZ,         	// 03 - Pos ZZ Afuera del Negocio
 	PickupOutId,          	 	// 04 - ID Del Pickup de afuera del negocio
 	InteriorOut,          	 	// 05 - ID del enterior de afuera del negocio
+	Text3D:TextLabel,
 	Deposito,           		// 06 - Deposito del negocio
 	Precio,           			// 07 - Precio del negocio
 	Lock,           			// 08 - Cerrado o abierto
@@ -1424,6 +1452,7 @@ enum TelesEnum
 	Float:PosZZ,
 	PickupID,
 	PickupIDGo,
+	Text3D:TextLabel,
 	Interior,
 	World,
 	Lock,
@@ -1543,6 +1572,7 @@ enum DataUsers
 	ObjetosVision[MAX_OBJECTS_PLAYERS],
 	TypePhone,
 	Ayudante,
+	Mapper,
 	Local,
 	InLocal
 };
@@ -1577,8 +1607,11 @@ enum DataUsersOnline
 	StateJob,
 	Paga,
 	InPickup,
+	InPickupFaccion,
 	InPickupTele,
-	InPickupInfo,
+	InPickupNegocio,
+	InPickupCasa,
+	InPickupLocal,
 	Float:MyPickupX,
 	Float:MyPickupY,
 	Float:MyPickupZ,
@@ -1702,8 +1735,7 @@ enum DataUsersOnline
 	CountIntentarVehicle,
 	Float:CurrentHealth,
 	Float:CurrentArmour,
-	LastInterior,
-	InLocalPickup
+	LastInterior
 };
 enum FaccionesData
 {
@@ -1737,6 +1769,8 @@ enum FaccionesData
 	Float:PickupIn_ZZ,
 	PickupidOutF,
 	PickupidInF,
+	Text3D:TextLabelOut,
+	Text3D:TextLabelIn,
 	PrecioFaccion,
 	InteriorFaccion,
 	Lock,
@@ -1757,17 +1791,26 @@ enum JailType
 	Interior_Preso,
 	Interior_Liberado,
 	WorldLiberado
-}
+};
+enum PickupsEnum
+{
+	Tipo,
+	Tipoid,
+	Tipoidextra
+};
 /// 				NEWS
+new MapperRangos[2][20] = {"Mapper Ayudante", "Mapper Lider"};
+new MapperRangosColor[2] = {0x0035FFFF, 0xF50000FF};
 new MySQL:dataBase;
 new ResetGM;
 new Bonus;
+new PickupIndex[MAX_PICKUPS][PickupsEnum];
+new MAX_DYNAMIC_PICKUP = 0;
 new TramSFID;
 new TimeTren;
 new bool:WeaponEnableDM[47];
 //new Text:LockVehicleText[2];
 new Text:ModeDMTextDraw[2];
-new Text:GarageTextDraw;
 new Text:WideScreen;
 new Text:WideScreen2;
 new PickUpAlambraAndJizzy[2];
@@ -1802,7 +1845,7 @@ new HOTEL_PICKUPID_out;
 new MUSEO_PICKUPID_out[7];
 new MAX_TAXIS;
 new MAX_OBJECT_FIJOS;
-new MAX_TEXT_DRAW_INFO;
+new MAX_PICKUP_INFO;
 new MAX_TELE;
 new MAX_BIZZ;
 new MAX_PEAJE;
@@ -1813,8 +1856,6 @@ new MAX_HOUSE;
 new MAX_CAJEROS;
 new MAX_DOORS;
 new MAX_GARAGES;
-new MIN_GARAGE_PICKUP;
-new MAX_GARAGE_PICKUP;
 new MAX_CAR;
 new MAX_TRAIN = -1;
 new MAX_CAR_DUENO;
@@ -1822,7 +1863,6 @@ new MAX_CAR_FACCION;
 new MAX_CAR_PUBLIC;
 new MAX_GASOLINERAS;
 new MAX_CAMERAS;
-new MAX_PICKUP;
 new MAX_GARAGES_EX;
 new MAX_TEXT_DRAW;
 new DIR_PISTAS[10] 		= "Pistas/";
@@ -1879,16 +1919,11 @@ new FaccionesRangos[MAX_FACCION_COUNT][MAX_FACCION_RANGOS][MAX_FACCION_NAME];
 new NegociosData[MAX_BIZZ_COUNT][NegociosEnum];
 new RangosSkins[MAX_FACCION_COUNT][MAX_FACCION_RANGOS][MAX_FACCION_SKIN];
 new Cajeros[MAX_CAJEROS_COUNT][CajerosEnum];
-new TextDrawInfo[MAX_TEXT_DRAW_INFO_COUNT][TextDrawInfoEnum];
+new PickupInfo[MAX_PICKUP_INFO_COUNT][PickupInfoEnum];
 new Jobs[MAX_JOB][JobsEnum];
 new JobsData[JobsDataEnum];
 new LOGO_STAFF[50] = "Administración:";
 new DataCars[MAX_VEHICLE_COUNT][DataCarsEnum];
-new Text:FaccionTextDraws[MAX_FACCION_COUNT];
-new Text:TelesTextDraws[MAX_TELES_COUNT];
-new Text:TextDrawInfoTextDraws[MAX_TEXT_DRAW_INFO_COUNT];
-new Text:NegociosTextDraws[MAX_BIZZ_COUNT];
-new Text:CasasTextDraws[MAX_HOUSE_COUNT];
 new CanalOOC;
 new CanalDudas = true;
 new CallCNN = -1;
@@ -4304,8 +4339,8 @@ new BombasOjectsID[8] =
 	1210, // 3
 	1576, // 4
 	1577, // 5
-	1578, // 6
-	1579  // 7
+	11745, // 6
+	1752  // 7
 };
 new ModeWalkName[15][MAX_PLAYER_NAME] =
 	{
@@ -4878,7 +4913,7 @@ public OnGameModeInit()
 	LoadPeajes();
 	LoadGaragesEx();
 	LoadGaragesExLock();
-	LoadTextDrawInfo();
+	LoadInfoPickups();
 	LoadJobs();
 	LoadCameras();
 	CreateTextDrawDamage();
@@ -5006,416 +5041,416 @@ public OnGameModeInit()
 	FaccionData[CIVIL][Radio] 			= false;
 
 	FaccionesRangos[CIVIL][7]  = "Ninguno"; 			RangosSkins[CIVIL][7][0] 	= 0; FaccionData[CIVIL][Paga][7] = 250;
-//	FaccionData[CIVIL][PickupidOutF] 	= CreatePickup	(1239, 	1, 	1478.9347,-1672.9708,14.0469,	 	-1);
 
 // GOBIERNO ID - 1
 	format(FaccionData[GOBIERNO][NameFaccion], MAX_FACCION_NAME, "Gobierno");
-	FaccionData[GOBIERNO][Extorsion] 		= 0;
-	FaccionData[GOBIERNO][Spawn_X][0]		= 1481.2837;
+	FaccionData[GOBIERNO][Extorsion] = 0;
+	FaccionData[GOBIERNO][Spawn_X][0] = 1481.2837;
 	FaccionData[GOBIERNO][Spawn_Y][0]   	= -1768.4972;
-	FaccionData[GOBIERNO][Spawn_Z][0]		= 18.7958;
+	FaccionData[GOBIERNO][Spawn_Z][0] = 18.7958;
 	FaccionData[GOBIERNO][Spawn_ZZ][0]   	= 0.2469;
-	FaccionData[GOBIERNO][Spawn_X][1]		= -2650.7922;
+	FaccionData[GOBIERNO][Spawn_X][1] = -2650.7922;
 	FaccionData[GOBIERNO][Spawn_Y][1]   	= 362.9865;
-	FaccionData[GOBIERNO][Spawn_Z][1]		= 4.3797;
+	FaccionData[GOBIERNO][Spawn_Z][1] = 4.3797;
 	FaccionData[GOBIERNO][Spawn_ZZ][1]   	= 88.3630;
-	FaccionData[GOBIERNO][PickupOut_X] 		= 1481.1428;
-	FaccionData[GOBIERNO][PickupOut_Y] 		= -1772.0159;
-	FaccionData[GOBIERNO][PickupOut_Z] 		= 18.7958;
-	FaccionData[GOBIERNO][PickupOut_ZZ] 	= 359.3538;
-	FaccionData[GOBIERNO][PickupIn_X] 		= 390.6746;
-	FaccionData[GOBIERNO][PickupIn_Y] 		= 173.8038;
-	FaccionData[GOBIERNO][PickupIn_Z] 		= 1008.3828;
-	FaccionData[GOBIERNO][PickupIn_ZZ] 		= 91.3626;
-	FaccionData[GOBIERNO][InteriorFaccion] 	= 3;
-	FaccionData[GOBIERNO][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[GOBIERNO][PickupOut_X], FaccionData[GOBIERNO][PickupOut_Y], FaccionData[GOBIERNO][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[GOBIERNO][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[GOBIERNO][PickupIn_X], FaccionData[GOBIERNO][PickupIn_Y], FaccionData[GOBIERNO][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[GOBIERNO][PrecioFaccion] 	= 0;
-	FaccionData[GOBIERNO][Lock] 			= 0;
-	FaccionData[GOBIERNO][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[GOBIERNO][Family] 			= true;
-	FaccionData[GOBIERNO][Radio] 			= false;
-
-	FaccionesRangos[GOBIERNO][0]  = "Presidente"; 		RangosSkins[GOBIERNO][0][0] 	= 147; 	RangosSkins[GOBIERNO][0][1] 	= 216;  RangosSkins[GOBIERNO][0][2] 	= 148; 	FaccionData[GOBIERNO][Paga][0] = 1000;
-	FaccionesRangos[GOBIERNO][1]  = "Vicepresidente"; 	RangosSkins[GOBIERNO][1][0] 	= 17;  	RangosSkins[GOBIERNO][1][1] 	= 216;  RangosSkins[GOBIERNO][1][2] 	= 148;	FaccionData[GOBIERNO][Paga][1] = 800;
-	FaccionesRangos[GOBIERNO][2]  = "Alcalde LS"; 		RangosSkins[GOBIERNO][2][0] 	= 227;  RangosSkins[GOBIERNO][2][1] 	= 216;  RangosSkins[GOBIERNO][2][2] 	= 148;	FaccionData[GOBIERNO][Paga][2] = 500;
-	FaccionesRangos[GOBIERNO][3]  = "Alcalde SF"; 		RangosSkins[GOBIERNO][3][0] 	= 227;  RangosSkins[GOBIERNO][3][1] 	= 216;  RangosSkins[GOBIERNO][3][2] 	= 148;	FaccionData[GOBIERNO][Paga][3] = 500;
-	FaccionesRangos[GOBIERNO][4]  = "Secretario(a)"; 	RangosSkins[GOBIERNO][4][0] 	= 189; 	RangosSkins[GOBIERNO][4][1]		= 150;  RangosSkins[GOBIERNO][4][2] 	= 148;  FaccionData[GOBIERNO][Paga][4] = 400;
-	FaccionesRangos[GOBIERNO][5]  = "Asistente"; 		RangosSkins[GOBIERNO][5][0] 	= 189; 	RangosSkins[GOBIERNO][5][1] 	= 150;  RangosSkins[GOBIERNO][5][2] 	= 148;	FaccionData[GOBIERNO][Paga][5] = 400;
+	FaccionData[GOBIERNO][PickupOut_X] = 1481.1428;
+	FaccionData[GOBIERNO][PickupOut_Y] = -1772.0159;
+	FaccionData[GOBIERNO][PickupOut_Z] = 18.7958;
+	FaccionData[GOBIERNO][PickupOut_ZZ] = 359.3538;
+	FaccionData[GOBIERNO][PickupIn_X] = 390.6746;
+	FaccionData[GOBIERNO][PickupIn_Y] = 173.8038;
+	FaccionData[GOBIERNO][PickupIn_Z] = 1008.3828;
+	FaccionData[GOBIERNO][PickupIn_ZZ] = 91.3626;
+	FaccionData[GOBIERNO][InteriorFaccion] = 3;
+	FaccionData[GOBIERNO][PickupidOutF] = CreateFaccionDynamicPickup(1239, GOBIERNO, FaccionData[GOBIERNO][PickupOut_X], FaccionData[GOBIERNO][PickupOut_Y], FaccionData[GOBIERNO][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[GOBIERNO][PickupidInF] = CreateFaccionDynamicPickup(1239, GOBIERNO, FaccionData[GOBIERNO][PickupIn_X], FaccionData[GOBIERNO][PickupIn_Y], FaccionData[GOBIERNO][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[GOBIERNO][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[GOBIERNO][PrecioFaccion] = 0;
+	FaccionData[GOBIERNO][Lock] = 0;
+	FaccionData[GOBIERNO][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[GOBIERNO][Family] = false;
+	FaccionData[GOBIERNO][Radio] = true;
+	
+	FaccionesRangos[GOBIERNO][0]  = "Presidente"; 		RangosSkins[GOBIERNO][0][0] 	= 147; 	RangosSkins[GOBIERNO][0][1] 	= 216;  RangosSkins[GOBIERNO][0][2] 	= 228; 	FaccionData[GOBIERNO][Paga][0] = 1200;
+	FaccionesRangos[GOBIERNO][1]  = "Vicepresidente"; 	RangosSkins[GOBIERNO][1][0] 	= 17;  	RangosSkins[GOBIERNO][1][1] 	= 216;  RangosSkins[GOBIERNO][1][2] 	= 228;	FaccionData[GOBIERNO][Paga][1] = 950;
+	FaccionesRangos[GOBIERNO][2]  = "Gobernador"; 	    RangosSkins[GOBIERNO][2][0] 	= 57;  	RangosSkins[GOBIERNO][2][1] 	= 216;  RangosSkins[GOBIERNO][2][2] 	= 228;	FaccionData[GOBIERNO][Paga][2] = 850;
+	FaccionesRangos[GOBIERNO][3]  = "Secretario"; 		RangosSkins[GOBIERNO][3][0] 	= 227;  RangosSkins[GOBIERNO][3][1] 	= 216;  RangosSkins[GOBIERNO][3][2] 	= 148;	FaccionData[GOBIERNO][Paga][3] = 630;
+	FaccionesRangos[GOBIERNO][4]  = "Escolta"; 		    RangosSkins[GOBIERNO][4][0] 	= 163;  RangosSkins[GOBIERNO][4][1] 	= 172;  RangosSkins[GOBIERNO][4][2] 	= 148;	FaccionData[GOBIERNO][Paga][4] = 550;
+	FaccionesRangos[GOBIERNO][5]  = "Asistente"; 	    RangosSkins[GOBIERNO][5][0] 	= 189; 	RangosSkins[GOBIERNO][5][1]		= 150;  RangosSkins[GOBIERNO][5][2] 	= 148;  FaccionData[GOBIERNO][Paga][5] = 500;
 
 // LICENCIEROSID - 2
 	format(FaccionData[LICENCIEROS][NameFaccion], MAX_FACCION_NAME, "Licencieros");
-	FaccionData[LICENCIEROS][Extorsion] 		= 0;
-	FaccionData[LICENCIEROS][Spawn_X][0] 		= -2045.7384;
-	FaccionData[LICENCIEROS][Spawn_Y][0] 		= -108.8351;
-	FaccionData[LICENCIEROS][Spawn_Z][0] 		= 35.2307;
-	FaccionData[LICENCIEROS][Spawn_ZZ][0] 		= 177.6654;
-	FaccionData[LICENCIEROS][Spawn_X][1] 		= -1494.6835;
-	FaccionData[LICENCIEROS][Spawn_Y][1] 		= 936.5883;
-	FaccionData[LICENCIEROS][Spawn_Z][1] 		= 7.1875;
-	FaccionData[LICENCIEROS][Spawn_ZZ][1] 		= 89.4762;
-	FaccionData[LICENCIEROS][PickupOut_X] 		= -2026.6021;
-	FaccionData[LICENCIEROS][PickupOut_Y] 		= -101.7902;
-	FaccionData[LICENCIEROS][PickupOut_Z] 		= 35.1641;
-	FaccionData[LICENCIEROS][PickupOut_ZZ] 		= 7.1465;
-	FaccionData[LICENCIEROS][PickupIn_X] 		= -2027.0356;
-	FaccionData[LICENCIEROS][PickupIn_Y] 		= -103.7437;
-	FaccionData[LICENCIEROS][PickupIn_Z] 		= 1035.1719;
-	FaccionData[LICENCIEROS][PickupIn_ZZ] 		= 183.3053;
-	FaccionData[LICENCIEROS][InteriorFaccion] 	= 3;
-	FaccionData[LICENCIEROS][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[LICENCIEROS][PickupOut_X], FaccionData[LICENCIEROS][PickupOut_Y], FaccionData[LICENCIEROS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[LICENCIEROS][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[LICENCIEROS][PickupIn_X], FaccionData[LICENCIEROS][PickupIn_Y], FaccionData[LICENCIEROS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[LICENCIEROS][PrecioFaccion] 	= 0;
+	FaccionData[LICENCIEROS][Extorsion] = 0;
+	FaccionData[LICENCIEROS][Spawn_X][0] = -2045.7384;
+	FaccionData[LICENCIEROS][Spawn_Y][0] = -108.8351;
+	FaccionData[LICENCIEROS][Spawn_Z][0] = 35.2307;
+	FaccionData[LICENCIEROS][Spawn_ZZ][0] = 177.6654;
+	FaccionData[LICENCIEROS][Spawn_X][1] = -1494.6835;
+	FaccionData[LICENCIEROS][Spawn_Y][1] = 936.5883;
+	FaccionData[LICENCIEROS][Spawn_Z][1] = 7.1875;
+	FaccionData[LICENCIEROS][Spawn_ZZ][1] = 89.4762;
+	FaccionData[LICENCIEROS][PickupOut_X] = -2026.6021;
+	FaccionData[LICENCIEROS][PickupOut_Y] = -101.7902;
+	FaccionData[LICENCIEROS][PickupOut_Z] = 35.1641;
+	FaccionData[LICENCIEROS][PickupOut_ZZ] = 7.1465;
+	FaccionData[LICENCIEROS][PickupIn_X] = -2027.0356;
+	FaccionData[LICENCIEROS][PickupIn_Y] = -103.7437;
+	FaccionData[LICENCIEROS][PickupIn_Z] = 1035.1719;
+	FaccionData[LICENCIEROS][PickupIn_ZZ] = 183.3053;
+	FaccionData[LICENCIEROS][InteriorFaccion] = 3;
+	FaccionData[LICENCIEROS][PickupidOutF] = CreateFaccionDynamicPickup(1239, LICENCIEROS, FaccionData[LICENCIEROS][PickupOut_X], FaccionData[LICENCIEROS][PickupOut_Y], FaccionData[LICENCIEROS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[LICENCIEROS][PickupidInF] = CreateFaccionDynamicPickup(1239, LICENCIEROS, FaccionData[LICENCIEROS][PickupIn_X], FaccionData[LICENCIEROS][PickupIn_Y], FaccionData[LICENCIEROS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[LICENCIEROS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[LICENCIEROS][PrecioFaccion] = 0;
 	FaccionData[LICENCIEROS][Lock] 				= 0;
-	FaccionData[LICENCIEROS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[LICENCIEROS][Family] 			= true;
-	FaccionData[LICENCIEROS][Radio] 			= false;
+	FaccionData[LICENCIEROS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[LICENCIEROS][Family] = true;
+	FaccionData[LICENCIEROS][Radio] = true;
 
-	FaccionesRangos[LICENCIEROS][0]  = "Director"; 				RangosSkins[LICENCIEROS][0][0] 	= 171; 	RangosSkins[LICENCIEROS][0][1] 	= 194; RangosSkins[LICENCIEROS][0][2] 	= 172; 	FaccionData[LICENCIEROS][Paga][0] = 500;
-	FaccionesRangos[LICENCIEROS][1]  = "Sub Director"; 			RangosSkins[LICENCIEROS][1][0] 	= 59;  	RangosSkins[LICENCIEROS][1][1] 	= 60;  RangosSkins[LICENCIEROS][1][2] 	= 194;	FaccionData[LICENCIEROS][Paga][1] = 450;
-	FaccionesRangos[LICENCIEROS][2]  = "Jefe de Licencieros"; 	RangosSkins[LICENCIEROS][2][0] 	= 59;  	RangosSkins[LICENCIEROS][2][1] 	= 60;  RangosSkins[LICENCIEROS][2][2] 	= 194;	FaccionData[LICENCIEROS][Paga][2] = 450;
-	FaccionesRangos[LICENCIEROS][3]  = "Jefe de Profesores"; 	RangosSkins[LICENCIEROS][3][0] 	= 59;  	RangosSkins[LICENCIEROS][3][1] 	= 60;  RangosSkins[LICENCIEROS][3][2] 	= 194;	FaccionData[LICENCIEROS][Paga][3] = 450;
-	FaccionesRangos[LICENCIEROS][4]  = "Licenciero"; 			RangosSkins[LICENCIEROS][4][0] 	= 59; 	RangosSkins[LICENCIEROS][4][1]	= 60;  RangosSkins[LICENCIEROS][4][2] 	= 194;  FaccionData[LICENCIEROS][Paga][4] = 400;
-	FaccionesRangos[LICENCIEROS][5]  = "Profesor"; 				RangosSkins[LICENCIEROS][5][0] 	= 59; 	RangosSkins[LICENCIEROS][5][1] 	= 60;  RangosSkins[LICENCIEROS][5][2] 	= 194;	FaccionData[LICENCIEROS][Paga][5] = 400;
+	FaccionesRangos[LICENCIEROS][0]  = "Director"; 				RangosSkins[LICENCIEROS][0][0] = 171; 	RangosSkins[LICENCIEROS][0][1] = 194; RangosSkins[LICENCIEROS][0][2] = 172; 	FaccionData[LICENCIEROS][Paga][0] = 500;
+	FaccionesRangos[LICENCIEROS][1]  = "Sub Director"; 			RangosSkins[LICENCIEROS][1][0] = 59;  	RangosSkins[LICENCIEROS][1][1] = 60;  RangosSkins[LICENCIEROS][1][2] = 194;	FaccionData[LICENCIEROS][Paga][1] = 450;
+	FaccionesRangos[LICENCIEROS][2]  = "Jefe de Licencieros"; 	RangosSkins[LICENCIEROS][2][0] = 59;  	RangosSkins[LICENCIEROS][2][1] = 60;  RangosSkins[LICENCIEROS][2][2] = 194;	FaccionData[LICENCIEROS][Paga][2] = 450;
+	FaccionesRangos[LICENCIEROS][3]  = "Jefe de Profesores"; 	RangosSkins[LICENCIEROS][3][0] = 59;  	RangosSkins[LICENCIEROS][3][1] = 60;  RangosSkins[LICENCIEROS][3][2] = 194;	FaccionData[LICENCIEROS][Paga][3] = 450;
+	FaccionesRangos[LICENCIEROS][4]  = "Licenciero"; 			RangosSkins[LICENCIEROS][4][0] = 59; 	RangosSkins[LICENCIEROS][4][1]	= 60;  RangosSkins[LICENCIEROS][4][2] = 194;  FaccionData[LICENCIEROS][Paga][4] = 400;
+	FaccionesRangos[LICENCIEROS][5]  = "Profesor"; 				RangosSkins[LICENCIEROS][5][0] = 59; 	RangosSkins[LICENCIEROS][5][1] = 60;  RangosSkins[LICENCIEROS][5][2] = 194;	FaccionData[LICENCIEROS][Paga][5] = 400;
 
 // TRAFICANTES ID - 3
 	format(FaccionData[TRAFICANTES][NameFaccion], MAX_FACCION_NAME, "Traficantes");
-	FaccionData[TRAFICANTES][Extorsion] 		= 0;
-	FaccionData[TRAFICANTES][AlmacenX][0] 		= 2811.0068;
-	FaccionData[TRAFICANTES][AlmacenY][0] 		= 1995.9684;
-	FaccionData[TRAFICANTES][AlmacenZ][0] 		= 16.7722;
+	FaccionData[TRAFICANTES][Extorsion] = 0;
+	FaccionData[TRAFICANTES][AlmacenX][0] = 2811.0068;
+	FaccionData[TRAFICANTES][AlmacenY][0] = 1995.9684;
+	FaccionData[TRAFICANTES][AlmacenZ][0] = 16.7722;
 	FaccionData[TRAFICANTES][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[TRAFICANTES][AlmacenX][1] 		= 0;
-	FaccionData[TRAFICANTES][AlmacenY][1] 		= 0;
-	FaccionData[TRAFICANTES][AlmacenZ][1] 		= 0;
-	FaccionData[TRAFICANTES][Spawn_X][0]		= 1070.0868;
-	FaccionData[TRAFICANTES][Spawn_Y][0]		= -342.7817;
-	FaccionData[TRAFICANTES][Spawn_Z][0]		= 73.9922;
-	FaccionData[TRAFICANTES][Spawn_ZZ][0]		= 0;
-	FaccionData[TRAFICANTES][PickupOut_X] 		= 1073.1631;
-	FaccionData[TRAFICANTES][PickupOut_Y] 		= -345.3519;
-	FaccionData[TRAFICANTES][PickupOut_Z] 		= 73.9922;
-	FaccionData[TRAFICANTES][PickupOut_ZZ] 		= 360;
-	FaccionData[TRAFICANTES][PickupIn_X] 		= 2532.2322;
-	FaccionData[TRAFICANTES][PickupIn_Y] 		= -1281.7468;
-	FaccionData[TRAFICANTES][PickupIn_Z] 		= 1048.2891;
-	FaccionData[TRAFICANTES][PickupIn_ZZ] 		= 271.4886;
-	FaccionData[TRAFICANTES][InteriorFaccion] 	= 2;
-	FaccionData[TRAFICANTES][PickupidOutF]		= CreatePickup	(1279, 	1, 	FaccionData[TRAFICANTES][PickupOut_X], FaccionData[TRAFICANTES][PickupOut_Y], FaccionData[TRAFICANTES][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[TRAFICANTES][PickupidInF] 		= CreatePickup	(1279, 	1, 	FaccionData[TRAFICANTES][PickupIn_X], FaccionData[TRAFICANTES][PickupIn_Y], FaccionData[TRAFICANTES][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[TRAFICANTES][PrecioFaccion] 	= 0;
+	FaccionData[TRAFICANTES][AlmacenX][1] = 0;
+	FaccionData[TRAFICANTES][AlmacenY][1] = 0;
+	FaccionData[TRAFICANTES][AlmacenZ][1] = 0;
+	FaccionData[TRAFICANTES][Spawn_X][0] = 1070.0868;
+	FaccionData[TRAFICANTES][Spawn_Y][0] = -342.7817;
+	FaccionData[TRAFICANTES][Spawn_Z][0] = 73.9922;
+	FaccionData[TRAFICANTES][Spawn_ZZ][0] = 0;
+	FaccionData[TRAFICANTES][PickupOut_X] = 1073.1631;
+	FaccionData[TRAFICANTES][PickupOut_Y] = -345.3519;
+	FaccionData[TRAFICANTES][PickupOut_Z] = 73.9922;
+	FaccionData[TRAFICANTES][PickupOut_ZZ] = 360;
+	FaccionData[TRAFICANTES][PickupIn_X] = 2532.2322;
+	FaccionData[TRAFICANTES][PickupIn_Y] = -1281.7468;
+	FaccionData[TRAFICANTES][PickupIn_Z] = 1048.2891;
+	FaccionData[TRAFICANTES][PickupIn_ZZ] = 271.4886;
+	FaccionData[TRAFICANTES][InteriorFaccion] = 2;
+	FaccionData[TRAFICANTES][PickupidOutF] = CreateFaccionDynamicPickup(1279, TRAFICANTES, FaccionData[TRAFICANTES][PickupOut_X], FaccionData[TRAFICANTES][PickupOut_Y], FaccionData[TRAFICANTES][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TRAFICANTES][PickupidInF] = CreateFaccionDynamicPickup(1279, TRAFICANTES, FaccionData[TRAFICANTES][PickupIn_X], FaccionData[TRAFICANTES][PickupIn_Y], FaccionData[TRAFICANTES][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[TRAFICANTES][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TRAFICANTES][PrecioFaccion] = 0;
 	FaccionData[TRAFICANTES][Lock] 				= 0;
-	FaccionData[TRAFICANTES][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[TRAFICANTES][Family] 			= true;
-	FaccionData[TRAFICANTES][Radio] 			= false;
+	FaccionData[TRAFICANTES][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[TRAFICANTES][Family] = true;
+	FaccionData[TRAFICANTES][Radio] = false;
 
-	FaccionesRangos[TRAFICANTES][0]  = "El Jefe"; 				RangosSkins[TRAFICANTES][0][0] 	= 72; 																																																																									FaccionData[TRAFICANTES][Paga][0] = 430;
-	FaccionesRangos[TRAFICANTES][1]  = "Mano Derecha"; 			RangosSkins[TRAFICANTES][1][0] 	= 73;  	RangosSkins[TRAFICANTES][1][1] 	= 261;	RangosSkins[TRAFICANTES][1][2] 	= 183;	RangosSkins[TRAFICANTES][1][3] 	= 131;	RangosSkins[TRAFICANTES][1][4] 	= 133;	RangosSkins[TRAFICANTES][1][5] 	= 4;		RangosSkins[TRAFICANTES][1][6] 	= 5;		RangosSkins[TRAFICANTES][1][7] 	= 6;	FaccionData[TRAFICANTES][Paga][1] = 400;
-	FaccionesRangos[TRAFICANTES][2]  = "Vendedor de Armas"; 	RangosSkins[TRAFICANTES][2][0] 	= 73; 	RangosSkins[TRAFICANTES][2][1]	= 261; 	RangosSkins[TRAFICANTES][2][2] 	= 183;	RangosSkins[TRAFICANTES][2][3] 	= 131;	RangosSkins[TRAFICANTES][2][4] 	= 133;	RangosSkins[TRAFICANTES][2][5] 	= 4;		RangosSkins[TRAFICANTES][2][6] 	= 5;		RangosSkins[TRAFICANTES][2][7] 	= 6;	FaccionData[TRAFICANTES][Paga][2] = 370;
-	FaccionesRangos[TRAFICANTES][3]  = "Vendedor de Drogas"; 	RangosSkins[TRAFICANTES][3][0] 	= 73; 	RangosSkins[TRAFICANTES][3][1]	= 261; 	RangosSkins[TRAFICANTES][3][2] 	= 183;	RangosSkins[TRAFICANTES][3][3] 	= 131;	RangosSkins[TRAFICANTES][3][4] 	= 133;	RangosSkins[TRAFICANTES][3][5] 	= 4;		RangosSkins[TRAFICANTES][3][6] 	= 5;		RangosSkins[TRAFICANTES][3][7] 	= 6;	FaccionData[TRAFICANTES][Paga][3] = 370;
-	FaccionesRangos[TRAFICANTES][4]  = "Pichón"; 				RangosSkins[TRAFICANTES][4][0] 	= 73;   RangosSkins[TRAFICANTES][4][1]	= 261; 	RangosSkins[TRAFICANTES][4][2] 	= 183;	RangosSkins[TRAFICANTES][4][3] 	= 131;	RangosSkins[TRAFICANTES][4][4] 	= 133;	RangosSkins[TRAFICANTES][4][5] 	= 4;		RangosSkins[TRAFICANTES][4][6] 	= 5;		RangosSkins[TRAFICANTES][4][7] 	= 6;	FaccionData[TRAFICANTES][Paga][4] = 370;
+	FaccionesRangos[TRAFICANTES][0]  = "Patron"; 				RangosSkins[TRAFICANTES][0][0] = 72; 																																																																									FaccionData[TRAFICANTES][Paga][0] = 430;
+	FaccionesRangos[TRAFICANTES][1]  = "Mano Derecha"; 			RangosSkins[TRAFICANTES][1][0] = 73;  	RangosSkins[TRAFICANTES][1][1] = 261;	RangosSkins[TRAFICANTES][1][2] = 183;	RangosSkins[TRAFICANTES][1][3] = 131;	RangosSkins[TRAFICANTES][1][4] = 133;	RangosSkins[TRAFICANTES][1][5] = 4;		RangosSkins[TRAFICANTES][1][6] = 5;		RangosSkins[TRAFICANTES][1][7] = 6;	FaccionData[TRAFICANTES][Paga][1] = 400;
+	FaccionesRangos[TRAFICANTES][2]  = "Vendedor de Armas"; 	RangosSkins[TRAFICANTES][2][0] = 73; 	RangosSkins[TRAFICANTES][2][1]	= 261; 	RangosSkins[TRAFICANTES][2][2] = 183;	RangosSkins[TRAFICANTES][2][3] = 131;	RangosSkins[TRAFICANTES][2][4] = 133;	RangosSkins[TRAFICANTES][2][5] = 4;		RangosSkins[TRAFICANTES][2][6] = 5;		RangosSkins[TRAFICANTES][2][7] = 6;	FaccionData[TRAFICANTES][Paga][2] = 370;
+	FaccionesRangos[TRAFICANTES][3]  = "Vendedor de Drogas"; 	RangosSkins[TRAFICANTES][3][0] = 73; 	RangosSkins[TRAFICANTES][3][1]	= 261; 	RangosSkins[TRAFICANTES][3][2] = 183;	RangosSkins[TRAFICANTES][3][3] = 131;	RangosSkins[TRAFICANTES][3][4] = 133;	RangosSkins[TRAFICANTES][3][5] = 4;		RangosSkins[TRAFICANTES][3][6] = 5;		RangosSkins[TRAFICANTES][3][7] = 6;	FaccionData[TRAFICANTES][Paga][3] = 370;
+	FaccionesRangos[TRAFICANTES][4]  = "Pichón"; 				RangosSkins[TRAFICANTES][4][0] = 73;   RangosSkins[TRAFICANTES][4][1]	= 261; 	RangosSkins[TRAFICANTES][4][2] = 183;	RangosSkins[TRAFICANTES][4][3] = 131;	RangosSkins[TRAFICANTES][4][4] = 133;	RangosSkins[TRAFICANTES][4][5] = 4;		RangosSkins[TRAFICANTES][4][6] = 5;		RangosSkins[TRAFICANTES][4][7] = 6;	FaccionData[TRAFICANTES][Paga][4] = 370;
 
 // LA COSA NOSTRA ID - 4
 	format(FaccionData[LCN][NameFaccion], MAX_FACCION_NAME, "LCN");
-	FaccionData[LCN][Extorsion] 		= 0;
-	FaccionData[LCN][AlmacenX][0] 			= 679.22473144531;
-	FaccionData[LCN][AlmacenY][0] 			= 1843.6361083984;
-	FaccionData[LCN][AlmacenZ][0] 			= 5.5982542037964;
+	FaccionData[LCN][Extorsion] = 0;
+	FaccionData[LCN][AlmacenX][0] = 679.22473144531;
+	FaccionData[LCN][AlmacenY][0] = 1843.6361083984;
+	FaccionData[LCN][AlmacenZ][0] = 5.5982542037964;
 	FaccionData[LCN][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[LCN][Spawn_X][0]		= 1132.9468;
-	FaccionData[LCN][Spawn_Y][0]		= -2036.7697;
-	FaccionData[LCN][Spawn_Z][0]		= 69.0078;
-	FaccionData[LCN][Spawn_ZZ][0]		= 269.1363;
-	FaccionData[LCN][PickupOut_X] 		= 1124.0889;
-	FaccionData[LCN][PickupOut_Y] 		= -2037.1730;
-	FaccionData[LCN][PickupOut_Z] 		= 69.8851;
-	FaccionData[LCN][PickupOut_ZZ] 		= 263.7051;
-	FaccionData[LCN][PickupIn_X] 		= 1261.6130;
-	FaccionData[LCN][PickupIn_Y] 		= -785.2961;
-	FaccionData[LCN][PickupIn_Z] 		= 1091.9063;
-	FaccionData[LCN][PickupIn_ZZ] 		= 272.4865;
-	FaccionData[LCN][InteriorFaccion] 	= 5;
-	FaccionData[LCN][PickupidOutF]		= CreatePickup	(1254, 	1, 	FaccionData[LCN][PickupOut_X], FaccionData[LCN][PickupOut_Y], FaccionData[LCN][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[LCN][PickupidInF] 		= CreatePickup	(1254, 	1, 	FaccionData[LCN][PickupIn_X], FaccionData[LCN][PickupIn_Y], FaccionData[LCN][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[LCN][PrecioFaccion] 	= 0;
+	FaccionData[LCN][Spawn_X][0] = 1132.9468;
+	FaccionData[LCN][Spawn_Y][0] = -2036.7697;
+	FaccionData[LCN][Spawn_Z][0] = 69.0078;
+	FaccionData[LCN][Spawn_ZZ][0] = 269.1363;
+	FaccionData[LCN][PickupOut_X] = 1124.0889;
+	FaccionData[LCN][PickupOut_Y] = -2037.1730;
+	FaccionData[LCN][PickupOut_Z] = 69.8851;
+	FaccionData[LCN][PickupOut_ZZ] = 263.7051;
+	FaccionData[LCN][PickupIn_X] = 1261.6130;
+	FaccionData[LCN][PickupIn_Y] = -785.2961;
+	FaccionData[LCN][PickupIn_Z] = 1091.9063;
+	FaccionData[LCN][PickupIn_ZZ] = 272.4865;
+	FaccionData[LCN][InteriorFaccion] = 5;
+	FaccionData[LCN][PickupidOutF] = CreateFaccionDynamicPickup(1254, LCN, FaccionData[LCN][PickupOut_X], FaccionData[LCN][PickupOut_Y], FaccionData[LCN][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[LCN][PickupidInF] = CreateFaccionDynamicPickup(1254, LCN, FaccionData[LCN][PickupIn_X], FaccionData[LCN][PickupIn_Y], FaccionData[LCN][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[LCN][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[LCN][PrecioFaccion] = 0;
 	FaccionData[LCN][Lock] 				= 0;
-	FaccionData[LCN][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[LCN][Family] 			= true;
-	FaccionData[LCN][Radio] 			= false;
+	FaccionData[LCN][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[LCN][Family] = true;
+	FaccionData[LCN][Radio] = false;
 
-	FaccionesRangos[LCN][0]  = "Capi di tutti capi"; 	RangosSkins[LCN][0][0] 	= 113; 	RangosSkins[LCN][0][1] 	= 216;	RangosSkins[LCN][0][2] 	= 3;	FaccionData[LCN][Paga][0] = 430;
-	FaccionesRangos[LCN][1]  = "Don"; 					RangosSkins[LCN][1][0] 	= 126;  RangosSkins[LCN][1][1] 	= 216;	RangosSkins[LCN][1][2] 	= 3;	FaccionData[LCN][Paga][1] = 450;
-	FaccionesRangos[LCN][2]  = "Sottocapo"; 			RangosSkins[LCN][2][0] 	= 111; 	RangosSkins[LCN][2][1]	= 141;  								FaccionData[LCN][Paga][2] = 400;
-	FaccionesRangos[LCN][3]  = "Consigliere"; 			RangosSkins[LCN][3][0] 	= 98; 	RangosSkins[LCN][3][1] 	= 141;									FaccionData[LCN][Paga][3] = 400;
-	FaccionesRangos[LCN][4]  = "Capo"; 					RangosSkins[LCN][4][0] 	= 125; 	RangosSkins[LCN][4][1] 	= 141;									FaccionData[LCN][Paga][4] = 370;
-	FaccionesRangos[LCN][5]  = "Soldado"; 				RangosSkins[LCN][5][0] 	= 124; 	RangosSkins[LCN][5][1] 	= 141;									FaccionData[LCN][Paga][5] = 370;
-	FaccionesRangos[LCN][6]  = "Asociado"; 				RangosSkins[LCN][6][0] 	= 127; 	RangosSkins[LCN][6][1] 	= 141;									FaccionData[LCN][Paga][6] = 370;
+	FaccionesRangos[LCN][0]  = "Capi di tutti capi"; 	RangosSkins[LCN][0][0] = 113; 	RangosSkins[LCN][0][1] = 216;	RangosSkins[LCN][0][2] = 3;	FaccionData[LCN][Paga][0] = 430;
+	FaccionesRangos[LCN][1]  = "Don"; 					RangosSkins[LCN][1][0] = 126;  RangosSkins[LCN][1][1] = 216;	RangosSkins[LCN][1][2] = 3;	FaccionData[LCN][Paga][1] = 450;
+	FaccionesRangos[LCN][2]  = "Sottocapo"; 			RangosSkins[LCN][2][0] = 111; 	RangosSkins[LCN][2][1]	= 141;  								FaccionData[LCN][Paga][2] = 400;
+	FaccionesRangos[LCN][3]  = "Consigliere"; 			RangosSkins[LCN][3][0] = 98; 	RangosSkins[LCN][3][1] = 141;									FaccionData[LCN][Paga][3] = 400;
+	FaccionesRangos[LCN][4]  = "Capo"; 					RangosSkins[LCN][4][0] = 125; 	RangosSkins[LCN][4][1] = 141;									FaccionData[LCN][Paga][4] = 370;
+	FaccionesRangos[LCN][5]  = "Soldado"; 				RangosSkins[LCN][5][0] = 124; 	RangosSkins[LCN][5][1] = 141;									FaccionData[LCN][Paga][5] = 370;
+	FaccionesRangos[LCN][6]  = "Asociado"; 				RangosSkins[LCN][6][0] = 127; 	RangosSkins[LCN][6][1] = 141;									FaccionData[LCN][Paga][6] = 370;
 
 // YAKUZA ID - 5
 	format(FaccionData[YKZ][NameFaccion], MAX_FACCION_NAME, "Yakuza");
-	FaccionData[YKZ][Extorsion] 		= 0;
-	FaccionData[YKZ][AlmacenX][0] 		= -2178.54296875;
-	FaccionData[YKZ][AlmacenY][0] 		= 715.53643798828;
-	FaccionData[YKZ][AlmacenZ][0] 		= 53.890625;
-	FaccionData[YKZ][AlmacenX][1] 		= 0;
-	FaccionData[YKZ][AlmacenY][1] 		= 0;
-	FaccionData[YKZ][AlmacenZ][1] 		= 0;
-	FaccionData[YKZ][Spawn_X][0] 		= -2279.9204;
-	FaccionData[YKZ][Spawn_Y][0] 		= 2300.8733;
-	FaccionData[YKZ][Spawn_Z][0] 		= 4.9637;
-	FaccionData[YKZ][Spawn_ZZ][0] 		= 272.4753;
-	FaccionData[YKZ][PickupOut_X] 		= -2281.6987;
-	FaccionData[YKZ][PickupOut_Y] 		= 2288.2117;
-	FaccionData[YKZ][PickupOut_Z] 		= 4.9706;
-	FaccionData[YKZ][PickupOut_ZZ] 		= 265.5353;
-	FaccionData[YKZ][PickupIn_X] 		= 2317.8542;
-	FaccionData[YKZ][PickupIn_Y] 		= -1026.7068;
-	FaccionData[YKZ][PickupIn_Z] 		= 1050.2178;
-	FaccionData[YKZ][PickupIn_ZZ] 		= 0.7340;
-	FaccionData[YKZ][InteriorFaccion] 	= 9;
-	FaccionData[YKZ][PickupidOutF]		= CreatePickup	(1254, 	1, 	FaccionData[YKZ][PickupOut_X], FaccionData[YKZ][PickupOut_Y], FaccionData[YKZ][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[YKZ][PickupidInF] 		= CreatePickup	(1254, 	1, 	FaccionData[YKZ][PickupIn_X], FaccionData[YKZ][PickupIn_Y], FaccionData[YKZ][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[YKZ][PrecioFaccion] 	= 0;
+	FaccionData[YKZ][Extorsion] = 0;
+	FaccionData[YKZ][AlmacenX][0] = -2178.54296875;
+	FaccionData[YKZ][AlmacenY][0] = 715.53643798828;
+	FaccionData[YKZ][AlmacenZ][0] = 53.890625;
+	FaccionData[YKZ][AlmacenX][1] = 0;
+	FaccionData[YKZ][AlmacenY][1] = 0;
+	FaccionData[YKZ][AlmacenZ][1] = 0;
+	FaccionData[YKZ][Spawn_X][0] = -2279.9204;
+	FaccionData[YKZ][Spawn_Y][0] = 2300.8733;
+	FaccionData[YKZ][Spawn_Z][0] = 4.9637;
+	FaccionData[YKZ][Spawn_ZZ][0] = 272.4753;
+	FaccionData[YKZ][PickupOut_X] = -2281.6987;
+	FaccionData[YKZ][PickupOut_Y] = 2288.2117;
+	FaccionData[YKZ][PickupOut_Z] = 4.9706;
+	FaccionData[YKZ][PickupOut_ZZ] = 265.5353;
+	FaccionData[YKZ][PickupIn_X] = 2317.8542;
+	FaccionData[YKZ][PickupIn_Y] = -1026.7068;
+	FaccionData[YKZ][PickupIn_Z] = 1050.2178;
+	FaccionData[YKZ][PickupIn_ZZ] = 0.7340;
+	FaccionData[YKZ][InteriorFaccion] = 9;
+	FaccionData[YKZ][PickupidOutF] = CreateFaccionDynamicPickup(1254, YKZ, FaccionData[YKZ][PickupOut_X], FaccionData[YKZ][PickupOut_Y], FaccionData[YKZ][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[YKZ][PickupidInF] = CreateFaccionDynamicPickup(1254, YKZ, FaccionData[YKZ][PickupIn_X], FaccionData[YKZ][PickupIn_Y], FaccionData[YKZ][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[YKZ][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[YKZ][PrecioFaccion] = 0;
 	FaccionData[YKZ][Lock] 				= 0;
-	FaccionData[YKZ][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[YKZ][Family] 			= true;
-	FaccionData[YKZ][Radio] 			= false;
+	FaccionData[YKZ][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[YKZ][Family] = true;
+	FaccionData[YKZ][Radio] = false;
 
-	FaccionesRangos[YKZ][0]  = "Oyabun"; 			RangosSkins[YKZ][0][0] 	= 208; 	RangosSkins[YKZ][0][1] 	= 228;	 RangosSkins[YKZ][0][2] 	= 263; 	FaccionData[YKZ][Paga][0] = 500;
-	FaccionesRangos[YKZ][1]  = "Wakashu"; 			RangosSkins[YKZ][1][0] 	= 186;  RangosSkins[YKZ][1][1] 	= 263;										FaccionData[YKZ][Paga][1] = 480;
-	FaccionesRangos[YKZ][2]  = "Wakagashira"; 		RangosSkins[YKZ][2][0] 	= 120;  RangosSkins[YKZ][2][1] 	= 224;										FaccionData[YKZ][Paga][2] = 450;
-	FaccionesRangos[YKZ][3]  = "Shateigashira"; 	RangosSkins[YKZ][3][0] 	= 123; 	RangosSkins[YKZ][3][1]	= 169; 										FaccionData[YKZ][Paga][3] = 420;
-	FaccionesRangos[YKZ][4]  = "Kyodai"; 			RangosSkins[YKZ][4][0] 	= 122; 	RangosSkins[YKZ][4][1] 	= 169;										FaccionData[YKZ][Paga][4] = 400;
-	FaccionesRangos[YKZ][5]  = "Shatei"; 			RangosSkins[YKZ][5][0] 	= 121; 	RangosSkins[YKZ][5][1] 	= 169;										FaccionData[YKZ][Paga][5] = 370;
+	FaccionesRangos[YKZ][0]  = "Oyabun"; 			RangosSkins[YKZ][0][0] = 208; 	RangosSkins[YKZ][0][1] = 228;	 RangosSkins[YKZ][0][2] = 263; 	FaccionData[YKZ][Paga][0] = 500;
+	FaccionesRangos[YKZ][1]  = "Wakashu"; 			RangosSkins[YKZ][1][0] = 186;  RangosSkins[YKZ][1][1] = 263;										FaccionData[YKZ][Paga][1] = 480;
+	FaccionesRangos[YKZ][2]  = "Wakagashira"; 		RangosSkins[YKZ][2][0] = 120;  RangosSkins[YKZ][2][1] = 224;										FaccionData[YKZ][Paga][2] = 450;
+	FaccionesRangos[YKZ][3]  = "Shateigashira"; 	RangosSkins[YKZ][3][0] = 123; 	RangosSkins[YKZ][3][1]	= 169; 										FaccionData[YKZ][Paga][3] = 420;
+	FaccionesRangos[YKZ][4]  = "Kyodai"; 			RangosSkins[YKZ][4][0] = 122; 	RangosSkins[YKZ][4][1] = 169;										FaccionData[YKZ][Paga][4] = 400;
+	FaccionesRangos[YKZ][5]  = "Shatei"; 			RangosSkins[YKZ][5][0] = 121; 	RangosSkins[YKZ][5][1] = 169;										FaccionData[YKZ][Paga][5] = 370;
 
 // TAXIS ID - 6
 	format(FaccionData[TAXI][NameFaccion], MAX_FACCION_NAME, "Taxistas");
-	FaccionData[TAXI][Extorsion] 		= 0;
-	FaccionData[TAXI][Spawn_X][0]		= 1754.0756;
-	FaccionData[TAXI][Spawn_Y][0]		= -1912.3319;
-	FaccionData[TAXI][Spawn_Z][0]		= 13.5679;
-	FaccionData[TAXI][Spawn_ZZ][0] 		= 269.3793;
-	FaccionData[TAXI][Spawn_X][1]		= -1973.7559;
-	FaccionData[TAXI][Spawn_Y][1]		= 162.0670;
-	FaccionData[TAXI][Spawn_Z][1]		= 27.6940;
-	FaccionData[TAXI][Spawn_ZZ][1] 		= 180.3988;
-	FaccionData[TAXI][PickupOut_X] 		= 1743.0270;
-	FaccionData[TAXI][PickupOut_Y] 		= -1864.1876;
-	FaccionData[TAXI][PickupOut_Z] 		= 13.5742;
-	FaccionData[TAXI][PickupOut_ZZ] 	= 1.1633;
-	FaccionData[TAXI][PickupIn_X] 		= 2215.1392;
-	FaccionData[TAXI][PickupIn_Y] 		= -1150.6198;
-	FaccionData[TAXI][PickupIn_Z] 		= 1025.7969;
-	FaccionData[TAXI][PickupIn_ZZ] 		= 268.8355;
-	FaccionData[TAXI][InteriorFaccion] 	= 15;
-	FaccionData[TAXI][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[TAXI][PickupOut_X], FaccionData[TAXI][PickupOut_Y], FaccionData[TAXI][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[TAXI][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[TAXI][PickupIn_X], FaccionData[TAXI][PickupIn_Y], FaccionData[TAXI][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[TAXI][PrecioFaccion] 	= 0;
-	FaccionData[TAXI][Lock] 			= 0;
-	FaccionData[TAXI][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[TAXI][Family] 			= false;
-	FaccionData[TAXI][Radio] 			= true;
+	FaccionData[TAXI][Extorsion] = 0;
+	FaccionData[TAXI][Spawn_X][0] = 1754.0756;
+	FaccionData[TAXI][Spawn_Y][0] = -1912.3319;
+	FaccionData[TAXI][Spawn_Z][0] = 13.5679;
+	FaccionData[TAXI][Spawn_ZZ][0] = 269.3793;
+	FaccionData[TAXI][Spawn_X][1] = -1973.7559;
+	FaccionData[TAXI][Spawn_Y][1] = 162.0670;
+	FaccionData[TAXI][Spawn_Z][1] = 27.6940;
+	FaccionData[TAXI][Spawn_ZZ][1] = 180.3988;
+	FaccionData[TAXI][PickupOut_X] = 1743.0270;
+	FaccionData[TAXI][PickupOut_Y] = -1864.1876;
+	FaccionData[TAXI][PickupOut_Z] = 13.5742;
+	FaccionData[TAXI][PickupOut_ZZ] = 1.1633;
+	FaccionData[TAXI][PickupIn_X] = 2215.1392;
+	FaccionData[TAXI][PickupIn_Y] = -1150.6198;
+	FaccionData[TAXI][PickupIn_Z] = 1025.7969;
+	FaccionData[TAXI][PickupIn_ZZ] = 268.8355;
+	FaccionData[TAXI][InteriorFaccion] = 15;
+	FaccionData[TAXI][PickupidOutF] = CreateFaccionDynamicPickup(1239, TAXI, FaccionData[TAXI][PickupOut_X], FaccionData[TAXI][PickupOut_Y], FaccionData[TAXI][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TAXI][PickupidInF] = CreateFaccionDynamicPickup(1239, TAXI, FaccionData[TAXI][PickupIn_X], FaccionData[TAXI][PickupIn_Y], FaccionData[TAXI][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[TAXI][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TAXI][PrecioFaccion] = 0;
+	FaccionData[TAXI][Lock] = 0;
+	FaccionData[TAXI][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[TAXI][Family] = false;
+	FaccionData[TAXI][Radio] = true;
 
-	FaccionesRangos[TAXI][0]  = "Director"; 			RangosSkins[TAXI][0][0] 	= 61;	RangosSkins[TAXI][0][1] 	= 69;  	FaccionData[TAXI][Paga][0] = 700;
-	FaccionesRangos[TAXI][1]  = "Sub Director"; 		RangosSkins[TAXI][1][0] 	= 240;	RangosSkins[TAXI][1][1] 	= 69;  	FaccionData[TAXI][Paga][1] = 650;
-	FaccionesRangos[TAXI][2]  = "Instructor";	 		RangosSkins[TAXI][2][0] 	= 240;	RangosSkins[TAXI][2][1] 	= 69;  	FaccionData[TAXI][Paga][2] = 600;
-	FaccionesRangos[TAXI][3]  = "Conductor de Taxí";	RangosSkins[TAXI][3][0] 	= 255; 	RangosSkins[TAXI][3][1] 	= 69;  	FaccionData[TAXI][Paga][3] = 550;
-	FaccionesRangos[TAXI][4]  = "Conductor de Autobús"; RangosSkins[TAXI][4][0] 	= 255; 	RangosSkins[TAXI][4][1] 	= 69;  	FaccionData[TAXI][Paga][4] = 500;
-	FaccionesRangos[TAXI][5]  = "Conductor de Tren"; 	RangosSkins[TAXI][5][0] 	= 253; 	RangosSkins[TAXI][5][1] 	= 69;  	FaccionData[TAXI][Paga][5] = 450;
-	FaccionesRangos[TAXI][6]  = "Principiante";		 	RangosSkins[TAXI][6][0] 	= 36; 	RangosSkins[TAXI][6][1] 	= 69;  	FaccionData[TAXI][Paga][6] = 350;
+	FaccionesRangos[TAXI][0]  = "Director"; 			RangosSkins[TAXI][0][0] = 61;	RangosSkins[TAXI][0][1] = 69;  	FaccionData[TAXI][Paga][0] = 700;
+	FaccionesRangos[TAXI][1]  = "Sub Director"; 		RangosSkins[TAXI][1][0] = 240;	RangosSkins[TAXI][1][1] = 69;  	FaccionData[TAXI][Paga][1] = 650;
+	FaccionesRangos[TAXI][2]  = "Instructor";	RangosSkins[TAXI][2][0] = 240;	RangosSkins[TAXI][2][1] = 69;  	FaccionData[TAXI][Paga][2] = 600;
+	FaccionesRangos[TAXI][3]  = "Conductor de Taxí";	RangosSkins[TAXI][3][0] = 255; 	RangosSkins[TAXI][3][1] = 69;  	FaccionData[TAXI][Paga][3] = 550;
+	FaccionesRangos[TAXI][4]  = "Conductor de Autobús"; RangosSkins[TAXI][4][0] = 255; 	RangosSkins[TAXI][4][1] = 69;  	FaccionData[TAXI][Paga][4] = 500;
+	FaccionesRangos[TAXI][5]  = "Conductor de Tren"; 	RangosSkins[TAXI][5][0] = 253; 	RangosSkins[TAXI][5][1] = 69;  	FaccionData[TAXI][Paga][5] = 450;
+	FaccionesRangos[TAXI][6]  = "Principiante";	RangosSkins[TAXI][6][0] = 36; 	RangosSkins[TAXI][6][1] = 69;  	FaccionData[TAXI][Paga][6] = 350;
 
 // SFPD ID - 7
 	format(FaccionData[SFPD][NameFaccion], MAX_FACCION_NAME, "SFPD");
-	FaccionData[SFPD][Extorsion] 		= 0;
-	FaccionData[SFPD][Spawn_X][0]		= -1605.7463;
-	FaccionData[SFPD][Spawn_Y][0]		= 676.1434;
-	FaccionData[SFPD][Spawn_Z][0]		= -5.2422;
-	FaccionData[SFPD][Spawn_ZZ][0] 		= 359.9802;
-	FaccionData[SFPD][PickupOut_X] 		= -1605.4266;
-	FaccionData[SFPD][PickupOut_Y] 		= 711.5508;
-	FaccionData[SFPD][PickupOut_Z] 		= 13.8672;
-	FaccionData[SFPD][PickupOut_ZZ] 		= 0.3981;
-	FaccionData[SFPD][PickupIn_X] 		= 246.2979;
-	FaccionData[SFPD][PickupIn_Y] 		= 108.0498;
-	FaccionData[SFPD][PickupIn_Z] 		= 1003.2188;
-	FaccionData[SFPD][PickupIn_ZZ] 		= 358.3208;
-	FaccionData[SFPD][InteriorFaccion] 	= 10;
-	FaccionData[SFPD][PickupidOutF]		= CreatePickup	(1247, 	1, 	FaccionData[SFPD][PickupOut_X], FaccionData[SFPD][PickupOut_Y], FaccionData[SFPD][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[SFPD][PickupidInF] 		= CreatePickup	(1247, 	1, 	FaccionData[SFPD][PickupIn_X], FaccionData[SFPD][PickupIn_Y], FaccionData[SFPD][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[SFPD][PrecioFaccion] 	= 0;
+	FaccionData[SFPD][Extorsion] = 0;
+	FaccionData[SFPD][Spawn_X][0] = -1605.7463;
+	FaccionData[SFPD][Spawn_Y][0] = 676.1434;
+	FaccionData[SFPD][Spawn_Z][0] = -5.2422;
+	FaccionData[SFPD][Spawn_ZZ][0] = 359.9802;
+	FaccionData[SFPD][PickupOut_X] = -1605.4266;
+	FaccionData[SFPD][PickupOut_Y] = 711.5508;
+	FaccionData[SFPD][PickupOut_Z] = 13.8672;
+	FaccionData[SFPD][PickupOut_ZZ] = 0.3981;
+	FaccionData[SFPD][PickupIn_X] = 246.2979;
+	FaccionData[SFPD][PickupIn_Y] = 108.0498;
+	FaccionData[SFPD][PickupIn_Z] = 1003.2188;
+	FaccionData[SFPD][PickupIn_ZZ] = 358.3208;
+	FaccionData[SFPD][InteriorFaccion] = 10;
+	FaccionData[SFPD][PickupidOutF] = CreateFaccionDynamicPickup(1247, SFPD, FaccionData[SFPD][PickupOut_X], FaccionData[SFPD][PickupOut_Y], FaccionData[SFPD][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[SFPD][PickupidInF] = CreateFaccionDynamicPickup(1247, SFPD, FaccionData[SFPD][PickupIn_X], FaccionData[SFPD][PickupIn_Y], FaccionData[SFPD][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[SFPD][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[SFPD][PrecioFaccion] = 0;
 	FaccionData[SFPD][Lock] 				= 0;
-	FaccionData[SFPD][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[SFPD][Family] 			= false;
-	FaccionData[SFPD][Radio] 			= true;
+	FaccionData[SFPD][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[SFPD][Family] = false;
+	FaccionData[SFPD][Radio] = true;
 
-	FaccionesRangos[SFPD][0]  = "Comisario";	RangosSkins[SFPD][0][0] 	= 283; 	RangosSkins[SFPD][0][1] 	= 285; 	RangosSkins[SFPD][0][2] 	= 284;   RangosSkins[SFPD][0][3] 	= 150; 	RangosSkins[SFPD][0][4] 	= 101; 	RangosSkins[SFPD][0][5] 	= 250; 	RangosSkins[SFPD][0][6] 	= 60; 	RangosSkins[SFPD][0][7] 	= 170; 	RangosSkins[SFPD][0][8] 	= 184; 	RangosSkins[SFPD][0][9] 	= 148; 	RangosSkins[SFPD][0][10] 	= 191;		FaccionData[SFPD][Paga][0] = 600;
-	FaccionesRangos[SFPD][1]  = "Sub-Comisario";RangosSkins[SFPD][1][0] 	= 282;  RangosSkins[SFPD][1][1] 	= 285; 	RangosSkins[SFPD][1][2] 	= 284;	RangosSkins[SFPD][1][3] 	= 150; 	RangosSkins[SFPD][1][4] 	= 101; 	RangosSkins[SFPD][1][5] 	= 250; 	RangosSkins[SFPD][1][6] 	= 60; 	RangosSkins[SFPD][1][7] 	= 170; 	RangosSkins[SFPD][1][8] 	= 184;	RangosSkins[SFPD][1][9] 	= 148; 	RangosSkins[SFPD][1][10] 	= 191;	 	FaccionData[SFPD][Paga][1] = 550;
-	FaccionesRangos[SFPD][2]  = "Inspector"; 	RangosSkins[SFPD][2][0] 	= 266; 	RangosSkins[SFPD][2][1]		= 285; 	RangosSkins[SFPD][2][2] 	= 284;   RangosSkins[SFPD][2][3] 	= 150; 	RangosSkins[SFPD][2][4] 	= 101; 	RangosSkins[SFPD][2][5] 	= 250; 	RangosSkins[SFPD][2][6] 	= 60; 	RangosSkins[SFPD][2][7] 	= 170; 	RangosSkins[SFPD][2][8] 	= 184;  RangosSkins[SFPD][2][9] 	= 148; 	RangosSkins[SFPD][2][10] 	= 191;	 	FaccionData[SFPD][Paga][2] = 500;
-	FaccionesRangos[SFPD][3]  = "Sargento"; 	RangosSkins[SFPD][3][0] 	= 265; 	RangosSkins[SFPD][3][1] 	= 285; 	RangosSkins[SFPD][3][2] 	= 284;	RangosSkins[SFPD][3][3] 	= 150; 	RangosSkins[SFPD][3][4] 	= 101; 	RangosSkins[SFPD][3][5] 	= 250; 	RangosSkins[SFPD][3][6] 	= 60; 	RangosSkins[SFPD][3][7] 	= 170; 	RangosSkins[SFPD][3][8] 	= 184;	RangosSkins[SFPD][3][9] 	= 148; 	RangosSkins[SFPD][3][10] 	= 191;	 	FaccionData[SFPD][Paga][3] = 500;
-	FaccionesRangos[SFPD][4]  = "Cabo";			RangosSkins[SFPD][4][0] 	= 267; 	RangosSkins[SFPD][4][1] 	= 285; 	RangosSkins[SFPD][4][2] 	= 284; 	RangosSkins[SFPD][4][3] 	= 150; 	RangosSkins[SFPD][4][4] 	= 101; 	RangosSkins[SFPD][4][5] 	= 250; 	RangosSkins[SFPD][4][6] 	= 60; 	RangosSkins[SFPD][4][7] 	= 170; 	RangosSkins[SFPD][4][8] 	= 184; 	RangosSkins[SFPD][4][9] 	= 148; 	RangosSkins[SFPD][4][10] 	= 191;	 	FaccionData[SFPD][Paga][4] = 400;
-	FaccionesRangos[SFPD][5]  = "Oficial"; 		RangosSkins[SFPD][5][0] 	= 267; 	RangosSkins[SFPD][5][1] 	= 285; 	RangosSkins[SFPD][5][2] 	= 284;	RangosSkins[SFPD][5][3] 	= 150; 	RangosSkins[SFPD][5][4] 	= 101; 	RangosSkins[SFPD][5][5] 	= 250; 	RangosSkins[SFPD][5][6] 	= 60; 	RangosSkins[SFPD][5][7] 	= 170; 	RangosSkins[SFPD][5][8] 	= 184;  RangosSkins[SFPD][5][9] 	= 148; 	RangosSkins[SFPD][5][10] 	= 191;	 	FaccionData[SFPD][Paga][5] = 400;
-	FaccionesRangos[SFPD][6]  = "Cadete";		RangosSkins[SFPD][6][0] 	= 71; 	RangosSkins[SFPD][6][1] 	= 285; 	RangosSkins[SFPD][6][2] 	= 284;	RangosSkins[SFPD][6][3] 	= 150; 	RangosSkins[SFPD][6][4] 	= 101; 	RangosSkins[SFPD][6][5] 	= 250; 	RangosSkins[SFPD][6][6] 	= 60; 	RangosSkins[SFPD][6][7] 	= 170; 	RangosSkins[SFPD][6][8] 	= 184; 	RangosSkins[SFPD][6][9] 	= 148; 	RangosSkins[SFPD][6][10] 	= 191;	 	FaccionData[SFPD][Paga][6] = 350;
-	
+	FaccionesRangos[SFPD][0]  = "Comisario";	RangosSkins[SFPD][0][0]     = 283; 	RangosSkins[SFPD][0][1]     = 285; 	RangosSkins[SFPD][0][2]     = 284;  RangosSkins[SFPD][0][3]     = 150; 	RangosSkins[SFPD][0][4]     = 101; 	RangosSkins[SFPD][0][5]     = 250; 	RangosSkins[SFPD][0][6]     = 60;    RangosSkins[SFPD][0][7]    = 170; 	RangosSkins[SFPD][0][8]     = 184; 	RangosSkins[SFPD][0][9]     = 148; 	RangosSkins[SFPD][0][10]    = 191;		FaccionData[SFPD][Paga][0] = 600;
+	FaccionesRangos[SFPD][1]  = "Sub-Comisario";RangosSkins[SFPD][1][0] 	= 288;  RangosSkins[SFPD][1][1] 	= 285; 	RangosSkins[SFPD][1][2] 	= 284;	RangosSkins[SFPD][1][3] 	= 150; 	RangosSkins[SFPD][1][4] 	= 101; 	RangosSkins[SFPD][1][5] 	= 250; 	RangosSkins[SFPD][1][6] 	= 60; 	RangosSkins[SFPD][1][7] 	= 170; 	RangosSkins[SFPD][1][8] 	= 184;	RangosSkins[SFPD][1][9] 	= 148; 	RangosSkins[SFPD][1][10] 	= 191;	 	FaccionData[SFPD][Paga][1] = 550;
+    FaccionesRangos[SFPD][2]  = "Capitan"; 		RangosSkins[SFPD][2][0] 	= 282; 	RangosSkins[SFPD][2][1]		= 285; 	RangosSkins[SFPD][2][2] 	= 284;  RangosSkins[SFPD][2][3] 	= 150; 	RangosSkins[SFPD][2][4] 	= 101; 	RangosSkins[SFPD][2][5] 	= 250; 	RangosSkins[SFPD][2][6] 	= 60; 	RangosSkins[SFPD][2][7] 	= 170; 	RangosSkins[SFPD][2][8] 	= 184;  RangosSkins[SFPD][2][9] 	= 148; 	RangosSkins[SFPD][2][10] 	= 191;	 	FaccionData[SFPD][Paga][2] = 500;
+	FaccionesRangos[SFPD][3]  = "Teniente"; 	RangosSkins[SFPD][3][0] 	= 265; 	RangosSkins[SFPD][3][1]		= 285; 	RangosSkins[SFPD][3][2] 	= 284; 	RangosSkins[SFPD][3][3] 	= 150; 	RangosSkins[SFPD][3][4] 	= 101; 	RangosSkins[SFPD][3][5] 	= 250; 	RangosSkins[SFPD][3][6] 	= 60; 	RangosSkins[SFPD][3][7] 	= 170; 	RangosSkins[SFPD][3][8] 	= 184;  RangosSkins[SFPD][3][9] 	= 148; 	RangosSkins[SFPD][3][10] 	= 191;	 	FaccionData[SFPD][Paga][3] = 500;
+	FaccionesRangos[SFPD][4]  = "Sargento"; 	RangosSkins[SFPD][4][0] 	= 267; 	RangosSkins[SFPD][4][1] 	= 285; 	RangosSkins[SFPD][4][2] 	= 284;	RangosSkins[SFPD][4][3] 	= 150; 	RangosSkins[SFPD][4][4] 	= 101; 	RangosSkins[SFPD][4][5] 	= 250; 	RangosSkins[SFPD][4][6] 	= 60; 	RangosSkins[SFPD][4][7] 	= 170; 	RangosSkins[SFPD][4][8] 	= 184;	RangosSkins[SFPD][4][9] 	= 148; 	RangosSkins[SFPD][4][10] 	= 191;	 	FaccionData[SFPD][Paga][4] = 500;
+	FaccionesRangos[SFPD][5]  = "Cabo";			RangosSkins[SFPD][5][0] 	= 281; 	RangosSkins[SFPD][5][1] 	= 285; 	RangosSkins[SFPD][5][2] 	= 284; 	RangosSkins[SFPD][5][3] 	= 150; 	RangosSkins[SFPD][5][4] 	= 101; 	RangosSkins[SFPD][5][5] 	= 250; 	RangosSkins[SFPD][5][6] 	= 60; 	RangosSkins[SFPD][5][7] 	= 170; 	RangosSkins[SFPD][5][8] 	= 184; 	RangosSkins[SFPD][5][9] 	= 148; 	RangosSkins[SFPD][5][10] 	= 191;	 	FaccionData[SFPD][Paga][5] = 400;
+	FaccionesRangos[SFPD][6]  = "Oficial"; 		RangosSkins[SFPD][6][0] 	= 280; 	RangosSkins[SFPD][6][1] 	= 285; 	RangosSkins[SFPD][6][2] 	= 284;	RangosSkins[SFPD][6][3] 	= 150; 	RangosSkins[SFPD][6][4] 	= 101; 	RangosSkins[SFPD][6][5] 	= 250; 	RangosSkins[SFPD][6][6] 	= 60; 	RangosSkins[SFPD][6][7] 	= 170; 	RangosSkins[SFPD][6][8] 	= 184;  RangosSkins[SFPD][6][9] 	= 148; 	RangosSkins[SFPD][6][10] 	= 191;	 	FaccionData[SFPD][Paga][6] = 400;
+	FaccionesRangos[SFPD][7]  = "Cadete";		RangosSkins[SFPD][7][0] 	= 71; 	RangosSkins[SFPD][7][1] 	= 285; 	RangosSkins[SFPD][8][2] 	= 284;	RangosSkins[SFPD][7][3] 	= 150; 	RangosSkins[SFPD][7][4] 	= 101; 	RangosSkins[SFPD][7][5] 	= 250; 	RangosSkins[SFPD][7][6] 	= 60; 	RangosSkins[SFPD][7][7] 	= 170; 	RangosSkins[SFPD][7][8] 	= 184; 	RangosSkins[SFPD][7][9] 	= 148; 	RangosSkins[SFPD][7][10] 	= 191;	 	FaccionData[SFPD][Paga][7] = 350;
+
 // NFS ID - 8
 	format(FaccionData[NFS][NameFaccion], MAX_FACCION_NAME, "NFS");
-	FaccionData[NFS][Extorsion] 		= 0;
-	FaccionData[NFS][Spawn_X][0]		= 561.3279;
-	FaccionData[NFS][Spawn_Y][0]		= -1289.2629;
-	FaccionData[NFS][Spawn_Z][0]		= 17.2482;
-	FaccionData[NFS][Spawn_ZZ][0]		= 24.4206;
-	FaccionData[NFS][Spawn_X][1]		= -1954.0232;
-	FaccionData[NFS][Spawn_Y][1]		= 301.1528;
-	FaccionData[NFS][Spawn_Z][1]		= 35.4688;
-	FaccionData[NFS][Spawn_ZZ][1]		= 131.0429;
-	FaccionData[NFS][PickupOut_X] 		= 535.2281;
-	FaccionData[NFS][PickupOut_Y] 		= -1293.8947;
-	FaccionData[NFS][PickupOut_Z] 		= 17.2422;
-	FaccionData[NFS][PickupOut_ZZ] 		= 4.3904;
-	FaccionData[NFS][PickupIn_X] 		= 1494.3948;
-	FaccionData[NFS][PickupIn_Y] 		= 1309.5096;
-	FaccionData[NFS][PickupIn_Z] 		= 1093.2820;
-	FaccionData[NFS][PickupIn_ZZ] 		= 175.4568;
-	FaccionData[NFS][InteriorFaccion] 	= 3;
-	FaccionData[NFS][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[NFS][PickupOut_X], FaccionData[NFS][PickupOut_Y], FaccionData[NFS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[NFS][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[NFS][PickupIn_X], FaccionData[NFS][PickupIn_Y], FaccionData[NFS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[NFS][PrecioFaccion] 	= 0;
+	FaccionData[NFS][Extorsion] = 0;
+	FaccionData[NFS][Spawn_X][0] = 561.3279;
+	FaccionData[NFS][Spawn_Y][0] = -1289.2629;
+	FaccionData[NFS][Spawn_Z][0] = 17.2482;
+	FaccionData[NFS][Spawn_ZZ][0] = 24.4206;
+	FaccionData[NFS][Spawn_X][1] = -1954.0232;
+	FaccionData[NFS][Spawn_Y][1] = 301.1528;
+	FaccionData[NFS][Spawn_Z][1] = 35.4688;
+	FaccionData[NFS][Spawn_ZZ][1] = 131.0429;
+	FaccionData[NFS][PickupOut_X] = 535.2281;
+	FaccionData[NFS][PickupOut_Y] = -1293.8947;
+	FaccionData[NFS][PickupOut_Z] = 17.2422;
+	FaccionData[NFS][PickupOut_ZZ] = 4.3904;
+	FaccionData[NFS][PickupIn_X] = 1494.3948;
+	FaccionData[NFS][PickupIn_Y] = 1309.5096;
+	FaccionData[NFS][PickupIn_Z] = 1093.2820;
+	FaccionData[NFS][PickupIn_ZZ] = 175.4568;
+	FaccionData[NFS][InteriorFaccion] = 3;
+	FaccionData[NFS][PickupidOutF] = CreateFaccionDynamicPickup(1239, NFS, FaccionData[NFS][PickupOut_X], FaccionData[NFS][PickupOut_Y], FaccionData[NFS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[NFS][PickupidInF] = CreateFaccionDynamicPickup(1239, NFS, FaccionData[NFS][PickupIn_X], FaccionData[NFS][PickupIn_Y], FaccionData[NFS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[NFS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[NFS][PrecioFaccion] = 0;
 	FaccionData[NFS][Lock] 				= 0;
-	FaccionData[NFS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[NFS][Family] 			= true;
-	FaccionData[NFS][Radio] 			= false;
+	FaccionData[NFS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[NFS][Family] = true;
+	FaccionData[NFS][Radio] = false;
 
-	FaccionesRangos[NFS][0]  = "Jefe"; 			RangosSkins[NFS][0][0] 	= 185; 	RangosSkins[NFS][0][1] 	= 29; 	 	RangosSkins[NFS][0][2] 	= 170; 	 	RangosSkins[NFS][0][3] 	= 192; 	FaccionData[NFS][Paga][0] = 350;
-	FaccionesRangos[NFS][1]  = "Encargado"; 	RangosSkins[NFS][1][0] 	= 185;  RangosSkins[NFS][1][1]	= 29; 	 	RangosSkins[NFS][1][2] 	= 170; 	 	RangosSkins[NFS][1][3] 	= 192;	FaccionData[NFS][Paga][1] = 340;
-	FaccionesRangos[NFS][2]  = "Vendedor"; 		RangosSkins[NFS][2][0] 	= 185; 	RangosSkins[NFS][2][1]	= 29; 	 	RangosSkins[NFS][2][2] 	= 170; 	 	RangosSkins[NFS][2][3] 	= 192;  FaccionData[NFS][Paga][2] = 320;
-	FaccionesRangos[NFS][3]  = "Conductor"; 	RangosSkins[NFS][3][0] 	= 185; 	RangosSkins[NFS][3][1] 	= 29; 	 	RangosSkins[NFS][3][2] 	= 170; 	 	RangosSkins[NFS][3][3] 	= 192;	FaccionData[NFS][Paga][3] = 320;
+	FaccionesRangos[NFS][0]  = "Jefe"; 			RangosSkins[NFS][0][0] = 185; 	RangosSkins[NFS][0][1] = 29; RangosSkins[NFS][0][2] = 170; RangosSkins[NFS][0][3] = 192; 	FaccionData[NFS][Paga][0] = 350;
+	FaccionesRangos[NFS][1]  = "Encargado"; 	RangosSkins[NFS][1][0] = 185;  RangosSkins[NFS][1][1]	= 29; RangosSkins[NFS][1][2] = 170; RangosSkins[NFS][1][3] = 192;	FaccionData[NFS][Paga][1] = 340;
+	FaccionesRangos[NFS][2]  = "Vendedor"; 		RangosSkins[NFS][2][0] = 185; 	RangosSkins[NFS][2][1]	= 29; RangosSkins[NFS][2][2] = 170; RangosSkins[NFS][2][3] = 192;  FaccionData[NFS][Paga][2] = 320;
+	FaccionesRangos[NFS][3]  = "Conductor"; 	RangosSkins[NFS][3][0] = 185; 	RangosSkins[NFS][3][1] = 29; RangosSkins[NFS][3][2] = 170; RangosSkins[NFS][3][3] = 192;	FaccionData[NFS][Paga][3] = 320;
 
 // SFMD ID - 9
 	format(FaccionData[SFMD][NameFaccion], MAX_FACCION_NAME, "SFMD");
-	FaccionData[SFMD][Extorsion] 		= 0;
-	FaccionData[SFMD][Spawn_X][0]		= -2682.5623;
-	FaccionData[SFMD][Spawn_Y][0]		= 637.0119;
-	FaccionData[SFMD][Spawn_Z][0]		= 14.4531;
-	FaccionData[SFMD][Spawn_ZZ][0]		= 179.4986;
-	FaccionData[SFMD][Spawn_X][1]		= -2060.1667;
-	FaccionData[SFMD][Spawn_Y][1]		= 95.2241;
-	FaccionData[SFMD][Spawn_Z][1]		= 28.3906;
-	FaccionData[SFMD][Spawn_ZZ][1]		= 176.9378;
-	FaccionData[SFMD][PickupOut_X] 		= -2655.1401;
-	FaccionData[SFMD][PickupOut_Y] 		= 640.1343;
-	FaccionData[SFMD][PickupOut_Z] 		= 14.4545;
-	FaccionData[SFMD][PickupOut_ZZ] 	= 181.8197;
-	FaccionData[SFMD][PickupIn_X] 		= 1673.9072;
-	FaccionData[SFMD][PickupIn_Y] 		= 731.5582;
-	FaccionData[SFMD][PickupIn_Z] 		= 10.8768;
-	FaccionData[SFMD][PickupIn_ZZ] 		= 180;
-	FaccionData[SFMD][InteriorFaccion] 	= 11;
-	FaccionData[SFMD][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[SFMD][PickupOut_X], FaccionData[SFMD][PickupOut_Y], FaccionData[SFMD][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[SFMD][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[SFMD][PickupIn_X], FaccionData[SFMD][PickupIn_Y], FaccionData[SFMD][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[SFMD][PrecioFaccion] 	= 0;
-	FaccionData[SFMD][Lock] 			= 0;
-	FaccionData[SFMD][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[SFMD][Family] 			= false;
-	FaccionData[SFMD][Radio] 			= true;
+	FaccionData[SFMD][Extorsion] = 0;
+	FaccionData[SFMD][Spawn_X][0] = -2682.5623;
+	FaccionData[SFMD][Spawn_Y][0] = 637.0119;
+	FaccionData[SFMD][Spawn_Z][0] = 14.4531;
+	FaccionData[SFMD][Spawn_ZZ][0] = 179.4986;
+	FaccionData[SFMD][Spawn_X][1] = -2060.1667;
+	FaccionData[SFMD][Spawn_Y][1] = 95.2241;
+	FaccionData[SFMD][Spawn_Z][1] = 28.3906;
+	FaccionData[SFMD][Spawn_ZZ][1] = 176.9378;
+	FaccionData[SFMD][PickupOut_X] = -2655.1401;
+	FaccionData[SFMD][PickupOut_Y] = 640.1343;
+	FaccionData[SFMD][PickupOut_Z] = 14.4545;
+	FaccionData[SFMD][PickupOut_ZZ] = 181.8197;
+	FaccionData[SFMD][PickupIn_X] = 1673.9072;
+	FaccionData[SFMD][PickupIn_Y] = 731.5582;
+	FaccionData[SFMD][PickupIn_Z] = 10.8768;
+	FaccionData[SFMD][PickupIn_ZZ] = 180;
+	FaccionData[SFMD][InteriorFaccion] = 11;
+	FaccionData[SFMD][PickupidOutF] = CreateFaccionDynamicPickup(1239, SFMD, FaccionData[SFMD][PickupOut_X], FaccionData[SFMD][PickupOut_Y], FaccionData[SFMD][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[SFMD][PickupidInF] = CreateFaccionDynamicPickup(1239, SFMD, FaccionData[SFMD][PickupIn_X], FaccionData[SFMD][PickupIn_Y], FaccionData[SFMD][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[SFMD][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[SFMD][PrecioFaccion] = 0;
+	FaccionData[SFMD][Lock] = 0;
+	FaccionData[SFMD][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[SFMD][Family] = false;
+	FaccionData[SFMD][Radio] = true;
 
-	FaccionesRangos[SFMD][0]  = "Director"; 		RangosSkins[SFMD][0][0] 	= 70; 	RangosSkins[SFMD][0][1] = 150; 	RangosSkins[SFMD][0][2] = 277; 	RangosSkins[SFMD][0][3] = 278; 	RangosSkins[SFMD][0][4]	= 279;		FaccionData[SFMD][Paga][0] = 700;
-	FaccionesRangos[SFMD][1]  = "Sub Director"; 	RangosSkins[SFMD][1][0] 	= 223;  RangosSkins[SFMD][1][1] = 191;  RangosSkins[SFMD][1][2] = 277; 	RangosSkins[SFMD][1][3] = 278; 	RangosSkins[SFMD][1][4]	= 279;	 	FaccionData[SFMD][Paga][1] = 600;
-	FaccionesRangos[SFMD][2]  = "Jefe de Bomberos";	RangosSkins[SFMD][2][0] 	= 279; 	RangosSkins[SFMD][2][1]	= 191;																										FaccionData[SFMD][Paga][2] = 650;
-	FaccionesRangos[SFMD][3]  = "Doctor"; 			RangosSkins[SFMD][3][0] 	= 156; 	RangosSkins[SFMD][3][1]	= 191; 	RangosSkins[SFMD][3][2]	= 274; 	RangosSkins[SFMD][3][3]	= 275; 	RangosSkins[SFMD][3][4]	= 276;		FaccionData[SFMD][Paga][3] = 500;
-	FaccionesRangos[SFMD][4]  = "Paramédico"; 		RangosSkins[SFMD][4][0] 	= 274; 	RangosSkins[SFMD][4][1] = 191; 	RangosSkins[SFMD][4][2]	= 274; 	RangosSkins[SFMD][4][3]	= 275; 	RangosSkins[SFMD][4][4]	= 276;	 	FaccionData[SFMD][Paga][4] = 450;
-	FaccionesRangos[SFMD][5]  = "Bombero"; 			RangosSkins[SFMD][5][0] 	= 277; 	RangosSkins[SFMD][5][1] = 278; 	RangosSkins[SFMD][5][2]	= 191; 																		FaccionData[SFMD][Paga][5] = 550;
-	FaccionesRangos[SFMD][6]  = "Apréndiz"; 		RangosSkins[SFMD][6][0] 	= 275; 	RangosSkins[SFMD][6][1] = 191; 		 																								FaccionData[SFMD][Paga][6] = 400;
+	FaccionesRangos[SFMD][0]  = "Director"; 		RangosSkins[SFMD][0][0] = 70; 	RangosSkins[SFMD][0][1] = 150; 	RangosSkins[SFMD][0][2] = 277; 	RangosSkins[SFMD][0][3] = 278; 	RangosSkins[SFMD][0][4]	= 279;		FaccionData[SFMD][Paga][0] = 700;
+	FaccionesRangos[SFMD][1]  = "Sub Director"; 	RangosSkins[SFMD][1][0] = 223;  RangosSkins[SFMD][1][1] = 191;  RangosSkins[SFMD][1][2] = 277; 	RangosSkins[SFMD][1][3] = 278; 	RangosSkins[SFMD][1][4]	= 279;FaccionData[SFMD][Paga][1] = 600;
+	FaccionesRangos[SFMD][2]  = "Jefe de Bomberos";	RangosSkins[SFMD][2][0] = 279; 	RangosSkins[SFMD][2][1]	= 191;																										FaccionData[SFMD][Paga][2] = 650;
+	FaccionesRangos[SFMD][3]  = "Doctor"; 			RangosSkins[SFMD][3][0] = 156; 	RangosSkins[SFMD][3][1]	= 191; 	RangosSkins[SFMD][3][2]	= 274; 	RangosSkins[SFMD][3][3]	= 275; 	RangosSkins[SFMD][3][4]	= 276;		FaccionData[SFMD][Paga][3] = 500;
+	FaccionesRangos[SFMD][4]  = "Paramédico"; 		RangosSkins[SFMD][4][0] = 274; 	RangosSkins[SFMD][4][1] = 191; 	RangosSkins[SFMD][4][2]	= 274; 	RangosSkins[SFMD][4][3]	= 275; 	RangosSkins[SFMD][4][4]	= 276;FaccionData[SFMD][Paga][4] = 450;
+	FaccionesRangos[SFMD][5]  = "Bombero"; 			RangosSkins[SFMD][5][0] = 277; 	RangosSkins[SFMD][5][1] = 278; 	RangosSkins[SFMD][5][2]	= 191; 																		FaccionData[SFMD][Paga][5] = 550;
+	FaccionesRangos[SFMD][6]  = "Apréndiz"; 		RangosSkins[SFMD][6][0] = 275; 	RangosSkins[SFMD][6][1] = 191; 																								FaccionData[SFMD][Paga][6] = 400;
 
 // CNN ID - 10
 	format(FaccionData[CNN][NameFaccion], MAX_FACCION_NAME, "CNN");
-	FaccionData[CNN][Extorsion] 		= 0;
-	FaccionData[CNN][Spawn_X][0] 		= 742.8419;
-	FaccionData[CNN][Spawn_Y][0] 		= -1343.8962;
-	FaccionData[CNN][Spawn_Z][0] 		= 13.5198;
-	FaccionData[CNN][Spawn_ZZ][0] 		= 268.8462;
-	FaccionData[CNN][PickupOut_X] 		= 647.8735;
-	FaccionData[CNN][PickupOut_Y] 		= -1359.2740;
-	FaccionData[CNN][PickupOut_Z] 		= 13.5826;
-	FaccionData[CNN][PickupOut_ZZ] 		= 91.5791;
-	FaccionData[CNN][PickupIn_X] 		= 2150.8496;
-	FaccionData[CNN][PickupIn_Y] 		= 1602.8657;
-	FaccionData[CNN][PickupIn_Z] 		= 1001.9693;
-	FaccionData[CNN][PickupIn_ZZ] 		= 272.0121;
+	FaccionData[CNN][Extorsion] = 0;
+	FaccionData[CNN][Spawn_X][0] = 742.8419;
+	FaccionData[CNN][Spawn_Y][0] = -1343.8962;
+	FaccionData[CNN][Spawn_Z][0] = 13.5198;
+	FaccionData[CNN][Spawn_ZZ][0] = 268.8462;
+	FaccionData[CNN][PickupOut_X] = 647.8735;
+	FaccionData[CNN][PickupOut_Y] = -1359.2740;
+	FaccionData[CNN][PickupOut_Z] = 13.5826;
+	FaccionData[CNN][PickupOut_ZZ] = 91.5791;
+	FaccionData[CNN][PickupIn_X] = 2150.8496;
+	FaccionData[CNN][PickupIn_Y] = 1602.8657;
+	FaccionData[CNN][PickupIn_Z] = 1001.9693;
+	FaccionData[CNN][PickupIn_ZZ] = 272.0121;
 	FaccionData[CNN][InteriorFaccion]	= 1;
-	FaccionData[CNN][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[CNN][PickupOut_X], FaccionData[CNN][PickupOut_Y], FaccionData[CNN][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[CNN][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[CNN][PickupIn_X], FaccionData[CNN][PickupIn_Y], FaccionData[CNN][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[CNN][PrecioFaccion] 	= 0;
+	FaccionData[CNN][PickupidOutF] = CreateFaccionDynamicPickup(1239, CNN, FaccionData[CNN][PickupOut_X], FaccionData[CNN][PickupOut_Y], FaccionData[CNN][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[CNN][PickupidInF] = CreateFaccionDynamicPickup(1239, CNN, FaccionData[CNN][PickupIn_X], FaccionData[CNN][PickupIn_Y], FaccionData[CNN][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[CNN][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[CNN][PrecioFaccion] = 0;
 	FaccionData[CNN][Lock] 				= 0;
-	FaccionData[CNN][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[CNN][Family] 			= false;
-	FaccionData[CNN][Radio] 			= true;
+	FaccionData[CNN][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[CNN][Family] = false;
+	FaccionData[CNN][Radio] = true;
 
-	FaccionesRangos[CNN][0]  = "Director"; 			RangosSkins[CNN][0][0] 	= 290; 	RangosSkins[CNN][0][1] 	= 40; 	RangosSkins[CNN][0][2] 	= 219; 	FaccionData[CNN][Paga][0] = 500;
-	FaccionesRangos[CNN][1]  = "Sub Director";		RangosSkins[CNN][1][0] 	= 223;  RangosSkins[CNN][1][1]	= 40;	RangosSkins[CNN][1][2] 	= 219; 	FaccionData[CNN][Paga][1] = 450;
-	FaccionesRangos[CNN][2]  = "Supervisor";		RangosSkins[CNN][2][0] 	= 223;  RangosSkins[CNN][2][1]	= 40;	RangosSkins[CNN][2][2] 	= 219; 	FaccionData[CNN][Paga][2] = 450;
-	FaccionesRangos[CNN][3]  = "Cronísta";			RangosSkins[CNN][3][0] 	= 223;  RangosSkins[CNN][3][1]	= 40;	RangosSkins[CNN][3][2] 	= 219; 	FaccionData[CNN][Paga][3] = 400;
-	FaccionesRangos[CNN][4]  = "Auxiliar"; 			RangosSkins[CNN][4][0] 	= 188; 	RangosSkins[CNN][4][1]	= 40; 	RangosSkins[CNN][4][2] 	= 219; 	FaccionData[CNN][Paga][4] = 350;
+	FaccionesRangos[CNN][0]  = "Director"; 			RangosSkins[CNN][0][0] = 290; 	RangosSkins[CNN][0][1] = 40; 	RangosSkins[CNN][0][2] = 219; 	FaccionData[CNN][Paga][0] = 500;
+	FaccionesRangos[CNN][1]  = "Sub Director";		RangosSkins[CNN][1][0] = 223;  RangosSkins[CNN][1][1]	= 40;	RangosSkins[CNN][1][2] = 219; 	FaccionData[CNN][Paga][1] = 450;
+	FaccionesRangos[CNN][2]  = "Supervisor";		RangosSkins[CNN][2][0] = 223;  RangosSkins[CNN][2][1]	= 40;	RangosSkins[CNN][2][2] = 219; 	FaccionData[CNN][Paga][2] = 450;
+	FaccionesRangos[CNN][3]  = "Cronísta";			RangosSkins[CNN][3][0] = 223;  RangosSkins[CNN][3][1]	= 40;	RangosSkins[CNN][3][2] = 219; 	FaccionData[CNN][Paga][3] = 400;
+	FaccionesRangos[CNN][4]  = "Auxiliar"; 			RangosSkins[CNN][4][0] = 188; 	RangosSkins[CNN][4][1]	= 40; 	RangosSkins[CNN][4][2] = 219; 	FaccionData[CNN][Paga][4] = 350;
 
 
 // DETECTIVES ID - 11
 	format(FaccionData[ADP][NameFaccion], MAX_FACCION_NAME, "Detectives");
-	FaccionData[ADP][Extorsion] 		= 0;
-	FaccionData[ADP][Spawn_X][0] 		= -2081.1680;
-	FaccionData[ADP][Spawn_Y][0] 		= 1418.5831;
-	FaccionData[ADP][Spawn_Z][0] 		= 7.1007;
-	FaccionData[ADP][Spawn_ZZ][0]		= 177.9662;
-	FaccionData[ADP][PickupOut_X] 		= -2076.1250;
-	FaccionData[ADP][PickupOut_Y] 		= 1421.0328;
-	FaccionData[ADP][PickupOut_Z] 		= 7.1295;
-	FaccionData[ADP][PickupOut_ZZ] 		= 178.4612;
-	FaccionData[ADP][PickupIn_X] 		= 2602.4689941406;
-	FaccionData[ADP][PickupIn_Y] 		= 1352.4586181641;
-	FaccionData[ADP][PickupIn_Z] 		= 78.476387023926;
-	FaccionData[ADP][PickupIn_ZZ] 		= 171.9440;
+	FaccionData[ADP][Extorsion] = 0;
+	FaccionData[ADP][Spawn_X][0] = -2081.1680;
+	FaccionData[ADP][Spawn_Y][0] = 1418.5831;
+	FaccionData[ADP][Spawn_Z][0] = 7.1007;
+	FaccionData[ADP][Spawn_ZZ][0] = 177.9662;
+	FaccionData[ADP][PickupOut_X] = -2076.1250;
+	FaccionData[ADP][PickupOut_Y] = 1421.0328;
+	FaccionData[ADP][PickupOut_Z] = 7.1295;
+	FaccionData[ADP][PickupOut_ZZ] = 178.4612;
+	FaccionData[ADP][PickupIn_X] = 2602.4689941406;
+	FaccionData[ADP][PickupIn_Y] = 1352.4586181641;
+	FaccionData[ADP][PickupIn_Z] = 78.476387023926;
+	FaccionData[ADP][PickupIn_ZZ] = 171.9440;
 	FaccionData[ADP][InteriorFaccion]	= 9;
-	FaccionData[ADP][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[ADP][PickupOut_X], FaccionData[ADP][PickupOut_Y], FaccionData[ADP][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[ADP][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[ADP][PickupIn_X], FaccionData[ADP][PickupIn_Y], FaccionData[ADP][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[ADP][PrecioFaccion] 	= 0;
-	FaccionData[ADP][Lock] 			= 0;
-	FaccionData[ADP][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[ADP][Family] 			= false;
-	FaccionData[ADP][Radio] 			= true;
+	FaccionData[ADP][PickupidOutF] = CreateFaccionDynamicPickup(1239, ADP, FaccionData[ADP][PickupOut_X], FaccionData[ADP][PickupOut_Y], FaccionData[ADP][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[ADP][PickupidInF] = CreateFaccionDynamicPickup(1239, ADP, FaccionData[ADP][PickupIn_X], FaccionData[ADP][PickupIn_Y], FaccionData[ADP][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[ADP][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[ADP][PrecioFaccion] = 0;
+	FaccionData[ADP][Lock] = 0;
+	FaccionData[ADP][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[ADP][Family] = false;
+	FaccionData[ADP][Radio] = true;
 
-	FaccionesRangos[ADP][0]  = "Director"; 				RangosSkins[ADP][0][0] 	= 187; 	RangosSkins[ADP][0][1]  = 91; 									FaccionData[ADP][Paga][0] = 450;
-	FaccionesRangos[ADP][1]  = "Sub Director";			RangosSkins[ADP][1][0] 	= 166;  RangosSkins[ADP][1][1]	= 165;  RangosSkins[ADP][1][2]	= 91;	FaccionData[ADP][Paga][1] = 430;
-	FaccionesRangos[ADP][2]  = "Jefe de Detectives"; 	RangosSkins[ADP][2][0] 	= 166; 	RangosSkins[ADP][2][1]	= 165; 	RangosSkins[ADP][2][2]	= 93; 	FaccionData[ADP][Paga][2] = 400;
-	FaccionesRangos[ADP][3]  = "Jefe de Guardaespaldas";RangosSkins[ADP][3][0] 	= 164; 	RangosSkins[ADP][3][1]  = 163; 	RangosSkins[ADP][3][2]	= 93;	FaccionData[ADP][Paga][3] = 370;
-	FaccionesRangos[ADP][4]  = "Detective";				RangosSkins[ADP][4][0] 	= 164; 	RangosSkins[ADP][4][1]  = 163; 	RangosSkins[ADP][4][2]	= 93;	FaccionData[ADP][Paga][4] = 350;
+	FaccionesRangos[ADP][0]  = "Director"; 				RangosSkins[ADP][0][0] = 187; 	RangosSkins[ADP][0][1]  = 91; 									FaccionData[ADP][Paga][0] = 450;
+	FaccionesRangos[ADP][1]  = "Sub Director";			RangosSkins[ADP][1][0] = 166;  RangosSkins[ADP][1][1]	= 165;  RangosSkins[ADP][1][2]	= 91;	FaccionData[ADP][Paga][1] = 430;
+	FaccionesRangos[ADP][2]  = "Jefe de Detectives"; 	RangosSkins[ADP][2][0] = 166; 	RangosSkins[ADP][2][1]	= 165; 	RangosSkins[ADP][2][2]	= 93; 	FaccionData[ADP][Paga][2] = 400;
+	FaccionesRangos[ADP][3]  = "Jefe de Guardaespaldas";RangosSkins[ADP][3][0] = 164; 	RangosSkins[ADP][3][1]  = 163; 	RangosSkins[ADP][3][2]	= 93;	FaccionData[ADP][Paga][3] = 370;
+	FaccionesRangos[ADP][4]  = "Detective";				RangosSkins[ADP][4][0] = 164; 	RangosSkins[ADP][4][1]  = 163; 	RangosSkins[ADP][4][2]	= 93;	FaccionData[ADP][Paga][4] = 350;
 	FaccionesRangos[ADP][5]  = "Guardaespaldas"; 		RangosSkins[ADP][5][0] = 164; 	RangosSkins[ADP][5][1] = 163; 	RangosSkins[ADP][5][2]	= 93;	FaccionData[ADP][Paga][5] = 350;
 
 // CAMIONEROS ID - 12
 	format(FaccionData[CAMIONEROS][NameFaccion], MAX_FACCION_NAME, "Camioneros");
-	FaccionData[CAMIONEROS][Extorsion] 		= 0;
-	FaccionData[CAMIONEROS][AlmacenX][0] 	= -557.5335;
-	FaccionData[CAMIONEROS][AlmacenY][0] 	= -539.6166;
-	FaccionData[CAMIONEROS][AlmacenZ][0] 	= 25.5234;
-	FaccionData[CAMIONEROS][AlmacenX][1] 	= 0;
-	FaccionData[CAMIONEROS][AlmacenY][1] 	= 0;
-	FaccionData[CAMIONEROS][AlmacenZ][1] 	= 0;
-	FaccionData[CAMIONEROS][Spawn_X][0]		= -481.5168;
-	FaccionData[CAMIONEROS][Spawn_Y][0] 	= -525.3063;
-	FaccionData[CAMIONEROS][Spawn_Z][0]		= 25.5178;
-	FaccionData[CAMIONEROS][Spawn_ZZ][0] 		= 357.6488;
-	FaccionData[CAMIONEROS][PickupOut_X] 	= -516.1653;
-	FaccionData[CAMIONEROS][PickupOut_Y] 	= -506.0323;
-	FaccionData[CAMIONEROS][PickupOut_Z] 	= 25.5234;
-	FaccionData[CAMIONEROS][PickupOut_ZZ] 	= 1.8267;
-	FaccionData[CAMIONEROS][PickupIn_X] 	= 948.5826;
-	FaccionData[CAMIONEROS][PickupIn_Y] 	= 2177.1912;
-	FaccionData[CAMIONEROS][PickupIn_Z] 	= 1011.0234;
-	FaccionData[CAMIONEROS][PickupIn_ZZ] 	= 173.6383;
+	FaccionData[CAMIONEROS][Extorsion] = 0;
+	FaccionData[CAMIONEROS][AlmacenX][0] = -557.5335;
+	FaccionData[CAMIONEROS][AlmacenY][0] = -539.6166;
+	FaccionData[CAMIONEROS][AlmacenZ][0] = 25.5234;
+	FaccionData[CAMIONEROS][AlmacenX][1] = 0;
+	FaccionData[CAMIONEROS][AlmacenY][1] = 0;
+	FaccionData[CAMIONEROS][AlmacenZ][1] = 0;
+	FaccionData[CAMIONEROS][Spawn_X][0] = -481.5168;
+	FaccionData[CAMIONEROS][Spawn_Y][0] = -525.3063;
+	FaccionData[CAMIONEROS][Spawn_Z][0] = 25.5178;
+	FaccionData[CAMIONEROS][Spawn_ZZ][0] = 357.6488;
+	FaccionData[CAMIONEROS][PickupOut_X] = -516.1653;
+	FaccionData[CAMIONEROS][PickupOut_Y] = -506.0323;
+	FaccionData[CAMIONEROS][PickupOut_Z] = 25.5234;
+	FaccionData[CAMIONEROS][PickupOut_ZZ] = 1.8267;
+	FaccionData[CAMIONEROS][PickupIn_X] = 948.5826;
+	FaccionData[CAMIONEROS][PickupIn_Y] = 2177.1912;
+	FaccionData[CAMIONEROS][PickupIn_Z] = 1011.0234;
+	FaccionData[CAMIONEROS][PickupIn_ZZ] = 173.6383;
 	FaccionData[CAMIONEROS][InteriorFaccion]= 1;
-	FaccionData[CAMIONEROS][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[CAMIONEROS][PickupOut_X], FaccionData[CAMIONEROS][PickupOut_Y], FaccionData[CAMIONEROS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[CAMIONEROS][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[CAMIONEROS][PickupIn_X], FaccionData[CAMIONEROS][PickupIn_Y], FaccionData[CAMIONEROS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[CAMIONEROS][PrecioFaccion] 	= 0;
-	FaccionData[CAMIONEROS][Lock] 			= 0;
-	FaccionData[CAMIONEROS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[CAMIONEROS][Family] 		= true;
-	FaccionData[CAMIONEROS][Radio] 			= false;
+	FaccionData[CAMIONEROS][PickupidOutF] = CreateFaccionDynamicPickup(1239, CAMIONEROS, FaccionData[CAMIONEROS][PickupOut_X], FaccionData[CAMIONEROS][PickupOut_Y], FaccionData[CAMIONEROS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[CAMIONEROS][PickupidInF] = CreateFaccionDynamicPickup(1239, CAMIONEROS, FaccionData[CAMIONEROS][PickupIn_X], FaccionData[CAMIONEROS][PickupIn_Y], FaccionData[CAMIONEROS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[CAMIONEROS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[CAMIONEROS][PrecioFaccion] = 0;
+	FaccionData[CAMIONEROS][Lock] = 0;
+	FaccionData[CAMIONEROS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[CAMIONEROS][Family] = true;
+	FaccionData[CAMIONEROS][Radio] = false;
 
 	FaccionesRangos[CAMIONEROS][0]  = "Empresario"; 		RangosSkins[CAMIONEROS][0][0] = 187; 											FaccionData[CAMIONEROS][Paga][0] = 450;
 	FaccionesRangos[CAMIONEROS][1]  = "Encargado";			RangosSkins[CAMIONEROS][1][0] = 182;											FaccionData[CAMIONEROS][Paga][1] = 400;
@@ -5426,334 +5461,334 @@ public OnGameModeInit()
 
 // TALLER_SF ID - 13
 	format(FaccionData[TALLER_SF][NameFaccion], MAX_FACCION_NAME, "Taller SF");
-	FaccionData[TALLER_SF][Extorsion] 		= 0;
-	FaccionData[TALLER_SF][Spawn_X][0] 		= -2886.9814;
-	FaccionData[TALLER_SF][Spawn_Y][0] 		= 491.8529;
-	FaccionData[TALLER_SF][Spawn_Z][0] 		= 4.9066;
-	FaccionData[TALLER_SF][Spawn_ZZ][0]		= 175.1927;
-	FaccionData[TALLER_SF][PickupOut_X] 	= -2880.8650;
-	FaccionData[TALLER_SF][PickupOut_Y] 	= 493.2147;
-	FaccionData[TALLER_SF][PickupOut_Z] 	= 4.9066;
-	FaccionData[TALLER_SF][PickupOut_ZZ] 	= 179.5445;
-	FaccionData[TALLER_SF][PickupIn_X] 	= 627.0047;
-	FaccionData[TALLER_SF][PickupIn_Y] 	= -11.8298;
-	FaccionData[TALLER_SF][PickupIn_Z] 	= 1000.9219;
-	FaccionData[TALLER_SF][PickupIn_ZZ] 	= 80.4997;
+	FaccionData[TALLER_SF][Extorsion] = 0;
+	FaccionData[TALLER_SF][Spawn_X][0] = -2886.9814;
+	FaccionData[TALLER_SF][Spawn_Y][0] = 491.8529;
+	FaccionData[TALLER_SF][Spawn_Z][0] = 4.9066;
+	FaccionData[TALLER_SF][Spawn_ZZ][0] = 175.1927;
+	FaccionData[TALLER_SF][PickupOut_X] = -2880.8650;
+	FaccionData[TALLER_SF][PickupOut_Y] = 493.2147;
+	FaccionData[TALLER_SF][PickupOut_Z] = 4.9066;
+	FaccionData[TALLER_SF][PickupOut_ZZ] = 179.5445;
+	FaccionData[TALLER_SF][PickupIn_X] = 627.0047;
+	FaccionData[TALLER_SF][PickupIn_Y] = -11.8298;
+	FaccionData[TALLER_SF][PickupIn_Z] = 1000.9219;
+	FaccionData[TALLER_SF][PickupIn_ZZ] = 80.4997;
 	FaccionData[TALLER_SF][InteriorFaccion]= 1;
-	FaccionData[TALLER_SF][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[TALLER_SF][PickupOut_X], FaccionData[TALLER_SF][PickupOut_Y], FaccionData[TALLER_SF][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[TALLER_SF][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[TALLER_SF][PickupIn_X], FaccionData[TALLER_SF][PickupIn_Y], FaccionData[TALLER_SF][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[TALLER_SF][PrecioFaccion] 	= 0;
-	FaccionData[TALLER_SF][Lock] 			= 0;
-	FaccionData[TALLER_SF][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[TALLER_SF][Family] 		= false;
-	FaccionData[TALLER_SF][Radio] 			= true;
+	FaccionData[TALLER_SF][PickupidOutF] = CreateFaccionDynamicPickup(1239, TALLER_SF, FaccionData[TALLER_SF][PickupOut_X], FaccionData[TALLER_SF][PickupOut_Y], FaccionData[TALLER_SF][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TALLER_SF][PickupidInF] = CreateFaccionDynamicPickup(1239, TALLER_SF, FaccionData[TALLER_SF][PickupIn_X], FaccionData[TALLER_SF][PickupIn_Y], FaccionData[TALLER_SF][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[TALLER_SF][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TALLER_SF][PrecioFaccion] = 0;
+	FaccionData[TALLER_SF][Lock] = 0;
+	FaccionData[TALLER_SF][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[TALLER_SF][Family] = false;
+	FaccionData[TALLER_SF][Radio] = true;
 
-	FaccionesRangos[TALLER_SF][0]  = "Empresario"; 			RangosSkins[TALLER_SF][0][0] 	= 42;	RangosSkins[TALLER_SF][0][1]	= 55; 																					FaccionData[TALLER_SF][Paga][0] = 460;
-	FaccionesRangos[TALLER_SF][1]  = "Encargado";			RangosSkins[TALLER_SF][1][0] 	= 268;	RangosSkins[TALLER_SF][1][1]	= 55;	RangosSkins[TALLER_SF][1][2] 	= 58; 											FaccionData[TALLER_SF][Paga][1] = 430;
-	FaccionesRangos[TALLER_SF][2]  = "Maquinista"; 			RangosSkins[TALLER_SF][2][0] 	= 16; 	RangosSkins[TALLER_SF][2][1] 	= 55;	RangosSkins[TALLER_SF][2][2] 	= 8;	RangosSkins[TALLER_SF][2][3]	= 55; 	FaccionData[TALLER_SF][Paga][2] = 400;
-	FaccionesRangos[TALLER_SF][3]  = "Mecánico"; 			RangosSkins[TALLER_SF][3][0] 	= 50; 	RangosSkins[TALLER_SF][3][1] 	= 55;	RangosSkins[TALLER_SF][3][2] 	= 8;											FaccionData[TALLER_SF][Paga][3] = 370;
-	FaccionesRangos[TALLER_SF][4]  = "Mecánico Novato"; 	RangosSkins[TALLER_SF][4][0] 	= 50; 	RangosSkins[TALLER_SF][4][1] 	= 55; 	RangosSkins[TALLER_SF][4][2] 	= 8;										 	FaccionData[TALLER_SF][Paga][4] = 350;
+	FaccionesRangos[TALLER_SF][0]  = "Empresario"; 			RangosSkins[TALLER_SF][0][0] = 42;	RangosSkins[TALLER_SF][0][1]	= 55; 																					FaccionData[TALLER_SF][Paga][0] = 460;
+	FaccionesRangos[TALLER_SF][1]  = "Encargado";			RangosSkins[TALLER_SF][1][0] = 268;	RangosSkins[TALLER_SF][1][1]	= 55;	RangosSkins[TALLER_SF][1][2] = 58; 											FaccionData[TALLER_SF][Paga][1] = 430;
+	FaccionesRangos[TALLER_SF][2]  = "Maquinista"; 			RangosSkins[TALLER_SF][2][0] = 16; 	RangosSkins[TALLER_SF][2][1] = 55;	RangosSkins[TALLER_SF][2][2] = 8;	RangosSkins[TALLER_SF][2][3]	= 55; 	FaccionData[TALLER_SF][Paga][2] = 400;
+	FaccionesRangos[TALLER_SF][3]  = "Mecánico"; 			RangosSkins[TALLER_SF][3][0] = 50; 	RangosSkins[TALLER_SF][3][1] = 55;	RangosSkins[TALLER_SF][3][2] = 8;											FaccionData[TALLER_SF][Paga][3] = 370;
+	FaccionesRangos[TALLER_SF][4]  = "Mecánico Novato"; 	RangosSkins[TALLER_SF][4][0] = 50; 	RangosSkins[TALLER_SF][4][1] = 55; 	RangosSkins[TALLER_SF][4][2] = 8;									FaccionData[TALLER_SF][Paga][4] = 350;
 
 // LSPD ID - 14
 	format(FaccionData[LSPD][NameFaccion], MAX_FACCION_NAME, "LSPD");
-	FaccionData[LSPD][Extorsion] 		= 0;
-	FaccionData[LSPD][Spawn_X][0]		= 1568.3663;
-	FaccionData[LSPD][Spawn_Y][0]		= -1692.7303;
-	FaccionData[LSPD][Spawn_Z][0]		= 5.8906;
-	FaccionData[LSPD][Spawn_ZZ][0] 		= 179.8354;
-	FaccionData[LSPD][PickupOut_X] 		= 1555.3457;
-	FaccionData[LSPD][PickupOut_Y] 		= -1675.6763;
-	FaccionData[LSPD][PickupOut_Z] 		= 16.1953;
-	FaccionData[LSPD][PickupOut_ZZ] 	= 88.9913;
-	FaccionData[LSPD][PickupIn_X] 		= 246.8211;
-	FaccionData[LSPD][PickupIn_Y] 		= 62.4470;
-	FaccionData[LSPD][PickupIn_Z] 		= 1003.6406;
-	FaccionData[LSPD][PickupIn_ZZ] 		= 0.6504;
+	FaccionData[LSPD][Extorsion] = 0;
+	FaccionData[LSPD][Spawn_X][0] = 1568.3663;
+	FaccionData[LSPD][Spawn_Y][0] = -1692.7303;
+	FaccionData[LSPD][Spawn_Z][0] = 5.8906;
+	FaccionData[LSPD][Spawn_ZZ][0] = 179.8354;
+	FaccionData[LSPD][PickupOut_X] = 1555.3457;
+	FaccionData[LSPD][PickupOut_Y] = -1675.6763;
+	FaccionData[LSPD][PickupOut_Z] = 16.1953;
+	FaccionData[LSPD][PickupOut_ZZ] = 88.9913;
+	FaccionData[LSPD][PickupIn_X] = 246.8211;
+	FaccionData[LSPD][PickupIn_Y] = 62.4470;
+	FaccionData[LSPD][PickupIn_Z] = 1003.6406;
+	FaccionData[LSPD][PickupIn_ZZ] = 0.6504;
 	FaccionData[LSPD][InteriorFaccion]	= 6;
-	FaccionData[LSPD][PickupidOutF]		= CreatePickup	(1247, 	1, 	FaccionData[LSPD][PickupOut_X], FaccionData[LSPD][PickupOut_Y], FaccionData[LSPD][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[LSPD][PickupidInF] 		= CreatePickup	(1247, 	1, 	FaccionData[LSPD][PickupIn_X], FaccionData[LSPD][PickupIn_Y], FaccionData[LSPD][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[LSPD][PrecioFaccion] 	= 0;
-	FaccionData[LSPD][Lock] 			= 0;
-	FaccionData[LSPD][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[LSPD][Family] 			= false;
-	FaccionData[LSPD][Radio] 			= true;
+	FaccionData[LSPD][PickupidOutF] = CreateFaccionDynamicPickup(1247, LSPD, FaccionData[LSPD][PickupOut_X], FaccionData[LSPD][PickupOut_Y], FaccionData[LSPD][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[LSPD][PickupidInF] = CreateFaccionDynamicPickup(1247, LSPD, FaccionData[LSPD][PickupIn_X], FaccionData[LSPD][PickupIn_Y], FaccionData[LSPD][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[LSPD][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[LSPD][PrecioFaccion] = 0;
+	FaccionData[LSPD][Lock] = 0;
+	FaccionData[LSPD][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[LSPD][Family] = false;
+	FaccionData[LSPD][Radio] = true;
 
-	FaccionesRangos[LSPD][0]  = "General";		RangosSkins[LSPD][0][0] 	= 283;	RangosSkins[LSPD][0][1]	= 150; 	RangosSkins[LSPD][0][2] 	= 101; 	RangosSkins[LSPD][0][3] 	= 250; 	RangosSkins[LSPD][0][4] 	= 60; 	RangosSkins[LSPD][0][5] 	= 170; 	RangosSkins[LSPD][0][6] 	= 184;  RangosSkins[LSPD][0][7] 	= 285; 	RangosSkins[LSPD][0][8] 	= 287;  	RangosSkins[LSPD][0][9] 	= 148;   	RangosSkins[LSPD][0][10] 	= 191; FaccionData[LSPD][Paga][0] = 600;
-	FaccionesRangos[LSPD][1]  = "Coronel"; 		RangosSkins[LSPD][1][0] 	= 288;  RangosSkins[LSPD][1][1]	= 150; 	RangosSkins[LSPD][1][2] 	= 101; 	RangosSkins[LSPD][1][3] 	= 250; 	RangosSkins[LSPD][1][4] 	= 60; 	RangosSkins[LSPD][1][5] 	= 170; 	RangosSkins[LSPD][1][6] 	= 184;  RangosSkins[LSPD][1][7] 	= 285; 	RangosSkins[LSPD][1][8] 	= 287;  	RangosSkins[LSPD][1][9] 	= 148;   	RangosSkins[LSPD][1][10] 	= 191; FaccionData[LSPD][Paga][1] = 550;
-	FaccionesRangos[LSPD][2]  = "Capitán";		RangosSkins[LSPD][2][0] 	= 282; 	RangosSkins[LSPD][2][1]	= 150; 	RangosSkins[LSPD][2][2] 	= 101; 	RangosSkins[LSPD][2][3] 	= 250; 	RangosSkins[LSPD][2][4] 	= 60; 	RangosSkins[LSPD][2][5] 	= 170; 	RangosSkins[LSPD][2][6] 	= 184;  RangosSkins[LSPD][2][7] 	= 285; 	RangosSkins[LSPD][2][8] 	= 287;  	RangosSkins[LSPD][2][9] 	= 148;   	RangosSkins[LSPD][2][10] 	= 191; FaccionData[LSPD][Paga][2] = 500;
-	FaccionesRangos[LSPD][3]  = "Teniente";		RangosSkins[LSPD][3][0] 	= 281; 	RangosSkins[LSPD][3][1] = 150;	RangosSkins[LSPD][3][2] 	= 101; 	RangosSkins[LSPD][3][3] 	= 250; 	RangosSkins[LSPD][3][4] 	= 60; 	RangosSkins[LSPD][3][5] 	= 170; 	RangosSkins[LSPD][3][6] 	= 184;  RangosSkins[LSPD][3][7] 	= 285; 	RangosSkins[LSPD][3][8] 	= 287;  	RangosSkins[LSPD][3][9] 	= 148;   	RangosSkins[LSPD][3][10] 	= 191; FaccionData[LSPD][Paga][3] = 500;
-	FaccionesRangos[LSPD][4]  = "Sargento";		RangosSkins[LSPD][4][0] 	= 281; 	RangosSkins[LSPD][4][1] = 150;	RangosSkins[LSPD][4][2] 	= 101; 	RangosSkins[LSPD][4][3] 	= 250; 	RangosSkins[LSPD][4][4] 	= 60; 	RangosSkins[LSPD][4][5] 	= 170; 	RangosSkins[LSPD][4][6] 	= 184;  RangosSkins[LSPD][4][7] 	= 285; 	RangosSkins[LSPD][4][8] 	= 287;  	RangosSkins[LSPD][4][9] 	= 148;   	RangosSkins[LSPD][4][10] 	= 191; FaccionData[LSPD][Paga][4] = 500;
-	FaccionesRangos[LSPD][5]  = "Oficial";		RangosSkins[LSPD][5][0] 	= 280; 	RangosSkins[LSPD][5][1] = 150;	RangosSkins[LSPD][5][2] 	= 101; 	RangosSkins[LSPD][5][3] 	= 250; 	RangosSkins[LSPD][5][4] 	= 60; 	RangosSkins[LSPD][5][5] 	= 170; 	RangosSkins[LSPD][5][6] 	= 184;  RangosSkins[LSPD][5][7] 	= 285; 	RangosSkins[LSPD][5][8] 	= 287;  	RangosSkins[LSPD][5][9] 	= 148;   	RangosSkins[LSPD][5][10] 	= 191; FaccionData[LSPD][Paga][5] = 450;
-	FaccionesRangos[LSPD][6]  = "Cabo";			RangosSkins[LSPD][6][0] 	= 280; 	RangosSkins[LSPD][6][1] = 150;	RangosSkins[LSPD][6][2] 	= 101; 	RangosSkins[LSPD][6][3] 	= 250; 	RangosSkins[LSPD][6][4] 	= 60; 	RangosSkins[LSPD][6][5] 	= 170; 	RangosSkins[LSPD][6][6] 	= 184; 	RangosSkins[LSPD][6][7] 	= 285; 	RangosSkins[LSPD][6][8] 	= 287;  	RangosSkins[LSPD][6][9] 	= 148;   	RangosSkins[LSPD][6][10] 	= 191; FaccionData[LSPD][Paga][6] = 400;
-	FaccionesRangos[LSPD][7]  = "Raso";			RangosSkins[LSPD][7][0] 	= 71; 	RangosSkins[LSPD][7][1] = 150;	RangosSkins[LSPD][7][2] 	= 101; 	RangosSkins[LSPD][7][3] 	= 250; 	RangosSkins[LSPD][7][4] 	= 60; 	RangosSkins[LSPD][7][5] 	= 170; 	RangosSkins[LSPD][7][6] 	= 184;  RangosSkins[LSPD][7][7] 	= 285; 	RangosSkins[LSPD][7][8] 	= 287;  	RangosSkins[LSPD][7][9] 	= 148;   	RangosSkins[LSPD][7][10] 	= 191; FaccionData[LSPD][Paga][7] = 350;
+    FaccionesRangos[LSPD][0]  = "Comisario";	RangosSkins[LSPD][0][0] = 283;	RangosSkins[LSPD][0][1]	= 150; 	RangosSkins[LSPD][0][2] = 101; 	RangosSkins[LSPD][0][3] = 250; 	RangosSkins[LSPD][0][4] = 60; 	RangosSkins[LSPD][0][5] = 170; 	RangosSkins[LSPD][0][6] = 184;  RangosSkins[LSPD][0][7] = 285; 	RangosSkins[LSPD][0][8] = 287;  	RangosSkins[LSPD][0][9] = 148;   	RangosSkins[LSPD][0][10] = 191; FaccionData[LSPD][Paga][0] = 600;
+	FaccionesRangos[LSPD][1]  = "Sub-Comisario";RangosSkins[LSPD][1][0] = 288;  RangosSkins[LSPD][1][1]	= 150; 	RangosSkins[LSPD][1][2] = 101; 	RangosSkins[LSPD][1][3] = 250; 	RangosSkins[LSPD][1][4] = 60; 	RangosSkins[LSPD][1][5] = 170; 	RangosSkins[LSPD][1][6] = 184;  RangosSkins[LSPD][1][7] = 285; 	RangosSkins[LSPD][1][8] = 287;  	RangosSkins[LSPD][1][9] = 148;   	RangosSkins[LSPD][1][10] = 191; FaccionData[LSPD][Paga][1] = 550;
+	FaccionesRangos[LSPD][2]  = "Capitán";		RangosSkins[LSPD][2][0] = 282; 	RangosSkins[LSPD][2][1]	= 150; 	RangosSkins[LSPD][2][2] = 101; 	RangosSkins[LSPD][2][3] = 250; 	RangosSkins[LSPD][2][4] = 60; 	RangosSkins[LSPD][2][5] = 170; 	RangosSkins[LSPD][2][6] = 184;  RangosSkins[LSPD][2][7] = 285; 	RangosSkins[LSPD][2][8] = 287;  	RangosSkins[LSPD][2][9] = 148;   	RangosSkins[LSPD][2][10] = 191; FaccionData[LSPD][Paga][2] = 500;
+	FaccionesRangos[LSPD][3]  = "Teniente";		RangosSkins[LSPD][3][0] = 281; 	RangosSkins[LSPD][3][1] = 150;	RangosSkins[LSPD][3][2] = 101; 	RangosSkins[LSPD][3][3] = 250; 	RangosSkins[LSPD][3][4] = 60; 	RangosSkins[LSPD][3][5] = 170; 	RangosSkins[LSPD][3][6] = 184;  RangosSkins[LSPD][3][7] = 285; 	RangosSkins[LSPD][3][8] = 287;  	RangosSkins[LSPD][3][9] = 148;   	RangosSkins[LSPD][3][10] = 191; FaccionData[LSPD][Paga][3] = 500;
+	FaccionesRangos[LSPD][4]  = "Sargento";		RangosSkins[LSPD][4][0] = 281; 	RangosSkins[LSPD][4][1] = 150;	RangosSkins[LSPD][4][2] = 101; 	RangosSkins[LSPD][4][3] = 250; 	RangosSkins[LSPD][4][4] = 60; 	RangosSkins[LSPD][4][5] = 170; 	RangosSkins[LSPD][4][6] = 184;  RangosSkins[LSPD][4][7] = 285; 	RangosSkins[LSPD][4][8] = 287;  	RangosSkins[LSPD][4][9] = 148;   	RangosSkins[LSPD][4][10] = 191; FaccionData[LSPD][Paga][4] = 500;
+	FaccionesRangos[LSPD][5]  = "Cabo";			RangosSkins[LSPD][5][0] = 280; 	RangosSkins[LSPD][5][1] = 150;	RangosSkins[LSPD][5][2] = 101; 	RangosSkins[LSPD][5][3] = 250; 	RangosSkins[LSPD][5][4] = 60; 	RangosSkins[LSPD][5][5] = 170; 	RangosSkins[LSPD][5][6] = 184;  RangosSkins[LSPD][5][7] = 285; 	RangosSkins[LSPD][5][8] = 287;  	RangosSkins[LSPD][5][9] = 148;   	RangosSkins[LSPD][5][10] = 191; FaccionData[LSPD][Paga][5] = 450;
+	FaccionesRangos[LSPD][6]  = "Oficial";		RangosSkins[LSPD][6][0] = 280; 	RangosSkins[LSPD][6][1] = 150;	RangosSkins[LSPD][6][2] = 101; 	RangosSkins[LSPD][6][3] = 250; 	RangosSkins[LSPD][6][4] = 60; 	RangosSkins[LSPD][6][5] = 170; 	RangosSkins[LSPD][6][6] = 184; 	RangosSkins[LSPD][6][7] = 285; 	RangosSkins[LSPD][6][8] = 287;  	RangosSkins[LSPD][6][9] = 148;   	RangosSkins[LSPD][6][10] = 191; FaccionData[LSPD][Paga][6] = 400;
+	FaccionesRangos[LSPD][7]  = "Cadete";		RangosSkins[LSPD][7][0] = 71; 	RangosSkins[LSPD][7][1] = 150;	RangosSkins[LSPD][7][2] = 101; 	RangosSkins[LSPD][7][3] = 250; 	RangosSkins[LSPD][7][4] = 60; 	RangosSkins[LSPD][7][5] = 170; 	RangosSkins[LSPD][7][6] = 184;  RangosSkins[LSPD][7][7] = 285; 	RangosSkins[LSPD][7][8] = 287;  	RangosSkins[LSPD][7][9] = 148;   	RangosSkins[LSPD][7][10] = 191; FaccionData[LSPD][Paga][7] = 350;
 
 // CONTRABANDISTAS ID - 15
 	format(FaccionData[CONTRABANDISTAS][NameFaccion], MAX_FACCION_NAME, "Contrabandistas");
-	FaccionData[CONTRABANDISTAS][Extorsion] 		= 0;
-	FaccionData[CONTRABANDISTAS][AlmacenX][0] 		= 1893.3990;
-	FaccionData[CONTRABANDISTAS][AlmacenY][0] 		= 1018.0084;
-	FaccionData[CONTRABANDISTAS][AlmacenZ][0] 		= 31.8828;
+	FaccionData[CONTRABANDISTAS][Extorsion] = 0;
+	FaccionData[CONTRABANDISTAS][AlmacenX][0] = 1893.3990;
+	FaccionData[CONTRABANDISTAS][AlmacenY][0] = 1018.0084;
+	FaccionData[CONTRABANDISTAS][AlmacenZ][0] = 31.8828;
 	FaccionData[CONTRABANDISTAS][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[CONTRABANDISTAS][Spawn_X][0] 		= 724.5375;
-	FaccionData[CONTRABANDISTAS][Spawn_Y][0] 		= -1475.2960;
-	FaccionData[CONTRABANDISTAS][Spawn_Z][0] 		= 17.6891;
-	FaccionData[CONTRABANDISTAS][Spawn_ZZ][0]		= 181.4021;
-	FaccionData[CONTRABANDISTAS][PickupOut_X] 		= 725.6380;
-	FaccionData[CONTRABANDISTAS][PickupOut_Y] 		= -1439.9681;
-	FaccionData[CONTRABANDISTAS][PickupOut_Z] 		= 13.5318;
-	FaccionData[CONTRABANDISTAS][PickupOut_ZZ] 	= 355.9068;
-	FaccionData[CONTRABANDISTAS][PickupIn_X] 		= -2171.1570;
-	FaccionData[CONTRABANDISTAS][PickupIn_Y] 		= 645.3072;
-	FaccionData[CONTRABANDISTAS][PickupIn_Z] 		= 1057.5938;
-	FaccionData[CONTRABANDISTAS][PickupIn_ZZ] 		= 269.4647;
+	FaccionData[CONTRABANDISTAS][Spawn_X][0] = 724.5375;
+	FaccionData[CONTRABANDISTAS][Spawn_Y][0] = -1475.2960;
+	FaccionData[CONTRABANDISTAS][Spawn_Z][0] = 17.6891;
+	FaccionData[CONTRABANDISTAS][Spawn_ZZ][0] = 181.4021;
+	FaccionData[CONTRABANDISTAS][PickupOut_X] = 725.6380;
+	FaccionData[CONTRABANDISTAS][PickupOut_Y] = -1439.9681;
+	FaccionData[CONTRABANDISTAS][PickupOut_Z] = 13.5318;
+	FaccionData[CONTRABANDISTAS][PickupOut_ZZ] = 355.9068;
+	FaccionData[CONTRABANDISTAS][PickupIn_X] = -2171.1570;
+	FaccionData[CONTRABANDISTAS][PickupIn_Y] = 645.3072;
+	FaccionData[CONTRABANDISTAS][PickupIn_Z] = 1057.5938;
+	FaccionData[CONTRABANDISTAS][PickupIn_ZZ] = 269.4647;
 	FaccionData[CONTRABANDISTAS][InteriorFaccion]	= 1;
-	FaccionData[CONTRABANDISTAS][PickupidOutF]		= CreatePickup	(1212, 	1, 	FaccionData[CONTRABANDISTAS][PickupOut_X], FaccionData[CONTRABANDISTAS][PickupOut_Y], FaccionData[CONTRABANDISTAS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[CONTRABANDISTAS][PickupidInF] 		= CreatePickup	(1212, 	1, 	FaccionData[CONTRABANDISTAS][PickupIn_X], FaccionData[CONTRABANDISTAS][PickupIn_Y], FaccionData[CONTRABANDISTAS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[CONTRABANDISTAS][PrecioFaccion] 	= 0;
-	FaccionData[CONTRABANDISTAS][Lock] 			= 0;
-	FaccionData[CONTRABANDISTAS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[CONTRABANDISTAS][Family] 			= true;
-	FaccionData[CONTRABANDISTAS][Radio] 			= false;
+	FaccionData[CONTRABANDISTAS][PickupidOutF] = CreateFaccionDynamicPickup(1212, CONTRABANDISTAS, FaccionData[CONTRABANDISTAS][PickupOut_X], FaccionData[CONTRABANDISTAS][PickupOut_Y], FaccionData[CONTRABANDISTAS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[CONTRABANDISTAS][PickupidInF] = CreateFaccionDynamicPickup(1212, CONTRABANDISTAS, FaccionData[CONTRABANDISTAS][PickupIn_X], FaccionData[CONTRABANDISTAS][PickupIn_Y], FaccionData[CONTRABANDISTAS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[CONTRABANDISTAS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[CONTRABANDISTAS][PrecioFaccion] = 0;
+	FaccionData[CONTRABANDISTAS][Lock] = 0;
+	FaccionData[CONTRABANDISTAS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[CONTRABANDISTAS][Family] = true;
+	FaccionData[CONTRABANDISTAS][Radio] = false;
 
-	FaccionesRangos[CONTRABANDISTAS][0]  = "Narco";				RangosSkins[CONTRABANDISTAS][0][0] 	= 120; 	RangosSkins[CONTRABANDISTAS][0][1] = 141; RangosSkins[CONTRABANDISTAS][0][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][0] = 410;
-	FaccionesRangos[CONTRABANDISTAS][1]  = "Encargado"; 		RangosSkins[CONTRABANDISTAS][1][0] 	= 120;  RangosSkins[CONTRABANDISTAS][1][1] = 141; RangosSkins[CONTRABANDISTAS][1][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][1] = 400;
-	FaccionesRangos[CONTRABANDISTAS][2]  = "Contrabandista";	RangosSkins[CONTRABANDISTAS][2][0] 	= 118; 	RangosSkins[CONTRABANDISTAS][2][1] = 141; RangosSkins[CONTRABANDISTAS][2][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][2] = 370;
-	FaccionesRangos[CONTRABANDISTAS][3]  = "Comerciante";		RangosSkins[CONTRABANDISTAS][3][0] 	= 118; 	RangosSkins[CONTRABANDISTAS][3][1] = 141; RangosSkins[CONTRABANDISTAS][3][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][3] = 370;
-	FaccionesRangos[CONTRABANDISTAS][4]  = "Aliado";			RangosSkins[CONTRABANDISTAS][4][0] 	= 117; 	RangosSkins[CONTRABANDISTAS][4][1] = 141; RangosSkins[CONTRABANDISTAS][4][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][4] = 350;
-	FaccionesRangos[CONTRABANDISTAS][5]  = "Novato";			RangosSkins[CONTRABANDISTAS][5][0] 	= 117; 	RangosSkins[CONTRABANDISTAS][5][1] = 141; RangosSkins[CONTRABANDISTAS][5][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][5] = 350;
+	FaccionesRangos[CONTRABANDISTAS][0]  = "Narco";				RangosSkins[CONTRABANDISTAS][0][0] = 120; 	RangosSkins[CONTRABANDISTAS][0][1] = 141; RangosSkins[CONTRABANDISTAS][0][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][0] = 410;
+	FaccionesRangos[CONTRABANDISTAS][1]  = "Mano derecha"; 		RangosSkins[CONTRABANDISTAS][1][0] = 120;  RangosSkins[CONTRABANDISTAS][1][1] = 141; RangosSkins[CONTRABANDISTAS][1][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][1] = 400;
+	FaccionesRangos[CONTRABANDISTAS][2]  = "Contrabandista";	RangosSkins[CONTRABANDISTAS][2][0] = 118; 	RangosSkins[CONTRABANDISTAS][2][1] = 141; RangosSkins[CONTRABANDISTAS][2][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][2] = 370;
+	FaccionesRangos[CONTRABANDISTAS][3]  = "Comerciante";		RangosSkins[CONTRABANDISTAS][3][0] = 118; 	RangosSkins[CONTRABANDISTAS][3][1] = 141; RangosSkins[CONTRABANDISTAS][3][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][3] = 370;
+	FaccionesRangos[CONTRABANDISTAS][4]  = "Aliado";			RangosSkins[CONTRABANDISTAS][4][0] = 117; 	RangosSkins[CONTRABANDISTAS][4][1] = 141; RangosSkins[CONTRABANDISTAS][4][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][4] = 350;
+	FaccionesRangos[CONTRABANDISTAS][5]  = "Pupilo";			RangosSkins[CONTRABANDISTAS][5][0] = 117; 	RangosSkins[CONTRABANDISTAS][5][1] = 141; RangosSkins[CONTRABANDISTAS][5][2]	= 169; FaccionData[CONTRABANDISTAS][Paga][5] = 350;
 
 // SICARIOS ID - 16
 	format(FaccionData[SICARIOS][NameFaccion], MAX_FACCION_NAME, "Sicarios");
-	FaccionData[SICARIOS][Extorsion] 		= 0;
-	FaccionData[SICARIOS][AlmacenX][0] 		= 1041.1677246094;
-	FaccionData[SICARIOS][AlmacenY][0] 		= 1279.3204345703;
-	FaccionData[SICARIOS][AlmacenZ][0] 		= 20.464794158936;
+	FaccionData[SICARIOS][Extorsion] = 0;
+	FaccionData[SICARIOS][AlmacenX][0] = 1041.1677246094;
+	FaccionData[SICARIOS][AlmacenY][0] = 1279.3204345703;
+	FaccionData[SICARIOS][AlmacenZ][0] = 20.464794158936;
 	FaccionData[SICARIOS][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[SICARIOS][Spawn_X][0] 		= 1549.6040039063;
-	FaccionData[SICARIOS][Spawn_Y][0] 		= 25.535907745361;
-	FaccionData[SICARIOS][Spawn_Z][0] 		= 24.140625;
-	FaccionData[SICARIOS][Spawn_ZZ][0] 		= 283.095703125;
-	FaccionData[SICARIOS][PickupOut_X] 		= 1566.8322753906;
-	FaccionData[SICARIOS][PickupOut_Y] 		= 23.247451782227;
-	FaccionData[SICARIOS][PickupOut_Z] 		= 24.1640625;
-	FaccionData[SICARIOS][PickupOut_ZZ] 	= 90;
-	FaccionData[SICARIOS][PickupIn_X] 		= 2807.5412597656;
-	FaccionData[SICARIOS][PickupIn_Y] 		= -1174.7557373047;
-	FaccionData[SICARIOS][PickupIn_Z] 		= 1025.5703125;
-	FaccionData[SICARIOS][PickupIn_ZZ] 		= 0;
+	FaccionData[SICARIOS][Spawn_X][0] = 1549.6040039063;
+	FaccionData[SICARIOS][Spawn_Y][0] = 25.535907745361;
+	FaccionData[SICARIOS][Spawn_Z][0] = 24.140625;
+	FaccionData[SICARIOS][Spawn_ZZ][0] = 283.095703125;
+	FaccionData[SICARIOS][PickupOut_X] = 1566.8322753906;
+	FaccionData[SICARIOS][PickupOut_Y] = 23.247451782227;
+	FaccionData[SICARIOS][PickupOut_Z] = 24.1640625;
+	FaccionData[SICARIOS][PickupOut_ZZ] = 90;
+	FaccionData[SICARIOS][PickupIn_X] = 2807.5412597656;
+	FaccionData[SICARIOS][PickupIn_Y] = -1174.7557373047;
+	FaccionData[SICARIOS][PickupIn_Z] = 1025.5703125;
+	FaccionData[SICARIOS][PickupIn_ZZ] = 0;
 	FaccionData[SICARIOS][InteriorFaccion]	= 8;
-	FaccionData[SICARIOS][PickupidOutF]		= CreatePickup	(1314, 	1, 	FaccionData[SICARIOS][PickupOut_X], FaccionData[SICARIOS][PickupOut_Y], FaccionData[SICARIOS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[SICARIOS][PickupidInF] 		= CreatePickup	(1314, 	1, 	FaccionData[SICARIOS][PickupIn_X], FaccionData[SICARIOS][PickupIn_Y], FaccionData[SICARIOS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[SICARIOS][PrecioFaccion] 	= 0;
-	FaccionData[SICARIOS][Lock] 			= 0;
-	FaccionData[SICARIOS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[SICARIOS][Family] 			= true;
-	FaccionData[SICARIOS][Radio] 			= false;
+	FaccionData[SICARIOS][PickupidOutF] = CreateFaccionDynamicPickup(1314, SICARIOS, FaccionData[SICARIOS][PickupOut_X], FaccionData[SICARIOS][PickupOut_Y], FaccionData[SICARIOS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[SICARIOS][PickupidInF] = CreateFaccionDynamicPickup(1314, SICARIOS, FaccionData[SICARIOS][PickupIn_X], FaccionData[SICARIOS][PickupIn_Y], FaccionData[SICARIOS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[SICARIOS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[SICARIOS][PrecioFaccion] = 0;
+	FaccionData[SICARIOS][Lock] = 0;
+	FaccionData[SICARIOS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[SICARIOS][Family] = true;
+	FaccionData[SICARIOS][Radio] = false;
 
-	FaccionesRangos[SICARIOS][0]  = "El Capo";			RangosSkins[SICARIOS][0][0] 	= 294; 	RangosSkins[SICARIOS][0][1] 	= 68;   RangosSkins[SICARIOS][0][2] = 93; 	FaccionData[SICARIOS][Paga][0] = 650;
-	FaccionesRangos[SICARIOS][1]  = "Encargado"; 		RangosSkins[SICARIOS][1][0] 	= 295;  RangosSkins[SICARIOS][1][1] 	= 93; 										FaccionData[SICARIOS][Paga][1] = 630;
-	FaccionesRangos[SICARIOS][2]  = "Extorsionador";	RangosSkins[SICARIOS][2][0] 	= 165; 	RangosSkins[SICARIOS][2][1] 	= 93; 										FaccionData[SICARIOS][Paga][2] = 610;
-	FaccionesRangos[SICARIOS][3]  = "Exterminador";		RangosSkins[SICARIOS][3][0] 	= 46; 	RangosSkins[SICARIOS][3][1] 	= 93; 										FaccionData[SICARIOS][Paga][3] = 590;
-	FaccionesRangos[SICARIOS][4]  = "Matón";			RangosSkins[SICARIOS][4][0] 	= 272; 	RangosSkins[SICARIOS][4][1] 	= 93; 										FaccionData[SICARIOS][Paga][4] = 550;
-	FaccionesRangos[SICARIOS][5]  = "Integrándose";		RangosSkins[SICARIOS][5][0] 	= 112; 	RangosSkins[SICARIOS][5][1] 	= 93; 										FaccionData[SICARIOS][Paga][5] = 430;
+	FaccionesRangos[SICARIOS][0]  = "Capo";			RangosSkins[SICARIOS][0][0] = 294; 	RangosSkins[SICARIOS][0][1] = 68;   RangosSkins[SICARIOS][0][2] = 93; 	FaccionData[SICARIOS][Paga][0] = 650;
+	FaccionesRangos[SICARIOS][1]  = "Mano derecha"; 		RangosSkins[SICARIOS][1][0] = 295;  RangosSkins[SICARIOS][1][1] = 93; 										FaccionData[SICARIOS][Paga][1] = 630;
+	FaccionesRangos[SICARIOS][2]  = "Extorsionador";	RangosSkins[SICARIOS][2][0] = 165; 	RangosSkins[SICARIOS][2][1] = 93; 										FaccionData[SICARIOS][Paga][2] = 610;
+	FaccionesRangos[SICARIOS][3]  = "Exterminador";		RangosSkins[SICARIOS][3][0] = 46; 	RangosSkins[SICARIOS][3][1] = 93; 										FaccionData[SICARIOS][Paga][3] = 590;
+	FaccionesRangos[SICARIOS][4]  = "Matón";			RangosSkins[SICARIOS][4][0] = 272; 	RangosSkins[SICARIOS][4][1] = 93; 										FaccionData[SICARIOS][Paga][4] = 550;
+	FaccionesRangos[SICARIOS][5]  = "Integrándose";		RangosSkins[SICARIOS][5][0] = 112; 	RangosSkins[SICARIOS][5][1] = 93; 										FaccionData[SICARIOS][Paga][5] = 430;
 
 	// TALLER_LS ID - 17
 	format(FaccionData[TALLER_LS][NameFaccion], MAX_FACCION_NAME, "Taller LS");
-	FaccionData[TALLER_LS][Extorsion] 		= 0;
-	FaccionData[TALLER_LS][Spawn_X][0] 		= 1809.9860;
-	FaccionData[TALLER_LS][Spawn_Y][0] 		= -2053.1816;
-	FaccionData[TALLER_LS][Spawn_Z][0] 		= 13.5557;
-	FaccionData[TALLER_LS][Spawn_ZZ][0]		= 359.7606;
-	FaccionData[TALLER_LS][PickupOut_X] 	= 1764.5760;
-	FaccionData[TALLER_LS][PickupOut_Y] 	= -2021.4382;
-	FaccionData[TALLER_LS][PickupOut_Z] 	= 14.1501;
-	FaccionData[TALLER_LS][PickupOut_ZZ] 	= 276.4366;
-	FaccionData[TALLER_LS][PickupIn_X] 	= 1762.9645;
-	FaccionData[TALLER_LS][PickupIn_Y] 	= -2023.0339;
-	FaccionData[TALLER_LS][PickupIn_Z] 	= 20.6677;
-	FaccionData[TALLER_LS][PickupIn_ZZ] 	= 84.5109;
+	FaccionData[TALLER_LS][Extorsion] = 0;
+	FaccionData[TALLER_LS][Spawn_X][0] = 1809.9860;
+	FaccionData[TALLER_LS][Spawn_Y][0] = -2053.1816;
+	FaccionData[TALLER_LS][Spawn_Z][0] = 13.5557;
+	FaccionData[TALLER_LS][Spawn_ZZ][0] = 359.7606;
+	FaccionData[TALLER_LS][PickupOut_X] = 1764.5760;
+	FaccionData[TALLER_LS][PickupOut_Y] = -2021.4382;
+	FaccionData[TALLER_LS][PickupOut_Z] = 14.1501;
+	FaccionData[TALLER_LS][PickupOut_ZZ] = 276.4366;
+	FaccionData[TALLER_LS][PickupIn_X] = 1762.9645;
+	FaccionData[TALLER_LS][PickupIn_Y] = -2023.0339;
+	FaccionData[TALLER_LS][PickupIn_Z] = 20.6677;
+	FaccionData[TALLER_LS][PickupIn_ZZ] = 84.5109;
 	FaccionData[TALLER_LS][InteriorFaccion]= 15;
-	FaccionData[TALLER_LS][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[TALLER_LS][PickupOut_X], FaccionData[TALLER_LS][PickupOut_Y], FaccionData[TALLER_LS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[TALLER_LS][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[TALLER_LS][PickupIn_X], FaccionData[TALLER_LS][PickupIn_Y], FaccionData[TALLER_LS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[TALLER_LS][PrecioFaccion] 	= 0;
-	FaccionData[TALLER_LS][Lock] 			= 0;
-	FaccionData[TALLER_LS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[TALLER_LS][Family] 		= false;
-	FaccionData[TALLER_LS][Radio] 			= true;
+	FaccionData[TALLER_LS][PickupidOutF] = CreateFaccionDynamicPickup(1239, TALLER_LS, FaccionData[TALLER_LS][PickupOut_X], FaccionData[TALLER_LS][PickupOut_Y], FaccionData[TALLER_LS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TALLER_LS][PickupidInF] = CreateFaccionDynamicPickup(1239, TALLER_LS, FaccionData[TALLER_LS][PickupIn_X], FaccionData[TALLER_LS][PickupIn_Y], FaccionData[TALLER_LS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[TALLER_LS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[TALLER_LS][PrecioFaccion] = 0;
+	FaccionData[TALLER_LS][Lock] = 0;
+	FaccionData[TALLER_LS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[TALLER_LS][Family] = false;
+	FaccionData[TALLER_LS][Radio] = true;
 
-	FaccionesRangos[TALLER_LS][0]  = "Empresario"; 			RangosSkins[TALLER_LS][0][0] 	= 42;	RangosSkins[TALLER_LS][0][1]	= 55; 																					FaccionData[TALLER_LS][Paga][0] = 460;
-	FaccionesRangos[TALLER_LS][1]  = "Encargado";			RangosSkins[TALLER_LS][1][0] 	= 268;	RangosSkins[TALLER_LS][1][1]	= 55;	RangosSkins[TALLER_LS][1][2] 	= 58; 											FaccionData[TALLER_LS][Paga][1] = 430;
-	FaccionesRangos[TALLER_LS][2]  = "Maquinista"; 			RangosSkins[TALLER_LS][2][0] 	= 16; 	RangosSkins[TALLER_LS][2][1] 	= 55;	RangosSkins[TALLER_LS][2][2] 	= 8;	RangosSkins[TALLER_LS][2][3]	= 55; 	FaccionData[TALLER_LS][Paga][2] = 400;
-	FaccionesRangos[TALLER_LS][3]  = "Mecánico"; 			RangosSkins[TALLER_LS][3][0] 	= 50; 	RangosSkins[TALLER_LS][3][1] 	= 55;	RangosSkins[TALLER_LS][3][2] 	= 8;											FaccionData[TALLER_LS][Paga][3] = 370;
-	FaccionesRangos[TALLER_LS][4]  = "Mecánico Novato"; 	RangosSkins[TALLER_LS][4][0] 	= 50; 	RangosSkins[TALLER_LS][4][1] 	= 55; 	RangosSkins[TALLER_LS][4][2] 	= 8;										 	FaccionData[TALLER_LS][Paga][4] = 350;
+	FaccionesRangos[TALLER_LS][0]  = "Empresario"; 			RangosSkins[TALLER_LS][0][0] = 42;	RangosSkins[TALLER_LS][0][1]	= 55; 																					FaccionData[TALLER_LS][Paga][0] = 460;
+	FaccionesRangos[TALLER_LS][1]  = "Encargado";			RangosSkins[TALLER_LS][1][0] = 268;	RangosSkins[TALLER_LS][1][1]	= 55;	RangosSkins[TALLER_LS][1][2] = 58; 											FaccionData[TALLER_LS][Paga][1] = 430;
+	FaccionesRangos[TALLER_LS][2]  = "Maquinista"; 			RangosSkins[TALLER_LS][2][0] = 16; 	RangosSkins[TALLER_LS][2][1] = 55;	RangosSkins[TALLER_LS][2][2] = 8;	RangosSkins[TALLER_LS][2][3]	= 55; 	FaccionData[TALLER_LS][Paga][2] = 400;
+	FaccionesRangos[TALLER_LS][3]  = "Mecánico"; 			RangosSkins[TALLER_LS][3][0] = 50; 	RangosSkins[TALLER_LS][3][1] = 55;	RangosSkins[TALLER_LS][3][2] = 8;											FaccionData[TALLER_LS][Paga][3] = 370;
+	FaccionesRangos[TALLER_LS][4]  = "Mecánico Aprendiz"; 	RangosSkins[TALLER_LS][4][0] = 50; 	RangosSkins[TALLER_LS][4][1] = 55; 	RangosSkins[TALLER_LS][4][2] = 8;									FaccionData[TALLER_LS][Paga][4] = 350;
 
 	// COLTS ID - 18
 	format(FaccionData[COLTS][NameFaccion], MAX_FACCION_NAME, "Colts");
-	FaccionData[COLTS][Extorsion] 		= 0;
-	FaccionData[COLTS][AlmacenX][0] 	= 1088.6768;
-	FaccionData[COLTS][AlmacenY][0] 	= 1712.8599;
-	FaccionData[COLTS][AlmacenZ][0] 	= 10.9153;
+	FaccionData[COLTS][Extorsion] = 0;
+	FaccionData[COLTS][AlmacenX][0] = 1088.6768;
+	FaccionData[COLTS][AlmacenY][0] = 1712.8599;
+	FaccionData[COLTS][AlmacenZ][0] = 10.9153;
 	FaccionData[COLTS][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[COLTS][Spawn_X][0] 		= 2662.7495;
-	FaccionData[COLTS][Spawn_Y][0] 		= -2028.8191;
-	FaccionData[COLTS][Spawn_Z][0] 		= 13.5510;
-	FaccionData[COLTS][Spawn_ZZ][0]		= 175.8332;
-	FaccionData[COLTS][PickupOut_X] 	= 2650.703125;
-	FaccionData[COLTS][PickupOut_Y] 	= -2021.836059;
-	FaccionData[COLTS][PickupOut_Z] 	= 14.1766281;
-	FaccionData[COLTS][PickupOut_ZZ] 	= 90;
-	FaccionData[COLTS][PickupIn_X] 	= 2352.930664;
-	FaccionData[COLTS][PickupIn_Y] 	= -1180.936645;
-	FaccionData[COLTS][PickupIn_Z] 	= 1027.9765625;
-	FaccionData[COLTS][PickupIn_ZZ] 	= 90;
+	FaccionData[COLTS][Spawn_X][0] = 2662.7495;
+	FaccionData[COLTS][Spawn_Y][0] = -2028.8191;
+	FaccionData[COLTS][Spawn_Z][0] = 13.5510;
+	FaccionData[COLTS][Spawn_ZZ][0] = 175.8332;
+	FaccionData[COLTS][PickupOut_X] = 2650.703125;
+	FaccionData[COLTS][PickupOut_Y] = -2021.836059;
+	FaccionData[COLTS][PickupOut_Z] = 14.1766281;
+	FaccionData[COLTS][PickupOut_ZZ] = 90;
+	FaccionData[COLTS][PickupIn_X] = 2352.930664;
+	FaccionData[COLTS][PickupIn_Y] = -1180.936645;
+	FaccionData[COLTS][PickupIn_Z] = 1027.9765625;
+	FaccionData[COLTS][PickupIn_ZZ] = 90;
 	FaccionData[COLTS][InteriorFaccion]= 5;
-	FaccionData[COLTS][PickupidOutF]		= CreatePickup	(1314, 	1, 	FaccionData[COLTS][PickupOut_X], FaccionData[COLTS][PickupOut_Y], FaccionData[COLTS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[COLTS][PickupidInF] 		= CreatePickup	(1314, 	1, 	FaccionData[COLTS][PickupIn_X], FaccionData[COLTS][PickupIn_Y], FaccionData[COLTS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[COLTS][PrecioFaccion] 	= 0;
-	FaccionData[COLTS][Lock] 			= 0;
-	FaccionData[COLTS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[COLTS][Family] 			= true;
-	FaccionData[COLTS][Radio] 			= false;
+	FaccionData[COLTS][PickupidOutF] = CreateFaccionDynamicPickup(1314, COLTS, FaccionData[COLTS][PickupOut_X], FaccionData[COLTS][PickupOut_Y], FaccionData[COLTS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[COLTS][PickupidInF] = CreateFaccionDynamicPickup(1314, COLTS, FaccionData[COLTS][PickupIn_X], FaccionData[COLTS][PickupIn_Y], FaccionData[COLTS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[COLTS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[COLTS][PrecioFaccion] = 0;
+	FaccionData[COLTS][Lock] = 0;
+	FaccionData[COLTS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[COLTS][Family] = true;
+	FaccionData[COLTS][Radio] = false;
 
-	FaccionesRangos[COLTS][0]  = "Colt";		RangosSkins[COLTS][0][0] 	= 115;	RangosSkins[COLTS][0][1]	= 190; 	RangosSkins[COLTS][0][2]	= 114;	RangosSkins[COLTS][0][3] 	= 116;	FaccionData[COLTS][Paga][0] = 460;
-	FaccionesRangos[COLTS][1]  = "El Menor";	RangosSkins[COLTS][1][0] 	= 116;	RangosSkins[COLTS][1][1]	= 190; 	RangosSkins[COLTS][1][2]	= 114;										FaccionData[COLTS][Paga][1] = 430;
-	FaccionesRangos[COLTS][2]  = "Activo"; 		RangosSkins[COLTS][2][0] 	= 116; 	RangosSkins[COLTS][2][1]	= 190; 	RangosSkins[COLTS][2][2]	= 114;										FaccionData[COLTS][Paga][2] = 400;
-	FaccionesRangos[COLTS][3]  = "Chismoso"; 	RangosSkins[COLTS][3][0] 	= 116; 	RangosSkins[COLTS][3][1] 	= 190; 																			FaccionData[COLTS][Paga][3] = 370;
-	FaccionesRangos[COLTS][4]  = "Pibe"; 		RangosSkins[COLTS][4][0] 	= 116; 	RangosSkins[COLTS][4][1] 	= 190; 																			FaccionData[COLTS][Paga][4] = 350;
+	FaccionesRangos[COLTS][0]  = "Colt";		RangosSkins[COLTS][0][0] = 115;	RangosSkins[COLTS][0][1]	= 190; 	RangosSkins[COLTS][0][2]	= 114;	RangosSkins[COLTS][0][3] = 116;	FaccionData[COLTS][Paga][0] = 460;
+	FaccionesRangos[COLTS][1]  = "El Menor";	RangosSkins[COLTS][1][0] = 116;	RangosSkins[COLTS][1][1]	= 190; 	RangosSkins[COLTS][1][2]	= 114;										FaccionData[COLTS][Paga][1] = 430;
+	FaccionesRangos[COLTS][2]  = "Activo"; 		RangosSkins[COLTS][2][0] = 116; 	RangosSkins[COLTS][2][1]	= 190; 	RangosSkins[COLTS][2][2]	= 114;										FaccionData[COLTS][Paga][2] = 400;
+	FaccionesRangos[COLTS][3]  = "Chismoso"; 	RangosSkins[COLTS][3][0] = 116; 	RangosSkins[COLTS][3][1] = 190; 																			FaccionData[COLTS][Paga][3] = 370;
+	FaccionesRangos[COLTS][4]  = "Pibe"; 		RangosSkins[COLTS][4][0] = 116; 	RangosSkins[COLTS][4][1] = 190; 																			FaccionData[COLTS][Paga][4] = 350;
 
 	// AK ID - 19
 	format(FaccionData[AK][NameFaccion], MAX_FACCION_NAME, "AK");
-	FaccionData[AK][Extorsion] 		= 0;
-	FaccionData[AK][AlmacenX][0] 	= 2686.5295;
-	FaccionData[AK][AlmacenY][0] 	= 819.5256;
-	FaccionData[AK][AlmacenZ][0] 	= 10.9638;
+	FaccionData[AK][Extorsion] = 0;
+	FaccionData[AK][AlmacenX][0] = 2686.5295;
+	FaccionData[AK][AlmacenY][0] = 819.5256;
+	FaccionData[AK][AlmacenZ][0] = 10.9638;
 	FaccionData[AK][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[AK][Spawn_X][0] 	= -2463.8672;
-	FaccionData[AK][Spawn_Y][0] 	= -93.7012;
-	FaccionData[AK][Spawn_Z][0] 	= 25.8586;
+	FaccionData[AK][Spawn_X][0] = -2463.8672;
+	FaccionData[AK][Spawn_Y][0] = -93.7012;
+	FaccionData[AK][Spawn_Z][0] = 25.8586;
 	FaccionData[AK][Spawn_ZZ][0]	= 179.7161;
-	FaccionData[AK][PickupOut_X] 	= -2454.5942382813;
-	FaccionData[AK][PickupOut_Y] 	= -135.9363861084;
-	FaccionData[AK][PickupOut_Z] 	= 26.191596984863;
-	FaccionData[AK][PickupOut_ZZ] 	= 90;
-	FaccionData[AK][PickupIn_X] 	= 2674.3801269531;
-	FaccionData[AK][PickupIn_Y] 	= 804.61590576172;
-	FaccionData[AK][PickupIn_Z] 	= 10.963800430298;
-	FaccionData[AK][PickupIn_ZZ] 	= 0;
+	FaccionData[AK][PickupOut_X] = -2454.5942382813;
+	FaccionData[AK][PickupOut_Y] = -135.9363861084;
+	FaccionData[AK][PickupOut_Z] = 26.191596984863;
+	FaccionData[AK][PickupOut_ZZ] = 90;
+	FaccionData[AK][PickupIn_X] = 2674.3801269531;
+	FaccionData[AK][PickupIn_Y] = 804.61590576172;
+	FaccionData[AK][PickupIn_Z] = 10.963800430298;
+	FaccionData[AK][PickupIn_ZZ] = 0;
 	FaccionData[AK][InteriorFaccion]= 6;
-	FaccionData[AK][PickupidOutF]		= CreatePickup	(1314, 	1, 	FaccionData[AK][PickupOut_X], FaccionData[AK][PickupOut_Y], FaccionData[AK][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[AK][PickupidInF] 		= CreatePickup	(1314, 	1, 	FaccionData[AK][PickupIn_X], FaccionData[AK][PickupIn_Y], FaccionData[AK][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[AK][PrecioFaccion] 	= 0;
-	FaccionData[AK][Lock] 			= 0;
-	FaccionData[AK][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[AK][Family] 		= true;
-	FaccionData[AK][Radio] 			= false;
+	FaccionData[AK][PickupidOutF] = CreateFaccionDynamicPickup(1314, AK, FaccionData[AK][PickupOut_X], FaccionData[AK][PickupOut_Y], FaccionData[AK][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[AK][PickupidInF] = CreateFaccionDynamicPickup(1314, AK, FaccionData[AK][PickupIn_X], FaccionData[AK][PickupIn_Y], FaccionData[AK][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[AK][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[AK][PrecioFaccion] = 0;
+	FaccionData[AK][Lock] = 0;
+	FaccionData[AK][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[AK][Family] = true;
+	FaccionData[AK][Radio] = false;
 
-	FaccionesRangos[AK][0]  = "AK"; 		RangosSkins[AK][0][0] 	= 248;	RangosSkins[AK][0][1]	= 195; 	RangosSkins[AK][0][2]	= 254;	RangosSkins[AK][0][3] 	= 247;	RangosSkins[AK][0][4]	= 181;	RangosSkins[AK][0][4]	= 100; 	FaccionData[AK][Paga][0] = 460;
-	FaccionesRangos[AK][1]  = "El Menor";	RangosSkins[AK][1][0] 	= 247;	RangosSkins[AK][1][1]	= 195; 	RangosSkins[AK][1][2]	= 254;	RangosSkins[AK][1][3]	= 181;																	FaccionData[AK][Paga][1] = 430;
-	FaccionesRangos[AK][2]  = "Activo"; 	RangosSkins[AK][2][0] 	= 247; 	RangosSkins[AK][2][1]	= 195; 	RangosSkins[AK][2][2]	= 254;  RangosSkins[AK][2][3]	= 181;																	FaccionData[AK][Paga][2] = 400;
-	FaccionesRangos[AK][3]  = "Chismoso"; 	RangosSkins[AK][3][0] 	= 247; 	RangosSkins[AK][3][1] 	= 195; 	RangosSkins[AK][3][2]	= 181;																									FaccionData[AK][Paga][3] = 370;
-	FaccionesRangos[AK][4]  = "Pibe"; 		RangosSkins[AK][4][0] 	= 247; 	RangosSkins[AK][4][1] 	= 195; 	RangosSkins[AK][4][2]	= 181;																									FaccionData[AK][Paga][4] = 350;
-	
+	FaccionesRangos[AK][0]  = "AK"; 		RangosSkins[AK][0][0] = 248;	RangosSkins[AK][0][1]	= 195; 	RangosSkins[AK][0][2]	= 254;	RangosSkins[AK][0][3] = 247;	RangosSkins[AK][0][4]	= 181;	RangosSkins[AK][0][4]	= 100; 	FaccionData[AK][Paga][0] = 460;
+	FaccionesRangos[AK][1]  = "El Menor";	RangosSkins[AK][1][0] = 247;	RangosSkins[AK][1][1]	= 195; 	RangosSkins[AK][1][2]	= 254;	RangosSkins[AK][1][3]	= 181;																	FaccionData[AK][Paga][1] = 430;
+	FaccionesRangos[AK][2]  = "Activo"; 	RangosSkins[AK][2][0] = 247; 	RangosSkins[AK][2][1]	= 195; 	RangosSkins[AK][2][2]	= 254;  RangosSkins[AK][2][3]	= 181;																	FaccionData[AK][Paga][2] = 400;
+	FaccionesRangos[AK][3]  = "Chismoso"; 	RangosSkins[AK][3][0] = 247; 	RangosSkins[AK][3][1] = 195; 	RangosSkins[AK][3][2]	= 181;																									FaccionData[AK][Paga][3] = 370;
+	FaccionesRangos[AK][4]  = "Pibe"; 		RangosSkins[AK][4][0] = 247; 	RangosSkins[AK][4][1] = 195; 	RangosSkins[AK][4][2]	= 181;																									FaccionData[AK][Paga][4] = 350;
+
 	// VELTRAN ID - 20
 	/////////////////////////////////////////////////////////////////////
 	format(FaccionData[VELTRAN][NameFaccion], MAX_FACCION_NAME, "Veltran");
-	FaccionData[VELTRAN][Extorsion] 		= 0;
-	FaccionData[VELTRAN][AlmacenX][0] 	= 34.3752;
-	FaccionData[VELTRAN][AlmacenY][0] 	= 2495.5813;
-	FaccionData[VELTRAN][AlmacenZ][0] 	= 16.4937;
+	FaccionData[VELTRAN][Extorsion] = 0;
+	FaccionData[VELTRAN][AlmacenX][0] = 34.3752;
+	FaccionData[VELTRAN][AlmacenY][0] = 2495.5813;
+	FaccionData[VELTRAN][AlmacenZ][0] = 16.4937;
 	FaccionData[VELTRAN][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[VELTRAN][Spawn_X][0] 	= -2088.4094;
-	FaccionData[VELTRAN][Spawn_Y][0] 	= 903.1467;
-	FaccionData[VELTRAN][Spawn_Z][0] 	= 65.5231;
+	FaccionData[VELTRAN][Spawn_X][0] = -2088.4094;
+	FaccionData[VELTRAN][Spawn_Y][0] = 903.1467;
+	FaccionData[VELTRAN][Spawn_Z][0] = 65.5231;
 	FaccionData[VELTRAN][Spawn_ZZ][0]	= 353.4789;
-	FaccionData[VELTRAN][PickupOut_X] 	= -2099.6032714844;
-	FaccionData[VELTRAN][PickupOut_Y] 	= 897.35711669922;
-	FaccionData[VELTRAN][PickupOut_Z] 	= 76.7109375;
-	FaccionData[VELTRAN][PickupOut_ZZ] 	= 0;
-	FaccionData[VELTRAN][PickupIn_X] 	= 30.553499221802;
-	FaccionData[VELTRAN][PickupIn_Y] 	= 2495.8635253906;
-	FaccionData[VELTRAN][PickupIn_Z] 	= 16.494745254517;
-	FaccionData[VELTRAN][PickupIn_ZZ] 	= 0;
+	FaccionData[VELTRAN][PickupOut_X] = -2099.6032714844;
+	FaccionData[VELTRAN][PickupOut_Y] = 897.35711669922;
+	FaccionData[VELTRAN][PickupOut_Z] = 76.7109375;
+	FaccionData[VELTRAN][PickupOut_ZZ] = 0;
+	FaccionData[VELTRAN][PickupIn_X] = 30.553499221802;
+	FaccionData[VELTRAN][PickupIn_Y] = 2495.8635253906;
+	FaccionData[VELTRAN][PickupIn_Z] = 16.494745254517;
+	FaccionData[VELTRAN][PickupIn_ZZ] = 0;
 	FaccionData[VELTRAN][InteriorFaccion]= 5;
-	FaccionData[VELTRAN][PickupidOutF]		= CreatePickup	(1314, 	1, 	FaccionData[VELTRAN][PickupOut_X], FaccionData[VELTRAN][PickupOut_Y], FaccionData[VELTRAN][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[VELTRAN][PickupidInF] 		= CreatePickup	(1314, 	1, 	FaccionData[VELTRAN][PickupIn_X], FaccionData[VELTRAN][PickupIn_Y], FaccionData[VELTRAN][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[VELTRAN][PrecioFaccion] 	= 0;
-	FaccionData[VELTRAN][Lock] 			= 0;
-	FaccionData[VELTRAN][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[VELTRAN][Family] 		= true;
-	FaccionData[VELTRAN][Radio] 			= false;
+	FaccionData[VELTRAN][PickupidOutF] = CreateFaccionDynamicPickup(1314, VELTRAN, FaccionData[VELTRAN][PickupOut_X], FaccionData[VELTRAN][PickupOut_Y], FaccionData[VELTRAN][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[VELTRAN][PickupidInF] = CreateFaccionDynamicPickup(1314, VELTRAN, FaccionData[VELTRAN][PickupIn_X], FaccionData[VELTRAN][PickupIn_Y], FaccionData[VELTRAN][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[VELTRAN][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[VELTRAN][PrecioFaccion] = 0;
+	FaccionData[VELTRAN][Lock] = 0;
+	FaccionData[VELTRAN][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[VELTRAN][Family] = true;
+	FaccionData[VELTRAN][Radio] = false;
 
-	FaccionesRangos[VELTRAN][0]  = "Veltran"; 	RangosSkins[VELTRAN][0][0] 	= 175;	RangosSkins[VELTRAN][0][1]	= 201; 	RangosSkins[VELTRAN][0][2]	= 173;		RangosSkins[VELTRAN][0][3] 	= 174;		FaccionData[VELTRAN][Paga][0] = 460;
-	FaccionesRangos[VELTRAN][1]  = "El Menor";	RangosSkins[VELTRAN][1][0] 	= 174;	RangosSkins[VELTRAN][1][1]	= 201; 	RangosSkins[VELTRAN][1][2]	= 173;											FaccionData[VELTRAN][Paga][1] = 430;
-	FaccionesRangos[VELTRAN][2]  = "Activo"; 	RangosSkins[VELTRAN][2][0] 	= 173; 	RangosSkins[VELTRAN][2][1]	= 201; 	RangosSkins[VELTRAN][2][2]	= 174;																				FaccionData[VELTRAN][Paga][2] = 400;
-	FaccionesRangos[VELTRAN][3]  = "Chismoso"; 	RangosSkins[VELTRAN][3][0] 	= 173; 	RangosSkins[VELTRAN][3][1] 	= 201; 																				FaccionData[VELTRAN][Paga][3] = 370;
-	FaccionesRangos[VELTRAN][4]  = "Pibe"; 		RangosSkins[VELTRAN][4][0] 	= 173; 	RangosSkins[VELTRAN][4][1] 	= 201; 																				FaccionData[VELTRAN][Paga][4] = 350;
-	
+	FaccionesRangos[VELTRAN][0]  = "Veltran"; 	RangosSkins[VELTRAN][0][0] = 175;	RangosSkins[VELTRAN][0][1]	= 201; 	RangosSkins[VELTRAN][0][2]	= 173;		RangosSkins[VELTRAN][0][3] = 174;		FaccionData[VELTRAN][Paga][0] = 460;
+	FaccionesRangos[VELTRAN][1]  = "El Menor";	RangosSkins[VELTRAN][1][0] = 174;	RangosSkins[VELTRAN][1][1]	= 201; 	RangosSkins[VELTRAN][1][2]	= 173;											FaccionData[VELTRAN][Paga][1] = 430;
+	FaccionesRangos[VELTRAN][2]  = "Activo"; 	RangosSkins[VELTRAN][2][0] = 173; 	RangosSkins[VELTRAN][2][1]	= 201; 	RangosSkins[VELTRAN][2][2]	= 174;																				FaccionData[VELTRAN][Paga][2] = 400;
+	FaccionesRangos[VELTRAN][3]  = "Chismoso"; 	RangosSkins[VELTRAN][3][0] = 173; 	RangosSkins[VELTRAN][3][1] = 201; 																				FaccionData[VELTRAN][Paga][3] = 370;
+	FaccionesRangos[VELTRAN][4]  = "Pibe"; 		RangosSkins[VELTRAN][4][0] = 173; 	RangosSkins[VELTRAN][4][1] = 201; 																				FaccionData[VELTRAN][Paga][4] = 350;
+
 	// HEORS ID - 21
 	format(FaccionData[HEORS][NameFaccion], MAX_FACCION_NAME, "Heors");
-	FaccionData[HEORS][Extorsion] 		= 0;
-	FaccionData[HEORS][AlmacenX][0] 	= 1725.7097;
-	FaccionData[HEORS][AlmacenY][0] 	= -2447.1138;
-	FaccionData[HEORS][AlmacenZ][0] 	= 13.6246;
+	FaccionData[HEORS][Extorsion] = 0;
+	FaccionData[HEORS][AlmacenX][0] = 1725.7097;
+	FaccionData[HEORS][AlmacenY][0] = -2447.1138;
+	FaccionData[HEORS][AlmacenZ][0] = 13.6246;
 	FaccionData[HEORS][AlmacenWorld][0]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[HEORS][AlmacenX][1] 	= 2447.7646;
-	FaccionData[HEORS][AlmacenY][1] 	= 2085.1616;
-	FaccionData[HEORS][AlmacenZ][1] 	= 62.3593;
+	FaccionData[HEORS][AlmacenX][1] = 2447.7646;
+	FaccionData[HEORS][AlmacenY][1] = 2085.1616;
+	FaccionData[HEORS][AlmacenZ][1] = 62.3593;
 	FaccionData[HEORS][AlmacenWorld][1]	= WORLD_DEFAULT_INTERIOR;
-	FaccionData[HEORS][Spawn_X][0] 		= 2045.4813;
-	FaccionData[HEORS][Spawn_Y][0] 		= -1111.6809;
-	FaccionData[HEORS][Spawn_Z][0] 		= 26.3617;
-	FaccionData[HEORS][Spawn_ZZ][0]		= 175.9550;
-	FaccionData[HEORS][Spawn_X][1] 		= 2793.3169;
-	FaccionData[HEORS][Spawn_Y][1] 		= -1624.8368;
-	FaccionData[HEORS][Spawn_Z][1] 		= 10.9219;
-	FaccionData[HEORS][Spawn_ZZ][1]		= 81.8914;
-	FaccionData[HEORS][PickupOut_X] 	= 2045.5537;
-	FaccionData[HEORS][PickupOut_Y] 	= -1116.4283;
-	FaccionData[HEORS][PickupOut_Z] 	= 26.3617;
-	FaccionData[HEORS][PickupOut_ZZ] 	= 0;
-	FaccionData[HEORS][PickupIn_X] 	= 1781.7933349609;
-	FaccionData[HEORS][PickupIn_Y] 	= -2454.0107421875;
-	FaccionData[HEORS][PickupIn_Z] 	= 13.5546875;
-	FaccionData[HEORS][PickupIn_ZZ] 	= 0;
-	FaccionData[HEORS][InteriorFaccion]= 13;
-	FaccionData[HEORS][PickupidOutF]		= CreatePickup	(1314, 	1, 	FaccionData[HEORS][PickupOut_X], FaccionData[HEORS][PickupOut_Y], FaccionData[HEORS][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[HEORS][PickupidInF] 		= CreatePickup	(1314, 	1, 	FaccionData[HEORS][PickupIn_X], FaccionData[HEORS][PickupIn_Y], FaccionData[HEORS][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
-	FaccionData[HEORS][PrecioFaccion] 	= 0;
-	FaccionData[HEORS][Lock] 			= 0;
-	FaccionData[HEORS][World] 			= WORLD_DEFAULT_INTERIOR;
-	FaccionData[HEORS][Family] 		= true;
-	FaccionData[HEORS][Radio] 			= false;
+	FaccionData[HEORS][Spawn_X][0] = 2045.4813;
+	FaccionData[HEORS][Spawn_Y][0] = -1111.6809;
+	FaccionData[HEORS][Spawn_Z][0] = 26.3617;
+	FaccionData[HEORS][Spawn_ZZ][0] = 175.9550;
+	FaccionData[HEORS][Spawn_X][1] = 2793.3169;
+	FaccionData[HEORS][Spawn_Y][1] = -1624.8368;
+	FaccionData[HEORS][Spawn_Z][1] = 10.9219;
+	FaccionData[HEORS][Spawn_ZZ][1] = 81.8914;
+	FaccionData[HEORS][PickupOut_X] = 2045.5537;
+	FaccionData[HEORS][PickupOut_Y] = -1116.4283;
+	FaccionData[HEORS][PickupOut_Z] = 26.3617;
+	FaccionData[HEORS][PickupOut_ZZ] = 0;
+	FaccionData[HEORS][PickupIn_X] = 1781.7933349609;
+	FaccionData[HEORS][PickupIn_Y] = -2454.0107421875;
+	FaccionData[HEORS][PickupIn_Z] = 13.5546875;
+	FaccionData[HEORS][PickupIn_ZZ] = 0;
+	FaccionData[HEORS][InteriorFaccion] = 13;
+	FaccionData[HEORS][PickupidOutF] = CreateFaccionDynamicPickup(1314, HEORS, FaccionData[HEORS][PickupOut_X], FaccionData[HEORS][PickupOut_Y], FaccionData[HEORS][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[HEORS][PickupidInF] = CreateFaccionDynamicPickup(1314, HEORS, FaccionData[HEORS][PickupIn_X], FaccionData[HEORS][PickupIn_Y], FaccionData[HEORS][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[HEORS][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
+	FaccionData[HEORS][PrecioFaccion] = 0;
+	FaccionData[HEORS][Lock] = 0;
+	FaccionData[HEORS][World] = WORLD_DEFAULT_INTERIOR;
+	FaccionData[HEORS][Family] = true;
+	FaccionData[HEORS][Radio] = false;
 
-	FaccionesRangos[HEORS][0]  = "Heor";	 	RangosSkins[HEORS][0][0] 	= 292;  RangosSkins[HEORS][0][1] 	= 110;	RangosSkins[HEORS][0][2]	= 207; 	RangosSkins[HEORS][0][3]	= 108;		RangosSkins[HEORS][0][3] 	= 109;		FaccionData[HEORS][Paga][0] = 460;
-	FaccionesRangos[HEORS][1]  = "El Menor";	RangosSkins[HEORS][1][0] 	= 109;	RangosSkins[HEORS][1][1]	= 207; 	RangosSkins[HEORS][1][2]	= 108;																					FaccionData[HEORS][Paga][1] = 430;
-	FaccionesRangos[HEORS][2]  = "Activo"; 		RangosSkins[HEORS][2][0] 	= 108; 	RangosSkins[HEORS][2][1]	= 207; 	RangosSkins[HEORS][2][2]	= 108;																					FaccionData[HEORS][Paga][2] = 400;
-	FaccionesRangos[HEORS][3]  = "Chismoso"; 	RangosSkins[HEORS][3][0] 	= 108; 	RangosSkins[HEORS][3][1] 	= 207; 																														FaccionData[HEORS][Paga][3] = 370;
-	FaccionesRangos[HEORS][4]  = "Pibe"; 		RangosSkins[HEORS][4][0] 	= 108; 	RangosSkins[HEORS][4][1] 	= 207; 																														FaccionData[HEORS][Paga][4] = 350;
+	FaccionesRangos[HEORS][0]  = "Heor";RangosSkins[HEORS][0][0] = 292;  RangosSkins[HEORS][0][1] = 110;	RangosSkins[HEORS][0][2]	= 207; 	RangosSkins[HEORS][0][3]	= 108;		RangosSkins[HEORS][0][3] = 109;		FaccionData[HEORS][Paga][0] = 460;
+	FaccionesRangos[HEORS][1]  = "El Menor";	RangosSkins[HEORS][1][0] = 109;	RangosSkins[HEORS][1][1]	= 207; 	RangosSkins[HEORS][1][2]	= 108;																					FaccionData[HEORS][Paga][1] = 430;
+	FaccionesRangos[HEORS][2]  = "Activo"; 		RangosSkins[HEORS][2][0] = 108; 	RangosSkins[HEORS][2][1]	= 207; 	RangosSkins[HEORS][2][2]	= 108;																					FaccionData[HEORS][Paga][2] = 400;
+	FaccionesRangos[HEORS][3]  = "Chismoso"; 	RangosSkins[HEORS][3][0] = 108; 	RangosSkins[HEORS][3][1] = 207; 																														FaccionData[HEORS][Paga][3] = 370;
+	FaccionesRangos[HEORS][4]  = "Pibe"; 		RangosSkins[HEORS][4][0] = 108; 	RangosSkins[HEORS][4][1] = 207; 																														FaccionData[HEORS][Paga][4] = 350;
 
 // SFMD ID - 22
 	format(FaccionData[LSMD][NameFaccion], MAX_FACCION_NAME, "LSMD");
-	FaccionData[LSMD][Extorsion] 		= 0;
-	FaccionData[LSMD][Spawn_X][0] 		= 1174.4027;
-	FaccionData[LSMD][Spawn_Y][0] 		= -1307.2732;
-	FaccionData[LSMD][Spawn_Z][0] 		= 19.4473;
-	FaccionData[LSMD][Spawn_ZZ][0]		= 178.7280;
-	FaccionData[LSMD][Spawn_X][1] 		= 2036.5618;
-	FaccionData[LSMD][Spawn_Y][1] 		= -1438.7203;
-	FaccionData[LSMD][Spawn_Z][1] 		= 17.3176;
-	FaccionData[LSMD][Spawn_ZZ][1]		= 87.8400;
-	FaccionData[LSMD][PickupOut_X] 		= 1172.0863037109;
-	FaccionData[LSMD][PickupOut_Y] 		= -1323.3535;
-	FaccionData[LSMD][PickupOut_Z] 		= 15.406188964844;
-	FaccionData[LSMD][PickupOut_ZZ] 	= 270;
-	FaccionData[LSMD][PickupIn_X] 		= 388.37915039063;
-	FaccionData[LSMD][PickupIn_Y] 		= 1906.3463134766;
-	FaccionData[LSMD][PickupIn_Z] 		= 17.715625762939;
-	FaccionData[LSMD][PickupIn_ZZ] 		= 90;
-	FaccionData[LSMD][InteriorFaccion] 	= 18;
-	FaccionData[LSMD][PickupidOutF]		= CreatePickup	(1239, 	1, 	FaccionData[LSMD][PickupOut_X], FaccionData[LSMD][PickupOut_Y], FaccionData[LSMD][PickupOut_Z],	 	WORLD_NORMAL);
-	FaccionData[LSMD][PickupidInF] 		= CreatePickup	(1239, 	1, 	FaccionData[LSMD][PickupIn_X], FaccionData[LSMD][PickupIn_Y], FaccionData[LSMD][PickupIn_Z],	 	WORLD_DEFAULT_INTERIOR);
+	FaccionData[LSMD][Extorsion] = 0;
+	FaccionData[LSMD][Spawn_X][0] = 1174.4027;
+	FaccionData[LSMD][Spawn_Y][0] = -1307.2732;
+	FaccionData[LSMD][Spawn_Z][0] = 19.4473;
+	FaccionData[LSMD][Spawn_ZZ][0] = 178.7280;
+	FaccionData[LSMD][Spawn_X][1] = 2036.5618;
+	FaccionData[LSMD][Spawn_Y][1] = -1438.7203;
+	FaccionData[LSMD][Spawn_Z][1] = 17.3176;
+	FaccionData[LSMD][Spawn_ZZ][1] = 87.8400;
+	FaccionData[LSMD][PickupOut_X] = 1172.0863037109;
+	FaccionData[LSMD][PickupOut_Y] = -1323.3535;
+	FaccionData[LSMD][PickupOut_Z] = 15.406188964844;
+	FaccionData[LSMD][PickupOut_ZZ] = 270;
+	FaccionData[LSMD][PickupIn_X] = 388.37915039063;
+	FaccionData[LSMD][PickupIn_Y] = 1906.3463134766;
+	FaccionData[LSMD][PickupIn_Z] = 17.715625762939;
+	FaccionData[LSMD][PickupIn_ZZ] = 90;
+	FaccionData[LSMD][InteriorFaccion] = 18;
+	FaccionData[LSMD][PickupidOutF] = CreateFaccionDynamicPickup(1239, LSMD, FaccionData[LSMD][PickupOut_X], FaccionData[LSMD][PickupOut_Y], FaccionData[LSMD][PickupOut_Z], WORLD_NORMAL, 0, -1, MAX_PICKUP_DISTANCE);
+	FaccionData[LSMD][PickupidInF] = CreateFaccionDynamicPickup(1239, LSMD, FaccionData[LSMD][PickupIn_X], FaccionData[LSMD][PickupIn_Y], FaccionData[LSMD][PickupIn_Z], WORLD_DEFAULT_INTERIOR, FaccionData[LSMD][InteriorFaccion], -1, MAX_PICKUP_DISTANCE);
 	FaccionData[LSMD][PrecioFaccion] 	= 0;
 	FaccionData[LSMD][Lock] 			= 0;
 	FaccionData[LSMD][World] 			= WORLD_DEFAULT_INTERIOR;
@@ -6034,7 +6069,7 @@ public OnPlayerConnect(playerid)
 				printf("Kickeado por Nick: %s", PlayersDataOnline[playerid][NameOnline]);
 				SendClientMessage(playerid, 0x002DFFFF, "Has sido Kickedo del servidor.");
 				SendClientMessage(playerid, 0x002DFFFF, "Para el servidor de Role Play es requerido que utilice el formato de nick name Nombre_Apellido.");
-				SendClientMessage(playerid, 0x002DFFFF, "{F5FF00}Ejemplo: {00F50A}Juan_Perez, Jorge_Pelaez");
+				SendClientMessage(playerid, 0x002DFFFF, "{F5FF00}Ejemplo: {00F50A}Alessandro_Valenti, Jorge_Pelaez");
 				SendClientMessage(playerid, 0x002DFFFF, " ");
 				SendClientMessage(playerid, 0x002DFFFF, "Cualquier duda al respecto sobre el regístro puede consultarlo en "WEBPAGE"");
 				KickEx(playerid, 99);
@@ -6051,11 +6086,27 @@ public OnPlayerDisconnect(playerid, reason)
 {
 	if ( !ResetGM )
 	{
+	    new Float:Pos[3];
+	    new string[150];
+	    GetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
+
+	    if(reason == 1) 	 format(string, sizeof(string), "El usuario %s ha desconectado. Razon: Voluntariamente", PlayersDataOnline[playerid][NameOnline]);
+		else if(reason == 0) format(string, sizeof(string), "El usuario %s ha desconectado. Razon: Perdida de Conexion/CRASH", PlayersDataOnline[playerid][NameOnline]);
+		else if(reason == 2) format(string, sizeof(string), "El usuario %s ha desconectado. Razon: Un administrador le ha echado", PlayersDataOnline[playerid][NameOnline]);
+		
 		if(PlayersDataOnline[playerid][IsEspectando])
 		{
 			UpdateSpectatedPlayers(playerid, true, false, false);
 		}
 	    SaveDatosPlayerDisconnect(playerid);
+	    
+	    for(new i = 0; i <= GetPlayerPoolSize(); i++)
+	    {
+	        if(IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && i != playerid && IsPlayerInRangeOfPoint(i, 20.0, Pos[0], Pos[1], Pos[2]))
+	        {
+	            SendClientMessage(i, COLOR_MENSAJES_DE_AVISOS, string);
+	        }
+	    }
     }
 	return 1;
 }
@@ -6339,7 +6390,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				  	else if (strcmp("/Ayuda Otros", cmdtext, true, 12) == 0 && strlen(cmdtext) == 12)
 			    	{
 					    SendClientMessage(playerid, COLOR_TITULO_DE_AYUDA, TITULO_AYUDA);
-					    SendInfoMessage(playerid, 1, "/Dormir - /Nacer - /Nacer Amigo - /Cartera - /Sexo - /Estado - /Staff - /Ayudantes", "Otros: ");
+					    SendInfoMessage(playerid, 1, "/Dormir - /Nacer - /Nacer Amigo - /Cartera - /Sexo - /Estado - /Staff - /Ayudantes - /Mappers", "Otros: ");
 			    	}
 			    	// COMANDO: /Ayuda DeathMatch
 				  	else if (strcmp("/Ayuda DeathMatch", cmdtext, true, 17) == 0 && strlen(cmdtext) == 17)
@@ -6477,17 +6528,29 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						    SendClientMessage(playerid, COLOR_TITULO_DE_AYUDA, TITULO_AYUDA);
 			    	        if ( PlayersData[playerid][Rango] == 0 )
 			    	        {
-						    	SendInfoMessage(playerid, 1, "/Llaves Coche - /Invitar [ID] - /Rango [ID] [ID_RANGO] - /Expulsar [ID]", "Facción: ");
-						    	SendInfoMessage(playerid, 1, "/Consultar Facción - /Depositar Facción [Cantidad] - /Retirar Facción [Cantidad]", "Facción: ");
+						    	SendInfoMessage(playerid, 1, " /Consultar Facción - /Depositar Facción [Cantidad] - /Retirar Facción [Cantidad]", "Facción: ");
 					    	}
 			    	        if ( PlayersData[playerid][Rango] <= 1 )
 			    	        {
-						    	SendInfoMessage(playerid, 1, "/Asignar [ID] - /Desasignar [ID] [SLOT] - /Ver Horas [ID] - /Reiniciar Horas [ID] - /Escoger Spawn [ID] [Spawnid]", "Facción: ");
+						    	SendInfoMessage(playerid, 1, "/Invitar [ID] - /Expulsar [ID] - /Rango [ID] [ID_RANGO] - /Escoger Spawn [ID] [Spawnid]", "Facción: ");
+						    	SendInfoMessage(playerid, 1, "/Asignar [ID] - /Desasignar [ID] [SLOT] - /Ver Horas [ID] - /Reiniciar Horas [ID] - /Llaves Coche", "Facción: ");
 			    	        }
 						    // GOBIERNO
 							if ( PlayersData[playerid][Faccion] == GOBIERNO )
 							{
-							    SendInfoMessage(playerid, 1, "/Gob [Texto] - /Ver Deposito - /Cambiar Ciudad [ID] - /Casar [ID] [ID]- /Divorciar [ID] [ID]", "Facción: ");
+							    SendInfoMessage(playerid, 1, "/R [Radio]", "Facción: ");
+                                //Gob-Vice-Presi
+                                if ( PlayersData[playerid][Rango] <= 3 )
+                                SendInfoMessage(playerid, 1, "/Gob [Texto]", "Facción: ");
+                                //Secretario-Gob-Vice-Presi
+                                if ( PlayersData[playerid][Rango] <= 3 )
+                                SendInfoMessage(playerid, 1, "/Casar [ID] [ID]- /Divorciar [ID] [ID]", "Facción: ");
+                                //Todos Excepto Escolta
+                                if ( PlayersData[playerid][Rango] != 4 )
+                                SendInfoMessage(playerid, 1, "/Cambiar Ciudad [ID]", "Facción: ");
+                                //Escolta
+                                if ( PlayersData[playerid][Rango] == 4 )
+                                SendInfoMessage(playerid, 1, "/Poner Equipo [ID_Equipo]", "Facción: ");
 							}
 						    // LICENCIEROS
 							else if ( PlayersData[playerid][Faccion] == LICENCIEROS )
@@ -6496,7 +6559,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							    SendInfoMessage(playerid, 1, "/Dar Idioma Inglés [ID] - /Dar Idioma Japonés [ID] - /Dar LicenciaArmas [ID] - /Dar Licencia Coche [ID]", "Facción: ");
 							    SendInfoMessage(playerid, 1, "/Dar Licencia Camión [ID] - /Dar Licencia Moto [ID] - /Dar Licencia Vuelo [ID] - /Dar Licencia Bote [ID]", "Facción: ");
 							    SendInfoMessage(playerid, 1, "/Dar Licencia Pesca [ID] - /Dar Licencia Tren [ID] - /Dar Habilidad [ID] [ID_Habilidad] - /Prueba [ID]", "Facción: ");
-							    SendInfoMessage(playerid, 1, "/Ayuda Habilidades", "Facción: ");
+							    SendInfoMessage(playerid, 1, "/R [Radio] - /F [Family] - /Ayuda Habilidades", "Facción: ");
 							}
 						    // TRAFICANTES
 							else if ( PlayersData[playerid][Faccion] == TRAFICANTES )
@@ -6665,7 +6728,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					    SendClientMessage(playerid, COLOR_TITULO_DE_AYUDA, TITULO_AYUDA);
 					    SendInfoMessage(playerid, 1, "/Llaves Casa - /Llaves Armario - /Llaves Garage - /Comprar Casa - /Vender Casa - /Cambiar Precio Alquiler [Precio]", "Casa: ");
 					    SendInfoMessage(playerid, 1, "/Desalojar Todos - /Desalojar [ID] - /Alquilar - /Consultar Casa - /Retirar Casa - /Timbre - /Info Casa - /Armario", "Casa: ");
-					    SendInfoMessage(playerid, 1, "/Dar Llaves Amigo [Usuario] - /Llaves Amigos - /Llaves Refrigerador - /Refrigerador - /Cocinar [ID_Refrigerador]", "Casa: ");
+					    SendInfoMessage(playerid, 1, "/Dar Llaves Amigo [ID] - /Llaves Amigos - /Llaves Refrigerador - /Refrigerador - /Cocinar [ID_Refrigerador]", "Casa: ");
 					    SendInfoMessage(playerid, 1, "/Ayuda Coger - /Ayuda Dejar - /Música - /Gaveta - /Llaves Gaveta", "Casa: ");
 			    	}
 			    	// COMANDO: /Ayuda Banco
@@ -6753,7 +6816,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    	//      /Ayuda Local
 			    	else if (strcmp("/Ayuda Local", cmdtext, true, 12) == 0 && strlen(cmdtext) == 12)
 		            {
-		                SendInfoMessage(playerid, 1, "/Comprar Local - /Vender Local - /Cambiar Precio Entrada [Precio] - /Consultar Local - /Retirar Local", "Local: ");
+		                SendInfoMessage(playerid, 1, "/Comprar Local - /Vender Local - /Cambiar Precio Entrada [Precio] - /Consultar Local - /Retirar Local - /Cambiar Nombre [Nuevo Nombre]", "Local: ");
 		                SendInfoMessage(playerid, 1, "/Llaves Local - /Llaves PuertaEx - /Dar Llaves Amigo [ID] - /Llaves Amigos - /Llaves Garage", "Local: ");
 		                SendInfoMessage(playerid, 1, "/Llaves Armario - /Armario - /Llaves Gaveta - /Gaveta - /Llaves Refrigerador - /Refrigerador - /Cocinar [ID_Refrigerador]", "Local: ");
 		                SendInfoMessage(playerid, 1, "/Ayuda Coger - /Ayuda Dejar - /Música - /Timbre", "Local: ");
@@ -6783,7 +6846,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						      				SendInfoMessage(playerid, 1, "/Respawn Facción [ID_Facción] - /Estado Dudas - /Limpiar [ID]",																	"Owned Level 5: ");
 								   	   		if (PlayersData[playerid][Admin] >= 6)
 											{
-							      				SendInfoMessage(playerid, 1, "/ICoche - /ICocheEx [ID] - /Skin [ID] - /Race [ID]", 																			"Owned Level 6: ");
+							      				SendInfoMessage(playerid, 1, "/ICoche - /ICocheEx [ID] - /Skin [ID] - /Race [ID] - /Ver Deposito", 																			"Owned Level 6: ");
 									   	   		if (PlayersData[playerid][Admin] >= 7)
 												{
 								      				SendInfoMessage(playerid, 1, "/Borrar Warn [ID] - /DivorciarEx [ID] - /BanEx [Nombre_Del_Jugador] - /Editar Pistas - /StatsEx [ID]", 					"Owned Level 7: ");
@@ -6794,19 +6857,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 											 		SendInfoMessage(playerid, 1, "/Facción [ID] [ID_Facción] [Rango] - /Respawn TodosEx - /Nombre [ID] [Nombre]", 											"Owned Level 7: ");
 										   	   		if (PlayersData[playerid][Admin] >= 8)
 													{
-									      				SendInfoMessage(playerid, 1, "/Cambiar Logo [Nuevo_Logo] - /Reiniciar - /Map Point [Point]", 		"Owned Level 8: ");
-									      				SendInfoMessage(playerid, 1, "/Vcasa - /Vnegocio - /Ctipo [ID] - /Cprecio [Precio] - /Ntipo [ID] - /Nprecio [Precio] - /CCambiar [ID_COCHE]", 		"Owned Level 8: ");
-														SendInfoMessage(playerid, 1, "/Map Off - /SpawnDM [Equipo]- /CPos [ID_Casa] - /NPos [ID_Negocio] - /Traerc Bug - /VCoche - /Gtipo [ID]", 			"Owned Level 8: ");
-									      				SendInfoMessage(playerid, 1, "/Crear Negocio [ID] [Precio] [Nivel] - /Crear Casa [ID] [Precio] [Nivel] - /Info Garage - /Garages [ID_Casa]", 		"Owned Level 8: ");
-									      				SendInfoMessage(playerid, 1, "/Ver Design - /Dg A (Afuera) - /Dg C (Coche) - /Dg D (Dentro) - /Dg Rand [ID_Casa] [ID_Garage] - /Map",				"Owned Level 8: ");
-									      				SendInfoMessage(playerid, 1, "/Crear Garage [ID_Casa] [Tipo_Garage] - /Design Garage [ID_Design] - /Dg dP [ID_Casa] [ID_Garage]", 					"Owned Level 8: ");
-									      				SendInfoMessage(playerid, 1, "/Dg aP [ID_Casa] [ID_Garage] - /Dg cP [ID_Casa] [ID_Garage] - /Server Stats - /Cerrar Servidor",		 				"Owned Level 8: ");
-									      				SendInfoMessage(playerid, 1, "/Cambiar Password [Nombre_Apellido] [Nueva Passowrd]", 																"Owned Level 8: ");
+									      				SendInfoMessage(playerid, 1, "/Cambiar Logo [Nuevo_Logo] - /Ayuda Mapper",                       "Owned Level 8: ");
+									      				SendInfoMessage(playerid, 1, "/CCambiar [ID_COCHE] - /SpawnDM [Equipo] - /Traerc Bug - /VCoche", "Owned Level 8: ");
+									      				SendInfoMessage(playerid, 1, "/Server Stats - /Reiniciar - /Cerrar Servidor", 					 "Owned Level 8: ");
+									      				SendInfoMessage(playerid, 1, "/Cambiar Password [Nombre_Apellido] [Nueva Passowrd]", 			 "Owned Level 8: ");
 											   	   		if (PlayersData[playerid][Admin] >= 9)
 														{
-										      				SendInfoMessage(playerid, 1, "/Staff [ID] [Nivel] - /Estado Commands - /MsgEX [Estilo] [Texto] - /Bonus [Monto] - /Runpaga",  					"Owed Level Líder: ");
-										      				SendInfoMessage(playerid, 1, "/Dinero [Usuario] [Monto] - /Ayudante [Usuario] - /Materiales [Usuario] [Cantidad]", 								"Owed Level Líder: ");
-										      				SendInfoMessage(playerid, 1, "/Ganzuas [Usuario] [Cantidad]", 																					"Owed Level Líder: ");
+										      				SendInfoMessage(playerid, 1, "/Staff [ID] [Nivel] - /Ayudante [ID] - /Mapper [ID] [Nivel] - /Bonus [Monto] - /Runpaga", "Owed Level Líder: ");
+										      				SendInfoMessage(playerid, 1, "/Ganzuas [ID] [Monto] - /Dinero [ID] [Monto] - /Materiales [ID] [Monto]", 	            "Owed Level Líder: ");
+										      				SendInfoMessage(playerid, 1, "/Estado Commands - /MsgEX [Estilo] [Texto]",                                              "Owed Level Líder: ");
 														}
 								      				}
 							      				}
@@ -6845,72 +6904,84 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}
 						return 1;
 					}
-					//      /Ayudante
-		            else if (strfind(cmdtext, "/Ayudante", true) == 0)
-		            {
-		                //      /Ayudante [ID]
-		                if (strfind(cmdtext, "/Ayudante ", true) == 0)
-		                {
-		                    if (PlayersData[playerid][Admin] < 9)
-		                    {
-		                        SendInfoMessage(playerid, 0, "1611", "Tú no tienes acceso a el comando /Ayudante.");
-		                        return 1;
-		                    }
-		                    new getid;
-		                    new string[150], stringA[150], stringB[150];
-		                    if (!sscanf(cmdtext[10], "u", getid))
-		                    {
-		                        if (IsPlayerConnected(getid) && PlayersDataOnline[getid][State] == 3)
-			                    {
-			                    	if (!PlayersData[getid][Ayudante])
-				                    {
-							            format(stringA, sizeof(stringA), "Le diste ayudante a %s[%i].", PlayersDataOnline[getid][NameOnline], getid);
-							            format(string, sizeof(string), "%s[%i] te metio a formar parte de ayudantes. Usa /Ayudante.", PlayersDataOnline[playerid][NameOnline], playerid);
-							            format(stringB, sizeof(stringB), "%s %s[%i] metió a %s[%i] como ayudante.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
-				                        SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
-                        				SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
-							            MsgCheatsReportsToAdminsEx(string, 9);
+	                //      /Ayudante [ID]
+	                else if (strfind(cmdtext, "/Ayudante ", true) == 0)
+	                {
+	                    if (PlayersData[playerid][Admin] < 9) return SendAccessError(playerid, "Ayudante");
+	                    
+	                    new getid;
+	                    if (!sscanf(cmdtext[10], "u", getid))
+	                    {
+	                        if(!IsPlayerLoguedEx(playerid, getid)) return 1;
 
-							            PlayersData[getid][Ayudante] = true;
-							            return 1;
-				                    }
-				                    else
-				                    {
-				                        format(stringA, sizeof(stringA), "Expulsaste a %s[%i] de ayudante.", PlayersDataOnline[getid][NameOnline], getid);
-										format(string, sizeof(string), "%s[%i] te ha expulsado de ayudantes.", PlayersDataOnline[playerid][NameOnline], playerid);
-										format(stringB, sizeof(stringB), "%s %s[%i] expulso a %s[%i] de ayudantes.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
-										SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
-                        				SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
-							            MsgCheatsReportsToAdminsEx(string, 9);
+	                    	new string[150], stringA[150], stringB[150];
+	                    	
+	                    	if (!PlayersData[getid][Ayudante])
+		                    {
+					            format(stringA, sizeof(stringA), "Le diste ayudante a %s[%i].", PlayersDataOnline[getid][NameOnline], getid);
+					            format(string, sizeof(string), "%s[%i] te metio a formar del equipo de ayudantes. Usa /Ayuda Ayudante.", PlayersDataOnline[playerid][NameOnline], playerid);
+					            format(stringB, sizeof(stringB), "%s %s[%i] metió a %s[%i] a ayudantes.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
+		                        SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
+                				SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
+					            MsgCheatsReportsToAdminsEx(stringB, 9);
 
-				                        PlayersData[getid][Ayudante] = false;
-							            return 1;
-				                    }
-			                    }
-			                    else
-			                    {
-			                        SendInfoMessage(playerid, 0, "1612", "El jugador no se encuentra logueado.");
-			                    	return 1;
-			                    }
+					            PlayersData[getid][Ayudante] = true;
+					            return 1;
 		                    }
 		                    else
 		                    {
-		                        SendInfoMessage(playerid, 0, "1615", "Ha introducído mal el sintaxis del comando /Ayudante. Ejemplo correcto: /Ayudante 22");
-		                        return 1;
+		                        format(stringA, sizeof(stringA), "Expulsaste a %s[%i] del equipo de ayudantes.", PlayersDataOnline[getid][NameOnline], getid);
+								format(string, sizeof(string), "%s[%i] te ha expulsado del equipo de ayudantes.", PlayersDataOnline[playerid][NameOnline], playerid);
+								format(stringB, sizeof(stringB), "%s %s[%i] expulso a %s[%i] de ayudantes.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid);
+								SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, stringA);
+                				SendClientMessage(getid, COLOR_MENSAJES_DE_AVISOS, string);
+					            MsgCheatsReportsToAdminsEx(stringB, 9);
+
+		                        PlayersData[getid][Ayudante] = false;
+					            return 1;
 		                    }
-		                }
-		                else if (PlayersData[playerid][Ayudante])
-		                {
-		                    SendInfoMessage(playerid, 1, "/J [Texto] - /Res [ID] [DUDA].", "Ayudante:");
-		                    return 1;
-		                }
-		                else
-		                {
-		                    SendInfoMessage(playerid, 0, "1613", "Quizás quiso decir: /Ayudantes.");
-		                    return 1;
-		                }
-		            }
-			    	else
+	                    }
+	                    else
+	                    {
+	                        SendInfoMessage(playerid, 0, "1615", "Ha introducído mal el sintaxis del comando /Ayudante. Ejemplo correcto: /Ayudante 22");
+	                        return 1;
+	                    }
+	                }
+		            // COMANDO: /Ayuda ayudante
+      				else if (strcmp("/Ayuda Ayudante", cmdtext, true, 15) == 0 && strlen(cmdtext) == 15)
+				    {
+						if (PlayersData[playerid][Ayudante])
+						{
+							SendInfoMessage(playerid, 1, "/J [Texto] - /Res [ID] [DUDA].", "Ayudante:");
+						}
+						else SendAccessError(playerid, "Ayuda ayudante");
+					}
+		            // COMANDO: /Ayuda Mapper
+      				else if (strcmp("/Ayuda Mapper", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
+				    {
+						if (PlayersData[playerid][Mapper] || PlayersData[playerid][Admin] >= 8)
+						{
+						    if (PlayersData[playerid][Mapper] >= 2 || PlayersData[playerid][Admin] >= 8)
+						    {
+						        SendInfoMessage(playerid, 1, "/CPrecio [Precio] - /VCasa", "Mapper Lider:");
+						        SendInfoMessage(playerid, 1, "/NPrecio [Precio] - /Vnegocio", "Mapper Lider:");
+						        SendInfoMessage(playerid, 1, "/LPrecio [Precio] - /VLocal - /Borrar Local [ID]", "Mapper Lider:");
+						    }
+						    SendInfoMessage(playerid, 1, "/Cambiar Nombre - /Editar Pistas", 																				       "Mapper Ayudante:");
+							SendInfoMessage(playerid, 1, "/Crear Casa [Tipo][Precio][Nivel] - /IrCa [ID_Casa] - /CPos [ID_Casa] - /CTipo [ID] - /CNivel [Nivel] - /Incendios",     "Mapper Ayudante:");
+						    SendInfoMessage(playerid, 1, "/Crear Garage [ID_Casa][Tipo_Garage] - /Gtipo [ID] - /Info Garage - /Garages [ID_Casa]",                                 "Mapper Ayudante:");
+						    SendInfoMessage(playerid, 1, "/Design Garage [ID_Design] - /Dg C (Coche) - /Dg D (Dentro) - /Dg A (Afuera)", 										   "Mapper Ayudante:");
+						    SendInfoMessage(playerid, 1, "/Dg cP[ID_Casa][ID_Garage] - /Dg dP [ID_Casa][ID_Garage] - /Dg aP [ID_Casa][ID_Garage] - /Dg Rand [ID_Casa][ID_Garage]", "Mapper Ayudante:");
+						    SendInfoMessage(playerid, 1, "/Crear Negocio [Tipo][Precio][Nivel] - /IrN [ID_Negocio] - /NPos [ID_Negocio] - /Nnivel [Nivel] - /NTipo [ID]", 		    "Mapper Ayudante:");
+						    SendInfoMessage(playerid, 1, "/Crear Local [Tipo][Precio][Nivel] - /Irl [ID_Local] - /Lpos [ID_Local] - /LNivel [ID]", 								   "Mapper Ayudante:");
+							SendInfoMessage(playerid, 1, "/Map - /Map Point [Point]", "Mapper Ayudante:");
+						}
+						else
+						{
+							SendAccessError(playerid, "Ayuda mapper");
+						}
+					}
+					else
 					{
 						SendInfoMessage(playerid, 0, "102", "Quizás quiso decir: /Ayuda");
 					}
@@ -7206,7 +7277,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							{
 							    new MsgFrecuencia[MAX_TEXT_CHAT];
 								Acciones(playerid, 8, "mira en que frecuencia está su radio");
-								format(MsgFrecuencia, sizeof(MsgFrecuencia), "Se ecuentra en la frecuencia [%i]", PlayersDataOnline[playerid][Frecuencia] );
+								format(MsgFrecuencia, sizeof(MsgFrecuencia), "Se encuentra en la frecuencia [%i]", PlayersDataOnline[playerid][Frecuencia] );
 								SendInfoMessage(playerid, 2, "0", MsgFrecuencia);
 					        }
 					        else
@@ -7230,8 +7301,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Ver Desposito
 				  	else if (strcmp("/Ver Deposito", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
 				  	{
-				  	    if ( PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] == 0 ||
-   							 PlayersData[playerid][Faccion] == CAMIONEROS && PlayersData[playerid][Rango] <= 3)
+				  	    if ( PlayersData[playerid][Faccion] == CAMIONEROS && PlayersData[playerid][Rango] <= 3 || PlayersData[playerid][Admin] >= 6 )
 				  	    {
 					  	    new MyNearGas = GetMyNearGas(playerid);
 					  	    if ( MyNearGas != -1 )
@@ -7243,7 +7313,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				  	    }
 				  	    else
 				  	    {
-							SendInfoMessage(playerid, 0, "523", "Usted no es el presidente");
+							SendAccessError(playerid, "Ver Deposito.");
 						}
 					}
 					// COMANDO: /Ver Bomba
@@ -8654,19 +8724,14 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						                    GetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
 						                    GetPlayerFacingAngle(playerid, Pos[3]);
 
+											ClearLocalData(localID);
 						                    LocalData[localID][PosX] = Pos[0];
 				                            LocalData[localID][PosY] = Pos[1];
 				                            LocalData[localID][PosZ] = Pos[2];
 				                            LocalData[localID][PosZZ] = Pos[3]-180.0;
-				                            format(LocalData[localID][Owner], MAX_PLAYER_NAME,"No");
 				                            LocalData[localID][Nivel] = level;
-				                            LocalData[localID][Precio] = price;
-				                            LocalData[localID][Tipo] = type;
-				                            LocalData[localID][Seguro] = true;
-				                            LocalData[localID][PrecioEntrada] = 0;
-				                            LocalData[localID][Pickup] = -1;
-				                            LocalData[localID][TextLabel] = Text3D:INVALID_3DTEXT_ID;
-											LocalData[localID][TextLabelIn] = Text3D:INVALID_3DTEXT_ID;
+										    LocalData[localID][Precio] = price;
+										    LocalData[localID][Tipo] = type;
 				                            MAX_LOCAL++;
 				                            if (localID > MAX_LOCAL_ID)
 				                            MAX_LOCAL_ID = localID;
@@ -9734,7 +9799,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						if ( PlayersData[playerid][Faccion] == SFPD && PlayersData[playerid][Rango] <= 6 ||
 							 PlayersData[playerid][Faccion] == LSPD && PlayersData[playerid][Rango] <= 6)
 					    {
+					        if ( GetPlayerInterior(playerid) == 0 && GetPlayerVirtualWorld(playerid) == WORLD_NORMAL)
 					        AddVCP(playerid, PINCHO, 0.0,0.0,0.0,0.0);
+					        else SendInfoMessage(playerid, 0, "838", "Solo puedes poner pinchos en el exterior.");
 					    }
 					    else
 					    {
@@ -9763,134 +9830,112 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					else if (strfind(cmdtext, "/Poner Equipo ", true) == 0)
 					{
 						if ( PlayersData[playerid][Faccion] == SFPD ||
-							 PlayersData[playerid][Faccion] == LSPD && PlayersData[playerid][Rango] != 7 )
+							 PlayersData[playerid][Faccion] == LSPD ||
+							 PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] == 4)
 					    {
-							if ( PlayersData[playerid][TimeEquipo] <= gettime() )
-						    {
 								if ( CheckWeapondCheat(playerid) && (
 									 PlayersData[playerid][Faccion] == SFPD && IsPlayerInRangeOfPoint(playerid, 10.0, 225.2609,121.4485,999.0762) ||
-									 PlayersData[playerid][Faccion] == LSPD && IsPlayerInRangeOfPoint(playerid, 10.0, 256.1825,77.9571,1003.6406) ) )
+									 PlayersData[playerid][Faccion] == LSPD && IsPlayerInRangeOfPoint(playerid, 10.0, 256.1825,77.9571,1003.6406) ||
+									 PlayersData[playerid][Faccion] == GOBIERNO && IsPlayerInRangeOfPoint(playerid, 3.0, 366.5851, 158.6437, 1008.3828) ) )
 							    {
-							        if ( strval(cmdtext[14]) >= 1 && strval(cmdtext[14]) <= 5 )
+							        new equipoid = strval(cmdtext[14]);
+							        if ( equipoid >= 0 && equipoid <= 5 )
 							        {
-										new equipoid = strval(cmdtext[14]);
-										new NoAutirizado;
-										PlayersData[playerid][TimeEquipo] = gettime() + 900;
+										if (PlayersData[playerid][Faccion] == GOBIERNO && equipoid > 2) return SendInfoMessage(playerid, 0, "1033", "Usted no está autizado a coger ese equipo");
+										
+										if ( PlayersData[playerid][TimeEquipo] > gettime() && equipoid != 0)
+										{
+										    new MsgPersonalizado[MAX_TEXT_CHAT];
+											format(MsgPersonalizado, sizeof(MsgPersonalizado), "Debe esperar %i minutos con %i segundos para volver a usar otro equipo", (PlayersData[playerid][TimeEquipo] - gettime()) / 60, ((PlayersData[playerid][TimeEquipo] - gettime()) % 60));
+											SendInfoMessage(playerid, 0, "843", MsgPersonalizado);
+										}		
+										new Autorizado = false;		
 	        							switch (equipoid)
 								        {
-								            case 1:
+								            case 0:
 								            {
-												GivePlayerWeaponEx(playerid, 3, 1);
-												GivePlayerWeaponEx(playerid, 41, 200);
-											}
+								                ResetPlayerWeaponsEx(playerid);
+	          									PlayersDataOnline[playerid][ChalecoOn] = 0;
+	          									
+									          	new HaveTaser = GetObjectByType(playerid, TYPE_TASER);
+												if ( HaveTaser != -1 )
+												{
+													RemoveObjectHoldToPlayer(playerid, -1, HaveTaser);
+												}
+												Acciones(playerid, 8, "dejo las armas en el armario");
+												return 1;
+								            }
+								            case 1: Autorizado++;
 								            case 2:
 								            {
-												if ( PlayersData[playerid][Rango] <= 6  || PlayersDataOnline[playerid][IsAutorizado])
+												if ( PlayersData[playerid][Rango] <= 6 || PlayersDataOnline[playerid][IsAutorizado])//Oficiales
 												{
-													GivePlayerWeaponEx(playerid, 3, 1);
-													GivePlayerWeaponEx(playerid, 41, 200);
-													GivePlayerWeaponEx(playerid, 23, 60);
-												}
-												else
-												{
-	  												NoAutirizado = true;
+													GivePlayerWeaponEx(playerid, 23, 60);//Silenciada
+													Autorizado++;
 												}
 											}
 								            case 3:
 								            {
-												if ( PlayersData[playerid][Rango] <= 5 || PlayersDataOnline[playerid][IsAutorizado])
+												if ( PlayersData[playerid][Rango] <= 5 || PlayersDataOnline[playerid][IsAutorizado])//Cabo
 												{
-													GivePlayerWeaponEx(playerid, 43, 200);
-													GivePlayerWeaponEx(playerid, 3, 1);
-													GivePlayerWeaponEx(playerid, 41, 200);
-													GivePlayerWeaponEx(playerid, 24, 60);
-												}
-												else
-												{
-	  												NoAutirizado = true;
+													GivePlayerWeaponEx(playerid, 43, 200);//Camara
+													GivePlayerWeaponEx(playerid, 24, 60);//Desert
+													Autorizado++;
 												}
 											}
 								            case 4:
 								            {
 												if ( PlayersData[playerid][Rango] <= 4 || PlayersDataOnline[playerid][IsAutorizado] )
 												{
-													GivePlayerWeaponEx(playerid, 3, 1);
-													GivePlayerWeaponEx(playerid, 41, 200);
-													GivePlayerWeaponEx(playerid, 24, 60);
-													GivePlayerWeaponEx(playerid, 29, 250);
-													GivePlayerWeaponEx(playerid, 17, 5);
-													
-												}
-												else
-												{
-	  												NoAutirizado = true;
+													GivePlayerWeaponEx(playerid, 24, 60);//Desert
+													GivePlayerWeaponEx(playerid, 29, 250);//MP5
+													GivePlayerWeaponEx(playerid, 17, 5);//Granada Gas
+													Autorizado++;
 												}
 											}
 								            case 5:
 								            {
-												if ( PlayersData[playerid][Rango] <= 3 || PlayersDataOnline[playerid][IsAutorizado])
+												if ( PlayersData[playerid][Rango] <= 3 || PlayersDataOnline[playerid][IsAutorizado])//Teniente
 												{
-													GivePlayerWeaponEx(playerid, 3, 1);
-													GivePlayerWeaponEx(playerid, 41, 200);
-													GivePlayerWeaponEx(playerid, 24, 60);
-													GivePlayerWeaponEx(playerid, 29, 250);
-													GivePlayerWeaponEx(playerid, 31, 250);
-													GivePlayerWeaponEx(playerid, 27, 250);
-													GivePlayerWeaponEx(playerid, 34, 100);
-													GivePlayerWeaponEx(playerid, 17, 5);
-												}
-												else
-												{
-	  												NoAutirizado = true;
+													GivePlayerWeaponEx(playerid, 24, 60);//Desert
+													GivePlayerWeaponEx(playerid, 29, 250);//MP5
+													GivePlayerWeaponEx(playerid, 31, 250);//M4
+													GivePlayerWeaponEx(playerid, 34, 100);//Sniper
+													GivePlayerWeaponEx(playerid, 17, 5);//Granada Gas
+													Autorizado++;
 												}
 											}
 	          							}
-	          							if ( !NoAutirizado )
+	          							if ( Autorizado )
 	          							{
-											SetPlayerArmourEx(playerid, 85);
-											new MsgEquipoMe[MAX_TEXT_CHAT];
+	          							    new MsgEquipoMe[MAX_TEXT_CHAT];
+
 											format(MsgEquipoMe, sizeof(MsgEquipoMe), "coge un equipo número %i del armario", strval(cmdtext[14]));
 											Acciones(playerid, 8, MsgEquipoMe);
+											SetPlayerArmourEx(playerid, 85);//Chaleco
+											GivePlayerWeaponEx(playerid, 3, 1);//Baston
+											GivePlayerWeaponEx(playerid, 41, 200);//Spray
 											PlayersDataOnline[playerid][IsAutorizado] = false;
-											
+											PlayersData[playerid][TimeEquipo] = gettime() + 900;
+
 											if ( GetObjectByType(playerid, TYPE_TASER) == -1 )
 											{
 												AddObjectHoldToPlayer(playerid, 18642);
 											}
-										}
-										else
-										{
-											SendInfoMessage(playerid, 0, "1033", "Usted no está autizado a coger ese equipo");
-										}
+	          							}
+	          							else return SendInfoMessage(playerid, 0, "1033", "Usted no está autizado a coger ese equipo");
 								    }
 								    else
 								    {
-										SendInfoMessage(playerid, 0, "841", "El ID del equipo tiene que estar entre 1 y 5");
+										SendInfoMessage(playerid, 0, "841", "El ID del equipo tiene que estar entre 1 y 5. Use 0 para quitarse el equipo.");
 									}
 							    }
 							    else
 							    {
 									SendInfoMessage(playerid, 0, "842", "Aquí no esta el armario de equipos");
 								}
-						    }
-						    else
-						    {
-								new MsgPersonalizado[MAX_TEXT_CHAT];
-								format(MsgPersonalizado, sizeof(MsgPersonalizado), "Debe esperar %i minutos con %i segundos para volver a usar otro equipo", (PlayersData[playerid][TimeEquipo] - gettime()) / 60, ((PlayersData[playerid][TimeEquipo] - gettime()) % 60));
-								SendInfoMessage(playerid, 0, "843", MsgPersonalizado);
-							}
 					    }
-					    else
-					    {
-							if ( PlayersData[playerid][Faccion] == LSPD && PlayersData[playerid][Rango] == 7 )
-							{
-								SendInfoMessage(playerid, 0, "1555", "Usted no puede ponerse equipos todavía!");
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "844", "Usted no es LSPD ni SFPD");
-							}
-						}
+					    else SendAccessError(playerid, "Poner Equipo");
 				  	}
 					else
 					{
@@ -10608,22 +10653,22 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					}
 					else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 					{
-						if ( gettime() - LocalData[PlayersDataOnline[playerid][InLocalPickup]][TimbreTime] >= 20 )
+						if ( gettime() - LocalData[PlayersDataOnline[playerid][InPickupLocal]][TimbreTime] >= 20 )
 	                    {
 							for (new i = 0; i < MAX_PLAYERS; i++)
 							{
-							    if (i != playerid && IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && PlayersData[i][InLocal] == PlayersDataOnline[playerid][InLocalPickup])
+							    if (i != playerid && IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && PlayersData[i][InLocal] == PlayersDataOnline[playerid][InPickupLocal])
 							    {
 							        SendClientMessage(i, COLOR_DE_WISPEO, "** TIMBRE: RING RING!!!");
 							    }
 						    }
 					        Acciones(playerid, 8, "tocó el timbre del local");
-					        LocalData[PlayersDataOnline[playerid][InLocalPickup]][TimbreTime] = gettime();
+					        LocalData[PlayersDataOnline[playerid][InPickupLocal]][TimbreTime] = gettime();
 						}
 						else
 						{
 						    new MsgRingHouse[MAX_TEXT_CHAT];
-						    format(MsgRingHouse, sizeof(MsgRingHouse), "El timbre de este local ha sido tocado recientemente, tiene que esperar %i segundos para volver a usarlo", 20 - (gettime() - LocalData[PlayersDataOnline[playerid][InLocalPickup]][TimbreTime]));
+						    format(MsgRingHouse, sizeof(MsgRingHouse), "El timbre de este local ha sido tocado recientemente, tiene que esperar %i segundos para volver a usarlo", 20 - (gettime() - LocalData[PlayersDataOnline[playerid][InPickupLocal]][TimbreTime]));
 						    SendInfoMessage(playerid, 0, "886", MsgRingHouse);
 						}
 					}
@@ -10856,15 +10901,16 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /Copyright
 			  	else if (strcmp("/Copyright", cmdtext, true, 10) == 0 && strlen(cmdtext) == 10)
 		    	{
-		    	    //
 		    	    new MsgDialogCopyright[500];
 		    	    format(MsgDialogCopyright, sizeof(MsgDialogCopyright),
 					"{00F50A}Específicaciones:\n\n{00A5FF}Versión: {F0F0F0}%s\n",
 					GAMEMODE_VERSION);
 		    	    strcat(MsgDialogCopyright, "{00A5FF}Creadores: {F0F0F0}Equipo de Un Player.\n\n");
-		    	    strcat(MsgDialogCopyright, "{F5FF00}Agradecimientos: \n{F0F0F0}San Andrea Multiplayer (SA-MP)\n{F0F0F0}Rockstar Games\n{F0F0F0}Incognito");
-		    	    strcat(MsgDialogCopyright, "\n\n\n\n{F5FF00}Copyright © 2015-2016 Un Player. Todos los derechos reservados.");
-					ShowPlayerDialogEx(playerid, 999, DIALOG_STYLE_MSGBOX, "{00A5FF}Copyright © Un Player.", MsgDialogCopyright, "Aceptar", "");
+		    	    strcat(MsgDialogCopyright, "{F5FF00}Agradecimientos: \n{F0F0F0}San Andrea Multiplayer (SA-MP)\n{F0F0F0}Rockstar Games\n{F0F0F0}Incognito\n");
+		    	    strcat(MsgDialogCopyright, "{F0F0F0}Equipo de Un Player\n\n\n");
+		    	    strcat(MsgDialogCopyright, "{F5FF00}Desarrolladores: \n{F0F0F0}Equipo de Old Players");
+		    	    strcat(MsgDialogCopyright, "\n\n\n\n{F5FF00}Copyright © 2015-2018 Un Player. Todos los derechos reservados.");
+					ShowPlayerDialogEx(playerid, 999, DIALOG_STYLE_MSGBOX, "{00A5FF}Copyright © Old Players.", MsgDialogCopyright, "Aceptar", "");
 				}
 				// COMANDO: /Sexo [ID]
 		  		else if (strfind(cmdtext, "/Sexo ", true) == 0) //20
@@ -10874,9 +10920,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						 "1422",
 						 "1423",
 						 "1424",
-						 "El jugador que le deseas tener sexo con el no se encuentra conectado",
-						 "El jugador que le deseas tener sexo con el no se ha logueado",
-						 "El jugador que le deseas tener sexo con el no se encuentra cerca de tí") )
+						 "El jugador con el que deseas tener sexo con el no se encuentra conectado",
+						 "El jugador con el que deseas tener sexo con el no se ha logueado",
+						 "El jugador con el que deseas tener sexo con el no se encuentra cerca de tí") )
 				    {
 						new MsgSexoMe[MAX_TEXT_CHAT];
 						new MsgSexoYou[MAX_TEXT_CHAT];
@@ -10943,7 +10989,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					}
 					else
 					{
-						SendInfoMessage(playerid, 0, "1535", "Suba al vehículo al asiento de conductor y luego use /Estéreo");
+						SendInfoMessage(playerid, 0, "1535", "Suba a un vehículo en el asiento de conductor y luego use /Estéreo");
 					}
 				}
 				// COMANDO: /Duda
@@ -10957,7 +11003,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}
 						else
 						{
-							SendInfoMessage(playerid, 0, "1483", "No hay ayudantes online para resolver dudas intentelo más tarde.");
+							SendInfoMessage(playerid, 0, "1483", "No hay ayudantes en este momento para resolver dudas, intentelo más tarde.");
 						}
 					}
 					else
@@ -12820,7 +12866,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        }
 				        else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 				        {
-				            new localid = PlayersDataOnline[playerid][InLocalPickup];
+				            new localid = PlayersDataOnline[playerid][InPickupLocal];
 				            if (PlayersData[playerid][Local] == localid || PlayersData[playerid][Admin] >= 8)
 				            {
 				            	ShowLocalKeys(playerid, localid);
@@ -13085,28 +13131,28 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	 				// COMANDO: /Llaves Garage
 				  	else if (strcmp("/Llaves Garage", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14)
 			    	{
-	       				new GarageID, HouseID, LockID; IsPlayerInGarageFun(playerid, HouseID, GarageID, LockID);
+	       				new GarageID, HouseID; IsPlayerInGarageFun(playerid, HouseID, GarageID);
 						if ( GarageID != -1 )
 						{
 							if ( PlayersData[playerid][House] == HouseID ||
 								 PlayersData[playerid][Alquiler] == HouseID ||
 								 IsPlayerInHouseFriend(playerid, HouseID) != -1)
 				            {
-								if ( LockID ||
-									 PlayersDataOnline[playerid][InPickup] == TypeGarage[Garages[HouseID][GarageID][TypeGarageE]][PickupId] ||
-									 PlayersDataOnline[playerid][InPickup] == Garages[HouseID][GarageID][PickupidOut] )
+								if ( PlayersDataOnline[playerid][InPickup] == TypeGarage[Garages[HouseID][GarageID][TypeGarageE]][PickupId] ||
+									 PlayersDataOnline[playerid][InPickup] == Garages[HouseID][GarageID][PickupidOut] || IsPlayerInAnyVehicle(playerid))
 								{
 						            if ( Garages[HouseID][GarageID][LockOut] )
 						            {
 						                Garages[HouseID][GarageID][LockOut] = false;
 		           						GameTextForPlayer(playerid, "~W~Garage ~G~Abierto!", 1000, 6);
+						                PlayersDataOnline[playerid][MyPickupLock] = false;
 					                }
 					                else
 					                {
 										Garages[HouseID][GarageID][LockOut] = true;
 		           						GameTextForPlayer(playerid, "~W~Garage ~R~Cerrado!", 1000, 6);
+										PlayersDataOnline[playerid][MyPickupLock] = true;
 					                }
-									UpdateLockDoorForPlayer(TypeGarage[Garages[HouseID][GarageID][TypeGarageE]][PickupId], Garages[HouseID][GarageID][LockOut], Garages[HouseID][GarageID][PickupidOut]);
 								}
 								else if ( PlayersDataOnline[playerid][InPickup] == TypeGarage[Garages[HouseID][GarageID][TypeGarageE]][PickupIdh] ||
 									 	  PlayersDataOnline[playerid][InPickup] == Garages[HouseID][GarageID][PickupidIn] )
@@ -13121,7 +13167,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 										Garages[HouseID][GarageID][LockIn] = true;
 		           						GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
 					                }
-									UpdateLockDoorForPlayer(TypeGarage[Garages[HouseID][GarageID][TypeGarageE]][PickupIdh], Garages[HouseID][GarageID][LockIn], Garages[HouseID][GarageID][PickupidIn]);
 								}
 								PlayPlayerStreamSound(playerid, 1027);
 							}
@@ -13221,14 +13266,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    	//      /Llaves Locl
 			    	else if (strcmp("/Llaves Local", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
 			    	{
-					        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup] ||
-								PlayersDataOnline[playerid][InPickup] >= LocalTipo[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalTipo[MAX_LOCAL_TYPE_COUNT-1][Pickup])
+					        if (PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_LOCAL_TYPE ||
+								PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_LOCAL)
 					        {
 					            new localID = -1;
-								if (PlayersDataOnline[playerid][InLocalPickup] != -1)
-								localID = PlayersDataOnline[playerid][InLocalPickup];
-								else if (PlayersData[playerid][InLocal] != -1)
-								localID = PlayersData[playerid][InLocal];
+					            
+								if (PlayersDataOnline[playerid][InPickupLocal] != -1) localID = PlayersDataOnline[playerid][InPickupLocal];
+								
+								else if (PlayersData[playerid][InLocal] != -1) localID = PlayersData[playerid][InLocal];
+								
 								if (localID != -1)
 								{
 						            if (!PlayerHaveLocalKeys(playerid, localID)) return SendInfoMessage(playerid, 0, "", "No tienes llaves de este local.");
@@ -13236,11 +13282,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								    {
 								        GameTextForPlayer(playerid, "~W~Local ~R~Cerrado!", 1000, 6);
 								        LocalData[localID][Seguro] = true;
+								        PlayersDataOnline[playerid][MyPickupLock] = true;
 								    }
 								    else
 								    {
 								        GameTextForPlayer(playerid, "~W~Local ~G~Abierto!", 1000, 6);
 								        LocalData[localID][Seguro] = false;
+								        PlayersDataOnline[playerid][MyPickupLock] = false;
 								    }
 								    PlayPlayerStreamSound(playerid, 1027);
 								}
@@ -13326,25 +13374,56 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				            {
 								if ( !IsBizzOnRobo(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
 								{
-						    	    if (strlen(cmdtext[16]) >= 2 && strlen(cmdtext[16]) <= 35 )
+						    	    if (strlen(cmdtext[16]) >= 2 && strlen(cmdtext[16]) <= 80 )
 						    	    {
 						    	        if ( IsValidStringServerOther(playerid, cmdtext) )
 						    	        {
-				                            format(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][NameBizz], 	MAX_BIIZ_NAME, "%s", cmdtext[16]);
-				                            ActTextDrawBizz(PlayersDataOnline[playerid][MyPickupWorld]);
+						    	        
+				                            format(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][NameBizz], 	MAX_BIIZ_NAME, "%s", ConvertToRGBColor(cmdtext));
+				                            UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
 				                            SendInfoMessage(playerid, 2, "0", "Has modificado el nombre de tu negocio");
 			                            }
 									}
 									else
 									{
-										SendInfoMessage(playerid, 0, "313", "El nombre de su negocio tiene que ser mayor de 2 y menos de 35 caracteres");
+										SendInfoMessage(playerid, 0, "313", "El nombre de su negocio tiene que ser mayor de 2 y menos de 80 caracteres");
 									}
 								}
 				            }
 				        }
+				        else if (PlayersDataOnline[playerid][InPickupLocal] != -1)
+			            {
+			                new localid = PlayersDataOnline[playerid][InPickupLocal];
+			                if (PlayersData[playerid][Local] == localid || PlayersData[playerid][Admin] >= 8)
+			                {
+			                    new string[150];
+
+			                    if (strlen(cmdtext[16]) < 2 || strlen(cmdtext[16]) > 80)
+								{
+								    SendInfoMessage(playerid, 0, "", "El nombre de su local tiene que tener minimo 2 y maximo 80 caracteres.");
+								    SendInfoMessage(playerid, 1, "Escriba \"NO\" para borrar el nombre del local.", "Cambiar Nombre: ");
+								    return 1;
+								}
+								if (strfind(cmdtext[16], "NO") == 0)
+								{
+								    SendInfoMessage(playerid, 2, "0", "Borraste el nombre de tu local.");
+								    format(string,sizeof(string), "Nombre anterior %s", LocalData[localid][NombreLocal]);
+								    SendInfoMessage(playerid, 2, "0", string);
+									format(LocalData[localid][NombreLocal], 128, "");
+							    }
+								else
+								{
+								    strdel(cmdtext, 0, 16);
+			                    	format(LocalData[localid][NombreLocal], 128, "%s", ConvertToRGBColor(cmdtext));
+			                    	SendInfoMessage(playerid, 2, "0", "Has modificado el nombre de tu local");
+			                    }
+			                    SaveLocal(localid, true);
+			                }
+			                else return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
+			            }
 				        else
 				        {
-							SendInfoMessage(playerid, 0, "314", "No te encuentras en ningún negocio");
+							SendInfoMessage(playerid, 0, "314", "No te encuentras en ningún negocio o local");
 						}
 			    	}
 					// COMANDO: /Cambiar Precio Alquiler [Nuevo_Precio]
@@ -13358,7 +13437,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				                if ( strval(cmdtext[25]) >= 0 &&  strval(cmdtext[25]) <= 20000)
 				                {
 		                            HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent] = strval(cmdtext[25]);
-		                            ActTextDrawHouse(PlayersDataOnline[playerid][MyPickupWorld]);
+		                            UpdateTextLabelCasa(PlayersDataOnline[playerid][MyPickupWorld]);
 		                            SendInfoMessage(playerid, 2, "0", "Has modificado el precio de alquiler de su casa");
 									if ( !strval(cmdtext[25]) )
 						            {
@@ -13401,7 +13480,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					                if ( strval(cmdtext[24]) >= 0 &&  strval(cmdtext[24]) <= 20000)
 					                {
 			                            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PriceJoin] = strval(cmdtext[24]);
-			                            ActTextDrawBizz(PlayersDataOnline[playerid][MyPickupWorld]);
+			                            UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
 			                            SendInfoMessage(playerid, 2, "0", "Has modificado el precio de entrada del negocio");
 		                            }
 		                            else
@@ -13413,7 +13492,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}
 						else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 						{
-						    new localid = PlayersDataOnline[playerid][InLocalPickup];
+						    new localid = PlayersDataOnline[playerid][InPickupLocal];
 						    if (PlayersData[playerid][Local] != localid) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
 						    if ( strval(cmdtext[24]) < 0 || strval(cmdtext[24]) > 20000) return SendInfoMessage(playerid, 0, "", "El precio de entrada mínimo es $0 y máximo $20000");
 						    LocalData[localid][PrecioEntrada] = strval(cmdtext[24]);
@@ -13435,7 +13514,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				                if ( strval(cmdtext[27]) >= 0 && strval(cmdtext[27]) <= 1000)
 				                {
 		                            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] = strval(cmdtext[27]);
-		                            ActTextDrawBizz(PlayersDataOnline[playerid][MyPickupWorld]);
+		                            UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
 		                            SendInfoMessage(playerid, 2, "0", "Has modificado el precio de los materiales");
 	                            }
 	                            else
@@ -13452,7 +13531,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Cambiar Precio Entrada [Nuevo_Precio]
 					else if (strfind(cmdtext, "/Cambiar Ciudad ", true) == 0)
 					{
-						if ( PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] <= 3 )
+						if ( PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] != 4 )
 					    {
 							new MsgCambioCiudad[MAX_TEXT_CHAT];
 					        if ( strval(cmdtext[16]) == playerid )
@@ -13575,7 +13654,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						MsgAdminUseCommands(9, playerid, cmdtext);
 						if ( PlayersData[playerid][Admin] >= 8 )
 						{
-       	       				new GarageID, HouseID, LockID; IsPlayerInGarageFun(playerid, HouseID, GarageID, LockID);
+       	       				new GarageID, HouseID; IsPlayerInGarageFun(playerid, HouseID, GarageID);
 			                if ( GarageID != -1 )
 			                {
 		                        new MsgChangeType[MAX_TEXT_CHAT];
@@ -13920,10 +13999,28 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "307", "No te encuentras en ningún negocio");
 						}
 					}
+					else if (strfind(cmdtext, "/Retirar Local ", true) == 0)
+				    {
+				        if (PlayersDataOnline[playerid][InPickupLocal] == -1) return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+				        if (PlayersDataOnline[playerid][InPickupLocal] != PlayersData[playerid][Local]) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
+
+				        new localid = PlayersDataOnline[playerid][InPickupLocal];
+				        new dineroRetirar = strval(cmdtext[15]);
+
+				        if (LocalData[localid][Deposito] < dineroRetirar ) return SendInfoMessage(playerid, 0, "", "No tienes esa cantidad de dinero para retirar del local.");
+						GivePlayerMoneyEx(playerid, dineroRetirar);
+						LocalData[localid][Deposito] = LocalData[localid][Deposito] - dineroRetirar;
+
+				        new string[150];
+				        SendInfoMessage(playerid, 1, " ", "|___________________  Local ___________________|");
+						format(string, sizeof(string), "Ha retirado $%i de su local, su nuevo fondo es: $%i", dineroRetirar, LocalData[localid][Deposito]); SendInfoMessage(playerid, 1, string, "Local: ");
+		    			SendInfoMessage(playerid, 1, " ", "|_____________________ Fin ____________________|");
+		    			SaveLocal(localid, false);
+				    }
 			    	else
 			    	{
 						SendInfoMessage(playerid, 0, "302", "Quizás quiso decir: /Retirar {Cajero [Cantidad], Negocio [Cantidad], Extorsión, Facción [Cantidad]}");
-						SendInfoMessage(playerid, 0, "302", "Quizás quiso decir: /Retirar {Almacén [Cantidad], Casa}");
+						SendInfoMessage(playerid, 0, "302", "Quizás quiso decir: /Retirar {Almacén [Cantidad], Casa, Local [Cantidad]}");
 					}
 				}
 				// COMANDO: /Depositar
@@ -14232,9 +14329,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "354", "No te encuentras en ningún negocio");
 						}
 					}
+					else if (strcmp("/Consultar Local", cmdtext, true, 16) == 0 && strlen(cmdtext) == 16)
+				    {
+				        if (PlayersDataOnline[playerid][InPickupLocal] == -1) return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+				        if (PlayersDataOnline[playerid][InPickupLocal] != PlayersData[playerid][Local]) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
+				        new string[150];
+
+				        SendInfoMessage(playerid, 1, " ", "|___________________  Local ___________________|");
+						format(string, sizeof(string), "Usted tiene $%i en el fondo de su local", LocalData[PlayersDataOnline[playerid][InPickupLocal]][Deposito]); SendInfoMessage(playerid, 1, string, "Local: ");
+		    			SendInfoMessage(playerid, 1, " ", "|_____________________ Fin ____________________|");
+				    }
 			    	else
 			    	{
-						SendInfoMessage(playerid, 0, "306", "Quizás quiso decir: /Consultar {Cajero, Negocio, Extorsión, Facción, Casa, Almacén}");
+						SendInfoMessage(playerid, 0, "306", "Quizás quiso decir: /Consultar {Cajero, Negocio, Extorsión, Facción, Casa, Almacén, Local}");
 					}
 				}
 				// COMANDO: /Aparcar
@@ -14789,7 +14896,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    {
 				        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 				        {
-				            new localID = PlayersDataOnline[playerid][InLocalPickup];
+				            new localID = PlayersDataOnline[playerid][InPickupLocal];
 				            if (!IsLocalForSale(localID)) return SendInfoMessage(playerid, 0, "", "Este local no esta a la venta.");
 				            if (PlayersData[playerid][Local] != -1) return SendInfoMessage(playerid, 0, "", "Tu no puedes tener mas locales.");
 				            if (GetPlayerScoreEx(playerid) < LocalData[localID][Nivel]) return SendInfoMessage(playerid, 0, "", "No tienes suficiente nivel para comprar este local.");
@@ -15182,7 +15289,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 										format(MsgToExtorsionista, sizeof(MsgToExtorsionista), "%s te ha dado el poder de extorsionarle este negocio", PlayersDataOnline[playerid][NameOnlineFix]);
 										SendInfoMessage(playerid, 3, "0", MsgToMe);
 										SendInfoMessage(strval(cmdtext[18]), 3, "0", MsgToExtorsionista);
-										ActTextDrawBizz(PlayersDataOnline[playerid][MyPickupWorld]);
+										UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
 									}
 									else
 									{
@@ -16498,7 +16605,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 										format(MsgToExtorsionista, sizeof(MsgToExtorsionista), "%s te ha dado el poder de extorsionarle este negocio", PlayersDataOnline[playerid][NameOnlineFix]);
 										SendInfoMessage(playerid, 3, "0", MsgToMe);
 										SendInfoMessage(strval(cmdtext[15]), 3, "0", MsgToExtorsionista);
-										ActTextDrawBizz(PlayersDataOnline[playerid][MyPickupWorld]);
+										UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
 								    }
 								}
 								else
@@ -16516,7 +16623,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			  		else if (strfind(cmdtext, "/Dar Llaves Amigo ", true) == 0)
 				    {
 				        new getid;
-				        if (sscanf(cmdtext[18], "u", getid)) return SendSyntaxError(playerid, "Dar Llaves Amigo", "Dar Llaves Amigo Pepito.");
+				        if (sscanf(cmdtext[18], "u", getid)) return SendSyntaxError(playerid, "Dar Llaves Amigo", "Dar Llaves Amigo Santiago.");
 				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] && PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId])
 				        {
 							new HouseId = PlayersDataOnline[playerid][MyPickupWorld];
@@ -16558,7 +16665,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        }
 				        else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 				        {
-							new localID = PlayersDataOnline[playerid][InLocalPickup];
+							new localID = PlayersDataOnline[playerid][InPickupLocal];
 							if (PlayersData[playerid][Local] != localID) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
 							if (!IsPlayerNear(playerid, getid)) return 1;
 							if (IsPlayerInLocalKeys(getid, localID)) return SendInfoMessage(playerid, 0, "", "Este jugador ya tiene las llaves de tu local");
@@ -17649,13 +17756,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    {
 		            	if ( PlayersData[playerid][Job] == PESCA )
 		            	{
-							if ( PlayersDataOnline[playerid][InPickup] == TextDrawInfo[JobsData[PESCA_PickupidVender]][PickupidTextInfo] )
+							if ( PlayersDataOnline[playerid][InPickup] == PickupInfo[JobsData[PESCA_PickupidVender]][PickupId] )
 							{
 						        if ( PlayersDataOnline[playerid][JobBonus] )
 						        {
-							        SendInfoMessage(playerid, 3, "0", "Haz vendido los peces por $200!");
+							        SendInfoMessage(playerid, 3, "0", "Haz vendido los peces por $800!");
 							        PlayersDataOnline[playerid][JobBonus] = false;
-									GivePlayerMoneyEx(playerid, 200);
+									GivePlayerMoneyEx(playerid, 800);
 								}
 								else
 								{
@@ -17916,10 +18023,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        if (PlayersData[playerid][Local] == -1) return SendInfoMessage(playerid, 0, "", "Tú no tienes local.");
 				        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 				        {
-							new localID = PlayersDataOnline[playerid][InLocalPickup];
+							new localID = PlayersDataOnline[playerid][InPickupLocal];
                             if (PlayersData[playerid][Local] != localID) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
 							
 							LocalData[localID][Seguro] = true;
+							PlayersDataOnline[playerid][MyPickupLock] = true;
                          	format(LocalData[localID][Owner], MAX_PLAYER_NAME, "No");
                          	for (new i=0; i != MAX_LOCAL_KEYS; i++){
                          	RemoveLocalKey(localID, i);}
@@ -19837,8 +19945,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /SuperMercado
 				else if (strcmp("/SuperMercado", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
 				{
-					if ( PlayersDataOnline[playerid][InPickup] == TextDrawInfo[SuperMercadosPickupid[0]][PickupidTextInfo] ||
-      					 PlayersDataOnline[playerid][InPickup] == TextDrawInfo[SuperMercadosPickupid[1]][PickupidTextInfo] )
+					if ( PlayersDataOnline[playerid][InPickup] == PickupInfo[SuperMercadosPickupid[0]][PickupId] ||
+      					 PlayersDataOnline[playerid][InPickup] == PickupInfo[SuperMercadosPickupid[1]][PickupId] )
 					{
 						ShowMenuForPlayer(SupermercadoArticulos, playerid);
 						TogglePlayerControllableEx(playerid, 0);
@@ -20183,7 +20291,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				{
 	            	if ( PlayersData[playerid][Job] == PESCA )
 	            	{
-						if ( PlayersDataOnline[playerid][InPickup] == TextDrawInfo[JobsData[PESCA_PickupidPescar]][PickupidTextInfo] )
+						if ( PlayersDataOnline[playerid][InPickup] == PickupInfo[JobsData[PESCA_PickupidPescar]][PickupId] )
 						{
 						    if ( !PlayersDataOnline[playerid][JobBonus] )
 						    {
@@ -20192,7 +20300,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				            		PlayersDataOnline[playerid][JobBonus] = true;
 				            		SendInfoMessage(playerid, 3, "0", "Haz capturado unos peces! Ahora puedes ir a venderlos!");
 
-									SetPlayerCheckpoint(playerid, TextDrawInfo[JobsData[PESCA_PickupidVender]][PosInfoX], TextDrawInfo[JobsData[PESCA_PickupidVender]][PosInfoY], TextDrawInfo[JobsData[PESCA_PickupidVender]][PosInfoZ], 1.0);
+									SetPlayerCheckpoint(playerid, PickupInfo[JobsData[PESCA_PickupidVender]][PosInfoX], PickupInfo[JobsData[PESCA_PickupidVender]][PosInfoY], PickupInfo[JobsData[PESCA_PickupidVender]][PosInfoZ], 1.0);
 								}
 							}
 							else
@@ -20315,10 +20423,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						{
 						    if ( MyNearCar <= MAX_CAR_FACCION )
 						    {
-								new MsgMatricula[20];
-								format(MsgMatricula, sizeof(MsgMatricula), "~B~%i", DataCars[MyNearCar][Matricula]);
+								new MsgMatricula[100];
+								format(MsgMatricula, sizeof(MsgMatricula), "~G~%i", DataCars[MyNearCar][Matricula]);
 								GameTextForPlayer(playerid, MsgMatricula, 1000, 5);
 								Acciones(playerid, 8, "mira la matrícula del vehículo");
+								format(MsgMatricula,sizeof(MsgMatricula), "Matricula %i", DataCars[MyNearCar][Matricula]);
+								SendInfoMessage(playerid, 2, "", MsgMatricula);
 							}
 							else
 							{
@@ -20328,7 +20438,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					}
 					else
 					{
-						SendInfoMessage(playerid, 0, "400", "Desde dentro del vehículo no puedes ver la matrícula del vehículo");
+						SendInfoMessage(playerid, 0, "400", "Desde el interior no puedes ver la matrícula del vehículo");
 					}
 				}
 				// COMANDO: /Localizar
@@ -21048,7 +21158,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /Casar [ID] [ID]
 				else if (strfind(cmdtext, "/Casar ", true) == 0 )
 				{
-					if ( PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] == 0 )
+					if ( PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] <= 3 )
 					{
 						new FistID = strval(cmdtext[GetPosSpace(cmdtext, 1)]);
 						new SecondID = strval(cmdtext[GetPosSpace(cmdtext, 2)]);
@@ -21135,7 +21245,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /Divorciar [ID] [ID]
 				else if (strfind(cmdtext, "/Divorciar ", true) == 0 )
 				{
-					if ( PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] == 0 )
+					if ( PlayersData[playerid][Faccion] == GOBIERNO && PlayersData[playerid][Rango] <= 3 )
 					{
 						new FistID = strval(cmdtext[GetPosSpace(cmdtext, 1)]);
 						new SecondID = strval(cmdtext[GetPosSpace(cmdtext, 2)]);
@@ -21615,10 +21725,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /Rango [ID] [ID_Rango]
 				else if (strfind(cmdtext, "/Rango ", true) == 0)
 				{
-				    if ( PlayersData[playerid][Faccion] != CIVIL && PlayersData[playerid][Rango] == 0 )
+				    if ( PlayersData[playerid][Faccion] != CIVIL && PlayersData[playerid][Rango] <= 1 )
 				    {
 						new idTochange = strval(cmdtext[GetPosSpace(cmdtext, 1)]);
-						new RangoID 	=  strval(cmdtext[GetPosSpace(cmdtext, 2)]);
+						new RangoID = strval(cmdtext[GetPosSpace(cmdtext,2)]) -1;
 						if ( strlen(cmdtext) > 3 )
 						{
 						    if ( IsPlayerNearEx(playerid, idTochange,
@@ -21633,10 +21743,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								{
 								    if ( RangoID >= 1 && RangoID <= GetMaxFaccionRango(PlayersData[playerid][Faccion]) )
 								    {
+								        if ( PlayersData[playerid][Rango] == 1 && PlayersData[idTochange][Rango] <= 1 ) return SendInfoMessage(playerid, 0, "", "No puedes cambiarle el rango a este usuario");
+								        if ( PlayersData[playerid][Rango] == 1 && RangoID == 1 ) return SendInfoMessage(playerid, 0, "", "Solo el lider puede asignar ese rango");
+								        
 								        if ( RangoID != PlayersData[idTochange][Rango] )
 								        {
-				                            PlayersData[idTochange][Rango]   = RangoID;
-											new MsgRangoUser[MAX_TEXT_CHAT]; format(MsgRangoUser, sizeof(MsgRangoUser), "Has asignado el rango \"%s\" ha %s", FaccionesRangos[PlayersData[playerid][Faccion]][RangoID],PlayersDataOnline[idTochange][NameOnlineFix]);
+				                            PlayersData[idTochange][Rango] = RangoID + 1;
+											new MsgRangoUser[MAX_TEXT_CHAT]; format(MsgRangoUser, sizeof(MsgRangoUser), "Has asignado el rango \"%s\" ha %s", FaccionesRangos[PlayersData[playerid][Faccion]][RangoID], PlayersDataOnline[idTochange][NameOnlineFix]);
 											new MsgRangoMe[MAX_TEXT_CHAT]; format(MsgRangoMe, sizeof(MsgRangoMe), "%s te ha asignado el rango \"%s\"", PlayersDataOnline[playerid][NameOnlineFix], FaccionesRangos[PlayersData[playerid][Faccion]][RangoID]);
 				                            SendInfoMessage(idTochange, 3, "0", MsgRangoMe);
 				                            SendInfoMessage(playerid, 3, "0", MsgRangoUser);
@@ -21663,15 +21776,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "116", "Ha introducído mal el sintaxis del comando /Rango. Ejemplo correcto: /Rango 2 7");
 						}
 					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "117", "Tú no eres líder.");
-					}
+					else SendAccessError(playerid, "Rango");
 				}
 				// COMANDO: /Expulsar [ID]
 				else if (strfind(cmdtext, "/Expulsar ", true) == 0)
 				{
-				    if ( PlayersData[playerid][Faccion] != CIVIL && PlayersData[playerid][Rango] == 0 )
+				    if ( PlayersData[playerid][Faccion] != CIVIL && PlayersData[playerid][Rango] <= 1 )
 				    {
 					    new IdSend[4]; strmid(IdSend, cmdtext, 10, strlen(cmdtext), sizeof(IdSend));
 					    if ( IsPlayerNearEx(playerid, strval(IdSend),
@@ -21684,6 +21794,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					    {
 							if ( PlayersData[strval(IdSend)][Faccion] == PlayersData[playerid][Faccion] )
 							{
+							    if ( PlayersData[playerid][Rango] == 1 && PlayersData[strval(IdSend)][Rango] <= 1 ) return SendInfoMessage(playerid, 0, "", "No puedes cambiarle el rango a este usuario");
+							
 	                            PlayersData[strval(IdSend)][Faccion] = 0;
 	                            PlayersData[strval(IdSend)][Rango]   = 7;
 								PlayersData[strval(IdSend)][HorasWork] = 0;
@@ -21713,10 +21825,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							}
 						}
 					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "119", "Tú no eres líder.");
-					}
+					else SendAccessError(playerid, "Expulsar");
 				}
 				// COMANDO: /Invitar [ID]
 				else if (strfind(cmdtext, "/Invitar ", true) == 0)
@@ -23091,13 +23200,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								new MsgEnfermedad[MAX_TEXT_CHAT];
 								if ( PlayerIDEnfermar != playerid)
 								{
-									format(MsgEnfermedad, sizeof(MsgEnfermedad), "%s has puesto a %s [%i] la enfermedad \"%s\".",LOGO_STAFF, PlayersDataOnline[PlayerIDEnfermar][NameOnline], PlayerIDEnfermar, EnfermedadName[EnfermedadID]);
+									format(MsgEnfermedad, sizeof(MsgEnfermedad), "has puesto a %s [%i] la enfermedad \"%s\".", PlayersDataOnline[PlayerIDEnfermar][NameOnline], PlayerIDEnfermar, EnfermedadName[EnfermedadID]);
 								}
 								else
 								{
-									format(MsgEnfermedad, sizeof(MsgEnfermedad), "%s Te has enfermado con \"%s\" tú mismo.",LOGO_STAFF, EnfermedadName[EnfermedadID]);
+									format(MsgEnfermedad, sizeof(MsgEnfermedad), "Te has enfermado con \"%s\" tú mismo.", EnfermedadName[EnfermedadID]);
 								}
-					            SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, MsgEnfermedad);
+					            SendAdviseMessage(playerid, MsgEnfermedad);
 								ChangeEnfermedad(PlayerIDEnfermar, EnfermedadID);
 					        }
 					        else
@@ -23419,7 +23528,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					{
 			            if ( strval(cmdtext[7]) >= 0 && strval(cmdtext[7]) <= MAX_GARAGE_TYPE )
 			            {
-       	       				new GarageID, HouseID, LockID; IsPlayerInGarageFun(playerid, HouseID, GarageID, LockID);
+       	       				new GarageID, HouseID; IsPlayerInGarageFun(playerid, HouseID, GarageID);
 			                if ( GarageID != -1 )
 			                {
 		                        Garages[HouseID][GarageID][TypeGarageE] = strval(cmdtext[7]);
@@ -24255,42 +24364,23 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				else if (strfind(cmdtext, "/Kick ", true) == 0)
 				{
 					MsgAdminUseCommands(9, playerid, cmdtext);
-					if (PlayersData[playerid][Admin] >= 1)
-					{
-						new PlayerKickID = strvalEx(cmdtext[GetPosSpace(cmdtext, 1)]);
-						if (strlen(cmdtext) >= 8 )
-						{
-							if (PlayerKickID != playerid)
-							{
-								if (IsPlayerConnected(PlayerKickID))
-								{
-								    Comandos_Admin(7, playerid, PlayerKickID, PlayersData[playerid][Admin], 0, cmdtext[GetPosSpace(cmdtext, 2)]);
-									return 1;
-								}
-								else
-								{
-									SendInfoMessage(playerid, 0, "162", "El jugador que desea kikear no se encuentra conectado.");
-									return 1;
-								}
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "163", "La ID que has introducído es la suya.");
-			                    return 1;
-							}
+					if (!PlayersData[playerid][Admin]) return SendAccessError(playerid, "Kick");
+					new PlayerKickID = -1;
+					new kickreason[80];
+					if (sscanf(cmdtext[6], "us[80]", PlayerKickID, kickreason)) return SendSyntaxError(playerid, "Kick", "Kick 12 No respetar las normas el servidor");
+					if (PlayerKickID == playerid) return SendInfoMessage(playerid, 0, "", "La ID que has introducído es la suya.");
+					if (!IsPlayerConnected(PlayerKickID)) return SendInfoMessage(playerid, 0, "", "El jugador que desea kikear no se encuentra conectado.");
+					if (strlen(kickreason) > 80 ) return SendInfoMessage(playerid, 0, "", "La razon no debe ecceder los 80 caracteres.");
+					
+					new StringFormat[250];
+					new StringFormatEX[100];
+					format(StringFormat, sizeof(StringFormat), "%s Han kickeado a %s[%i] por %s. Razón: %s", LOGO_STAFF, PlayersDataOnline[PlayerKickID][NameOnline], PlayerKickID, PlayersDataOnline[playerid][NameOnline], kickreason);
+					format(StringFormatEX, sizeof(StringFormatEX), "%s Has kickeado a %s[%i].", LOGO_STAFF, PlayersDataOnline[PlayerKickID][NameOnline], PlayerKickID);
+		            MsgKBJWReportsToAdmins(PlayerKickID, StringFormat);
+		            SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, StringFormatEX);
 
-						}
-						else
-						{
-							SendInfoMessage(playerid, 0, "164", "Ha introducído mal el sintaxis del comando /Kick. Ejemplo correcto: /Kick 22 No respetar las normas el servidor.");
-							return 1;
-						}
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "165", "Tú no tienes acceso a el comando /Kick.");
-				        return 1;
-					}
+					print(StringFormat);
+					KickEx(PlayerKickID, 6);
 				}
 		//		// /Silenciar [ID]
 				else if (strfind(cmdtext, "/Silenciar ", true) == 0)
@@ -24551,38 +24641,32 @@ public OnPlayerCommandText(playerid, cmdtext[])
 
 				}
 		//		13- *       /Parar [ID]                     - Freezar a un jugador
-				else if (strfind(cmdtext, "/Parar ", true) == 0)
+				else if (strfind(cmdtext, "/Parar", true) == 0)
 				{
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if (PlayersData[playerid][Admin] >= 2)
 					{
-					    new SendString[4];
-						strmid(SendString, cmdtext, 7, strlen(cmdtext), sizeof(SendString));
-
-						if (IsPlayerConnected(strval(SendString)))
-						{
-							if (strval(SendString) != playerid || PlayersData[playerid][Admin] >= 8 )
-							{
-							    if ( PlayersDataOnline[strval(SendString)][Freeze] )
-							    {
-									Comandos_Admin(13, playerid, strval(SendString), PlayersData[playerid][Admin], 1, "0");
-								}
-								else
-								{
-									Comandos_Admin(13, playerid, strval(SendString), PlayersData[playerid][Admin], 2, "0");
-								}
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "180", "La ID que has introducído es la suya.");
-							}
-		                    return 1;
-						}
-						else
-						{
-							SendInfoMessage(playerid, 0, "181", "El jugador al que desea congelar no se encuentra conectado.");
-							return 1;
-						}
+					    new Myplayerid = playerid;
+					    if (sscanf(cmdtext[7], "u", playerid)) return SendSyntaxError(playerid, "Parar", "Parar 12");
+					    if (!IsPlayerLoguedEx(Myplayerid, playerid)) return 1;
+					    
+					    new string[150], Mystring[150];
+					    if (PlayersDataOnline[playerid][Freeze])
+					    {
+					        format(string, sizeof(string), "%s te ha descongelado.", PlayersDataOnline[Myplayerid][NameOnline]);
+							format(Mystring, sizeof(Mystring), "Has descongelado a %s[%i]", PlayersDataOnline[playerid][NameOnline], playerid);
+					    }
+					    else
+					    {
+					        format(string, sizeof(string), "%s Te ha congelado.", PlayersDataOnline[Myplayerid][NameOnline]);
+							format(Mystring, sizeof(Mystring), "Has congelado a %s [%i]", PlayersDataOnline[playerid][NameOnline], playerid);
+					    }
+					    SendAdviseMessage(playerid, string);
+					    SendAdviseMessage(Myplayerid, Mystring);
+					    
+					    PlayersDataOnline[playerid][Freeze] = !PlayersDataOnline[playerid][Freeze];
+					    TogglePlayerControllableEx(playerid, PlayersDataOnline[playerid][Freeze]);
+						SetPlayerArmedWeapon(playerid, 0);
 					}
 					else
 					{
@@ -25271,7 +25355,70 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        return 1;
 					}
 				}
-		//			/Skin [ID]                  - Forzar a cambiar un Skin a un jugador
+				else if (strcmp("/Mappers", cmdtext, true, 8) == 0 && strlen(cmdtext) == 8)
+			    {
+				    new string[100];
+				    new foundMapper;
+					for (new i = 0, maxid = GetPlayerPoolSize(); i <= maxid; i++)
+					{
+						if ( IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && PlayersData[i][Mapper] )
+						{
+						    if ( !foundMapper )
+						    {                                                                       
+							    SendClientMessage(playerid, 0x505050FF, "{505050}»»»»»»»»»»»»»»»»»» {0035FF}M{0075FF}appers {F50000}O{A00000}nline {505050}««««««««««««««««««");
+								foundMapper++;
+							}
+							format(string, sizeof(string), "* %s %s[%i]", MapperRangos[PlayersData[i][Mapper] - 1], PlayersDataOnline[i][NameOnlineFix], i);
+						    SendClientMessage(playerid, MapperRangosColor[PlayersData[i][Mapper] - 1], string);
+						}
+					}
+					if ( !foundMapper )
+					{
+					    SendClientMessage(playerid, 0x505050FF, "{910000}»»»»»»»»»»»»»»»»»» {E10000}No hay Mappers conectados {910000}««««««««««««««««««");
+					}
+				}
+                // 		/Mapper [ID][Level]
+                else if (strfind(cmdtext, "/Mapper ", true) == 0)
+                {
+                    if (PlayersData[playerid][Admin] < 9) return SendAccessError(playerid, "Mapper");
+                    
+                    new getid, level;
+                    if (sscanf(cmdtext[7], "ui", getid, level)) return SendSyntaxError(playerid, "Mapper", "Mapper 12 1");
+                    if (IsPlayerLoguedEx(playerid, getid) == 0) return 1;
+                    if (level < 0 || level > 2 ) return SendInfoMessage(playerid, 0, "", "El nivel de mapper debe ser 1 o 2! Nivel 0 para expulsar.");
+                    if (!PlayersData[getid][Mapper] && level == 0) return SendInfoMessage(playerid, 0, "", "Este usuario no es mapper del servidor.");
+                    
+                    new Mystring[150], Pstring[150], Astring[150];
+                    
+                    
+                    if ( level )
+    				{
+    				    if (!PlayersData[getid][Mapper])
+	                    {
+	                        SendAdviseMessage(getid, "Ahora formas parte del equipo de mappers del servidor! Usa /Ayuda Mapper para ver los comandos.");
+	                        format(Mystring, sizeof(Mystring), "Metiste a %s[%i] como %s.", PlayersDataOnline[getid][NameOnline], getid, MapperRangos[level - 1]);
+				            format(Astring, sizeof(Astring), "%s %s[%i] metio a %s[%i] como %s.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid, MapperRangos[level - 1]);
+	                    }
+	                    else
+	                    {
+	                        format(Mystring, sizeof(Mystring), "Asignaste a %s[%i] como %s.", PlayersDataOnline[getid][NameOnline], getid, MapperRangos[level - 1]);
+				            format(Astring, sizeof(Astring), "%s %s[%i] asigno a %s[%i] como %s.", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, PlayersDataOnline[getid][NameOnline], getid, MapperRangos[level - 1]);
+	                    }
+	                    format(Pstring, sizeof(Pstring), "%s[%i] te asigno como %s", PlayersDataOnline[playerid][NameOnline], playerid, MapperRangos[level - 1]);
+    				}
+    				else
+    				{
+    				    format(Mystring, sizeof(Mystring), "Expulsaste al %s %s[%i] del equipo de mappers", MapperRangos[PlayersData[getid][Mapper] - 1], PlayersDataOnline[getid][NameOnline], getid);
+            			format(Pstring, sizeof(Pstring), "%s[%i] te expulso el equipo de mappers", PlayersDataOnline[playerid][NameOnline], playerid);
+				        format(Astring, sizeof(Astring), "%s %s[%i] expulso al %s %s[%i]", LOGO_STAFF, PlayersDataOnline[playerid][NameOnline], playerid, MapperRangos[PlayersData[getid][Mapper] - 1], PlayersDataOnline[getid][NameOnline], getid);
+    				}
+                    SendAdviseMessage(playerid, Mystring);
+    				SendAdviseMessage(getid, Pstring);
+		            MsgCheatsReportsToAdminsEx(Astring, 9);
+		            
+                    PlayersData[getid][Mapper] = level;
+                }
+				//		/Skin [ID]                  - Forzar a cambiar un Skin a un jugador
 				else if (strfind(cmdtext, "/Skin ", true) == 0)
 				{
 					MsgAdminUseCommands(9, playerid, cmdtext);
@@ -25286,7 +25433,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						else
 						{
 							SendInfoMessage(playerid, 0, "202", "El jugador no se encuentra conectado.");
-						}
+      }
 					}
 					else
 					{
@@ -25677,7 +25824,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        new price = strval(cmdtext[9]);
 				        if (price < 0 || price > 1000000) return SendInfoMessage(playerid, 0, "", "El precio del local debe ser entre $0 y $1.000.000");
 				        
-			            new localID = PlayersDataOnline[playerid][InLocalPickup];
+			            new localID = PlayersDataOnline[playerid][InPickupLocal];
 			            new string[150];
 			            
 			            format(string,sizeof(string), "Cambiaste el precio del local [%i] de $%i a $%i.", localID+1, LocalData[localID][Precio], price);
@@ -25698,7 +25845,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        new level = strval(cmdtext[8]);
 				        if (level < 0 || level > 99) return SendInfoMessage(playerid, 0, "", "El nivel del local debe ser entre 0 y 99");
 				        
-			            new localID = PlayersDataOnline[playerid][InLocalPickup];
+			            new localID = PlayersDataOnline[playerid][InPickupLocal];
 			            new string[150];
 			            
 			            format(string,sizeof(string), "Cambiaste el nivel del local [%i] de %i a %i.", localID+1, LocalData[localID][Nivel], level);
@@ -25716,7 +25863,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			        if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "VLocal.");
 			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 			        {
-			            new localID = PlayersDataOnline[playerid][InLocalPickup];
+			            new localID = PlayersDataOnline[playerid][InPickupLocal];
 			            
 			            if (IsLocalForSale(localID)) return SendInfoMessage(playerid, 0, "", "Este local ya esta a la venta.");
 			            
@@ -25732,6 +25879,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}}
 
 						LocalData[localID][Seguro] = true;
+						PlayersDataOnline[playerid][MyPickupLock] = true;
 			            format(LocalData[localID][Owner], MAX_PLAYER_NAME, "No");
 			            for (new i=0; i != MAX_LOCAL_KEYS; i++){
                         RemoveLocalKey(localID, i);}
@@ -25745,24 +25893,14 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			        if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "Borrar Local.");
 			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
 				    {
-				        new localID = PlayersDataOnline[playerid][InLocalPickup];
+				        new localID = PlayersDataOnline[playerid][InPickupLocal];
 
-				        LocalData[localID][PosX] = 0.0;
-                        LocalData[localID][PosY] = 0.0;
-                        LocalData[localID][PosZ] = 0.0;
-                        LocalData[localID][PosZZ] = 0.0;
-                        format(LocalData[localID][Owner], MAX_PLAYER_NAME,"No");
-                        LocalData[localID][Nivel] = 0;
-                        LocalData[localID][Precio] = 0;
-                        LocalData[localID][Tipo] = 0;
-                        LocalData[localID][Seguro] = true;
-                        LocalData[localID][PrecioEntrada] = 0;
-                        DestroyPickup(LocalData[localID][Pickup]);
+                        new pickupid = LocalData[localID][Pickup];
+					    DestroyPickupEx(pickupid);
+					    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NINGUNO;
                         DestroyDynamic3DTextLabel(LocalData[localID][TextLabel]);
                         DestroyDynamic3DTextLabel(LocalData[localID][TextLabelIn]);
-                        LocalData[localID][Pickup] = -1;
-                        LocalData[localID][TextLabel] = Text3D:INVALID_3DTEXT_ID;
-                        LocalData[localID][TextLabelIn] = Text3D:INVALID_3DTEXT_ID;
+                        ClearLocalData(localID);
                         MAX_LOCAL--;                
                         
                         SaveLocal(localID, false);
@@ -25779,6 +25917,24 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						return 1;
 				    }
 				    else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
+			    }
+			    else if(strcmp("/test",cmdtext,true) == 0)
+			    {
+			        new string[150];
+			        format(string,150,"InPickup %i - MyPickupX_Now %f", PlayersDataOnline[playerid][InPickup], PlayersDataOnline[playerid][MyPickupX_Now]);
+			     	SendClientMessage(playerid,-1,string);
+			     	/*
+			        for(new i=0; i!=MAX_FACCION; i++)
+			        {
+			            format(string,150,"Faccion %i PickupidOutF %i, PickupidInF %i", i, FaccionData[i][PickupidOutF], FaccionData[i][PickupidInF]);
+			            SendClientMessage(playerid,-1,string);
+			        }
+			        for(new i=1; i <= MAX_DYNAMIC_PICKUP; i++)
+			        {
+			            format(string,150,"PickupIndex[%i]: Tipo %i, Tipoid %i", i, PickupIndex[i][Tipo], PickupIndex[i][Tipoid]);
+			            SendClientMessage(playerid,-1,string);
+			        }
+			        */
 			    }
 			    // NO COMMANDS SEND
 				else
@@ -25865,7 +26021,10 @@ public OnPlayerTakeDamage(playerid, issuerid, Float:amount, weaponid)
 {
 	if ( issuerid != INVALID_PLAYER_ID )
 	{
-	   if ( HaveObjectByTypeAndShow(issuerid, TYPE_TASER) && (PlayersData[issuerid][Faccion] == LSPD || PlayersData[issuerid][Faccion] == SFPD) )
+	   if ( HaveObjectByTypeAndShow(issuerid, TYPE_TASER) && (
+	   		PlayersData[issuerid][Faccion] == LSPD ||
+			PlayersData[issuerid][Faccion] == SFPD ||
+			PlayersData[issuerid][Faccion] == GOBIERNO 		  ) )
 	   {
 			new MsgTaserIntentar[MAX_TEXT_CHAT];
 			if ( PlayersDataOnline[playerid][IsTeazer] <= gettime() )
@@ -26050,416 +26209,350 @@ public OnPlayerObjectMoved(playerid, objectid)
 	return 1;
 }
 
-public OnPlayerPickUpPickup(playerid, pickupid)
-{
-	if ( PlayersDataOnline[playerid][InPickup] != pickupid )
-	{
-		HideTextDrawsTelesAndInfo(playerid);
-	    PlayersDataOnline[playerid][InPickup] = pickupid;
-	    
-		// FACCIONES
-        if ( pickupid >= FaccionData[GOBIERNO][PickupidOutF] &&
-             pickupid <= FaccionData[MAX_FACCION][PickupidInF] )
-        {
-            for(new i=GOBIERNO;i<=MAX_FACCION;i++)
-            {
-                if ( FaccionData[i][PickupidOutF] == pickupid || FaccionData[i][PickupidInF] == pickupid )
-                {
-                    if ( FaccionData[i][PickupidOutF] == pickupid )
-                    {
-	                    PlayersDataOnline[playerid][MyPickupX]  = FaccionData[i][PickupIn_X];
-	                    PlayersDataOnline[playerid][MyPickupY]  = FaccionData[i][PickupIn_Y];
-	                    PlayersDataOnline[playerid][MyPickupZ]  = FaccionData[i][PickupIn_Z];
-	                    PlayersDataOnline[playerid][MyPickupZZ] = FaccionData[i][PickupIn_ZZ];
-	                    PlayersDataOnline[playerid][MyPickupInterior] = FaccionData[i][InteriorFaccion];
-
-						PlayersDataOnline[playerid][MyPickupX_Now] = FaccionData[i][PickupOut_X];
-						PlayersDataOnline[playerid][MyPickupY_Now] = FaccionData[i][PickupOut_Y];
-						PlayersDataOnline[playerid][MyPickupZ_Now] = FaccionData[i][PickupOut_Z];
-						PlayersDataOnline[playerid][MyPickupWorld] = FaccionData[i][World];
-	                }
-	                else
-	                {
-	                    PlayersDataOnline[playerid][MyPickupX]  = FaccionData[i][PickupOut_X];
-	                    PlayersDataOnline[playerid][MyPickupY]  = FaccionData[i][PickupOut_Y];
-	                    PlayersDataOnline[playerid][MyPickupZ]  = FaccionData[i][PickupOut_Z];
-	                    PlayersDataOnline[playerid][MyPickupZZ] = FaccionData[i][PickupOut_ZZ];
-						PlayersDataOnline[playerid][MyPickupWorld] = 0;
-	                    PlayersDataOnline[playerid][MyPickupInterior] = 0;
-
-						PlayersDataOnline[playerid][MyPickupX_Now] = FaccionData[i][PickupIn_X];
-						PlayersDataOnline[playerid][MyPickupY_Now] = FaccionData[i][PickupIn_Y];
-						PlayersDataOnline[playerid][MyPickupZ_Now] = FaccionData[i][PickupIn_Z];
-					}
-					PlayersDataOnline[playerid][MyPickupLock]  = FaccionData[i][Lock];
-                    TextDrawShowForPlayer(playerid, FaccionTextDraws[i]);
-                    PlayersDataOnline[playerid][MyTextDrawShow] = FaccionTextDraws[i];
-
-		            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
-                    PlayersDataOnline[playerid][InPickupTele] = true;
-                    break;
-				}
-            }
-        }
-		// TELES
-        else if ( pickupid >= Teles[0][PickupID] &&
-             	  pickupid <= Teles[MAX_TELE][PickupID] )
-        {
-            for(new i=0;i<=MAX_TELE;i++)
-            {
-                if ( Teles[i][PickupID] == pickupid )
-                {
-	                PlayersDataOnline[playerid][MyPickupX]  	= Teles[Teles[i][PickupIDGo]][PosX];
-	                PlayersDataOnline[playerid][MyPickupY]  	= Teles[Teles[i][PickupIDGo]][PosY];
-	                PlayersDataOnline[playerid][MyPickupZ]  	= Teles[Teles[i][PickupIDGo]][PosZ];
-	                PlayersDataOnline[playerid][MyPickupZZ] 	= Teles[Teles[i][PickupIDGo]][PosZZ];
-	                PlayersDataOnline[playerid][MyPickupInterior] = Teles[Teles[i][PickupIDGo]][Interior];
-	                if ( !PlayersData[playerid][IsPlayerInVehInt] )
-	                {
-						PlayersDataOnline[playerid][MyPickupWorld] 	= Teles[Teles[i][PickupIDGo]][World];
-					}
-					else
-					{
-						PlayersDataOnline[playerid][MyPickupWorld] = GetVagonByVagonID(PlayersData[playerid][IsPlayerInVehInt], Teles[Teles[i][PickupIDGo]][World]);
-					}
-					PlayersDataOnline[playerid][MyPickupLock]  	= Teles[i][Lock];
-
-	                PlayersDataOnline[playerid][MyPickupX_Now]  = Teles[i][PosX];
-	                PlayersDataOnline[playerid][MyPickupY_Now]  = Teles[i][PosY];
-	                PlayersDataOnline[playerid][MyPickupZ_Now]  = Teles[i][PosZ];
-
-                    TextDrawShowForPlayer(playerid, TelesTextDraws[i]);
-                    PlayersDataOnline[playerid][MyTextDrawShow] = TelesTextDraws[i];
-
-		            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
-                    PlayersDataOnline[playerid][InPickupTele] 	= true;
-                    break;
-                }
-            }
-        }
-        // NEGOCIOS
-        else if ( pickupid >= NegociosData[1][PickupOutId] &&
-             	  pickupid <= NegociosData[MAX_BIZZ][PickupOutId] )
-        {
-            for(new i=1;i<=MAX_BIZZ;i++)
-            {
-                if ( NegociosData[i][PickupOutId] == pickupid )
-                {
-		            PlayersDataOnline[playerid][MyPickupX]  	= NegociosType[NegociosData[i][Type]][PosInX];
-		            PlayersDataOnline[playerid][MyPickupY]  	= NegociosType[NegociosData[i][Type]][PosInY];
-		            PlayersDataOnline[playerid][MyPickupZ]  	= NegociosType[NegociosData[i][Type]][PosInZ];
-		            PlayersDataOnline[playerid][MyPickupZZ] 	= NegociosType[NegociosData[i][Type]][PosInZZ];
-		            PlayersDataOnline[playerid][MyPickupInterior] = NegociosType[NegociosData[i][Type]][InteriorId];
-					PlayersDataOnline[playerid][MyPickupWorld] 	= NegociosData[i][World];
-					PlayersDataOnline[playerid][MyPickupLock]  	= NegociosData[i][Lock];
-
-		            PlayersDataOnline[playerid][MyPickupX_Now]  = NegociosData[i][PosOutX];
-		            PlayersDataOnline[playerid][MyPickupY_Now]  = NegociosData[i][PosOutY];
-		            PlayersDataOnline[playerid][MyPickupZ_Now]  = NegociosData[i][PosOutZ];
-
-		            TextDrawShowForPlayer(playerid, NegociosTextDraws[i]);
-		            PlayersDataOnline[playerid][MyTextDrawShow] = NegociosTextDraws[i];
-
-		            PlayersDataOnline[playerid][InSpecialAnim]  = GetPlayerSpecialAction(playerid);
-		            PlayersDataOnline[playerid][InPickupTele] 	= true;
-		            break;
-	            }
-            }
-        }
-        // NEGOCIOS TYPE
-        else if ( PlayersData[playerid][IsPlayerInBizz] && pickupid >= NegociosType[0][PickupId] &&
-             	  pickupid <= NegociosType[MAX_BIZZ_TYPE][PickupId] )
-        {
-            for(new i=0;i<=MAX_BIZZ_TYPE;i++)
-            {
-                if ( NegociosType[i][PickupId] == pickupid )
-                {
-		            PlayersDataOnline[playerid][MyPickupX]  	= NegociosData[PlayersData[playerid][IsPlayerInBizz]][PosOutX];
-		            PlayersDataOnline[playerid][MyPickupY]  	= NegociosData[PlayersData[playerid][IsPlayerInBizz]][PosOutY];
-		            PlayersDataOnline[playerid][MyPickupZ]  	= NegociosData[PlayersData[playerid][IsPlayerInBizz]][PosOutZ];
-		            PlayersDataOnline[playerid][MyPickupZZ] 	= NegociosData[PlayersData[playerid][IsPlayerInBizz]][PosOutZZ];
-		            PlayersDataOnline[playerid][MyPickupInterior] = NegociosData[PlayersData[playerid][IsPlayerInBizz]][InteriorOut];
-					PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
-					PlayersDataOnline[playerid][MyPickupLock]  	= NegociosData[PlayersData[playerid][IsPlayerInBizz]][Lock]; // NegociosData[MyWorld][Lock];
-
-		            PlayersDataOnline[playerid][MyPickupX_Now]  = NegociosType[i][PosInX];
-		            PlayersDataOnline[playerid][MyPickupY_Now]  = NegociosType[i][PosInY];
-		            PlayersDataOnline[playerid][MyPickupZ_Now]  = NegociosType[i][PosInZ];
-
-		            TextDrawShowForPlayer(playerid, NegociosTextDraws[PlayersData[playerid][IsPlayerInBizz]]);
-		            PlayersDataOnline[playerid][MyTextDrawShow] = NegociosTextDraws[PlayersData[playerid][IsPlayerInBizz]];
-
-		            PlayersDataOnline[playerid][InSpecialAnim]  = GetPlayerSpecialAction(playerid);
-		            PlayersDataOnline[playerid][InPickupTele] 	= true;
-		            break;
-	            }
-            }
-        }
-        // CASAS
-		else if ( pickupid >= HouseData[1][PickupId] &&
-             	  pickupid <= HouseData[MAX_HOUSE][PickupId] )
-        {
-            for(new i=1;i<=MAX_HOUSE;i++)
-            {
-                if ( HouseData[i][PickupId] == pickupid )
-                {
-		            PlayersDataOnline[playerid][MyPickupX]  	= TypeHouse[HouseData[i][TypeHouseId]][PosX];
-		            PlayersDataOnline[playerid][MyPickupY]  	= TypeHouse[HouseData[i][TypeHouseId]][PosY];
-		            PlayersDataOnline[playerid][MyPickupZ]  	= TypeHouse[HouseData[i][TypeHouseId]][PosZ];
-		            PlayersDataOnline[playerid][MyPickupZZ] 	= TypeHouse[HouseData[i][TypeHouseId]][PosZZ];
-		            PlayersDataOnline[playerid][MyPickupInterior] = TypeHouse[HouseData[i][TypeHouseId]][Interior];
-					PlayersDataOnline[playerid][MyPickupWorld] 	= HouseData[i][World];
-					PlayersDataOnline[playerid][MyPickupLock]  	= HouseData[i][Lock];
-
-		            PlayersDataOnline[playerid][MyPickupX_Now]  = HouseData[i][PosX];
-		            PlayersDataOnline[playerid][MyPickupY_Now]  = HouseData[i][PosY];
-		            PlayersDataOnline[playerid][MyPickupZ_Now]  = HouseData[i][PosZ];
-
-		            TextDrawShowForPlayer(playerid, CasasTextDraws[i]);
-		            PlayersDataOnline[playerid][MyTextDrawShow] = CasasTextDraws[i];
-
-		            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
-		            PlayersDataOnline[playerid][InPickupTele] 	= true;
-		            break;
-	            }
-            }
-		}
-        // CASAS TYPE
-        else if ( PlayersData[playerid][IsPlayerInHouse] && pickupid >= TypeHouse[0][PickupId] &&
-             	  pickupid <= TypeHouse[MAX_HOUSE_TYPE][PickupId] )
-        {
-            for(new i=0;i<=MAX_HOUSE_TYPE;i++)
-            {
-                if ( TypeHouse[i][PickupId] == pickupid )
-                {
-		            PlayersDataOnline[playerid][MyPickupX]  	= HouseData[PlayersData[playerid][IsPlayerInHouse]][PosX];
-		            PlayersDataOnline[playerid][MyPickupY]  	= HouseData[PlayersData[playerid][IsPlayerInHouse]][PosY];
-		            PlayersDataOnline[playerid][MyPickupZ]  	= HouseData[PlayersData[playerid][IsPlayerInHouse]][PosZ];
-		            PlayersDataOnline[playerid][MyPickupZZ] 	= HouseData[PlayersData[playerid][IsPlayerInHouse]][PosZZ];
-		            PlayersDataOnline[playerid][MyPickupInterior] = 0; // HouseData[MyWorld][Interior];
-					PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
-					PlayersDataOnline[playerid][MyPickupLock]  	= HouseData[PlayersData[playerid][IsPlayerInHouse]][Lock]; // HouseData[MyWorld][Lock];
-
-		            PlayersDataOnline[playerid][MyPickupX_Now]  = TypeHouse[i][PosX];
-		            PlayersDataOnline[playerid][MyPickupY_Now]  = TypeHouse[i][PosY];
-		            PlayersDataOnline[playerid][MyPickupZ_Now]  = TypeHouse[i][PosZ];
-
-		            TextDrawShowForPlayer(playerid, CasasTextDraws[PlayersData[playerid][IsPlayerInHouse]]);
-		            PlayersDataOnline[playerid][MyTextDrawShow] = CasasTextDraws[PlayersData[playerid][IsPlayerInHouse]];
-
-		            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
-		            PlayersDataOnline[playerid][InPickupTele] 	= true;
-		            break;
-	            }
-            }
-        }
-        // GARAGES TYPE
-        else if ( PlayersData[playerid][IsPlayerInGarage] >= 0 && PlayersData[playerid][IsPlayerInHouse] && pickupid >= TypeGarage[0][PickupId] &&
-             	  pickupid <= TypeGarage[MAX_GARAGE_TYPE][PickupIdh] )
-        {
-            for(new i=0;i<=MAX_GARAGE_TYPE;i++)
-            {
-                if ( TypeGarage[i][PickupId] == pickupid || TypeGarage[i][PickupIdh] == pickupid )
-                {
-                    if ( TypeGarage[i][PickupIdh] == pickupid )
-                    {
-			            PlayersDataOnline[playerid][MyPickupX]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][XgIn];
-			            PlayersDataOnline[playerid][MyPickupY]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][YgIn];
-			            PlayersDataOnline[playerid][MyPickupZ]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][ZgIn];
-			            PlayersDataOnline[playerid][MyPickupZZ] 	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][ZZgIn];
- 			            PlayersDataOnline[playerid][MyPickupInterior] = TypeHouse[HouseData[PlayersData[playerid][IsPlayerInHouse]][TypeHouseId]][Interior];
-						PlayersDataOnline[playerid][MyPickupWorld] 	= PlayersData[playerid][IsPlayerInHouse];
-						PlayersDataOnline[playerid][MyPickupLock]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][LockIn];
-
-			            PlayersDataOnline[playerid][MyPickupX_Now]  = TypeGarage[i][PosXh];
-			            PlayersDataOnline[playerid][MyPickupY_Now]  = TypeGarage[i][PosYh];
-			            PlayersDataOnline[playerid][MyPickupZ_Now]  = TypeGarage[i][PosZh];
-					}
-					else
-					{
-			            PlayersDataOnline[playerid][MyPickupX]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][Xg];
-			            PlayersDataOnline[playerid][MyPickupY]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][Yg];
-			            PlayersDataOnline[playerid][MyPickupZ]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][Zg];
-			            PlayersDataOnline[playerid][MyPickupZZ] 	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][ZZg];
- 			            PlayersDataOnline[playerid][MyPickupInterior] = 0;
-						PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
-						PlayersDataOnline[playerid][MyPickupLock]  	= Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][LockOut];
-
-			            PlayersDataOnline[playerid][MyPickupX_Now]  = TypeGarage[i][PosX];
-			            PlayersDataOnline[playerid][MyPickupY_Now]  = TypeGarage[i][PosY];
-			            PlayersDataOnline[playerid][MyPickupZ_Now]  = TypeGarage[i][PosZ];
-		            }
-
-		            TextDrawShowForPlayer(playerid, GarageTextDraw);
-		            PlayersDataOnline[playerid][MyTextDrawShow] = GarageTextDraw;
-
-		            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
-		            PlayersDataOnline[playerid][InPickupTele] 	= true;
-		            break;
-					//GarageTextDraw
-                }
-            }
-        }
-        // GARAGES
-        else if ( pickupid >= MIN_GARAGE_PICKUP &&
-             	  pickupid <= MAX_GARAGE_PICKUP )
-        {
-			for (new h = 1; h <= MAX_HOUSE; h++)
-			{
-				for ( new i = 0; i < MAX_GARAGE_FOR_HOUSE; i++ )
-				{
-			        if ( Garages[h][i][PickupidIn] == pickupid || Garages[h][i][PickupidOut] == pickupid )
-			        {
-						if ( Garages[h][i][PickupidOut] == pickupid )
-						{
-				            PlayersDataOnline[playerid][MyPickupX]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosX];
-				            PlayersDataOnline[playerid][MyPickupY]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosY];
-			    	        PlayersDataOnline[playerid][MyPickupZ]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosZ];
-      						PlayersDataOnline[playerid][MyPickupZZ] 	= TypeGarage[Garages[h][i][TypeGarageE]][PosZZ];
- 			        	    PlayersDataOnline[playerid][MyPickupInterior] = TypeGarage[Garages[h][i][TypeGarageE]][Interior];
-							PlayersDataOnline[playerid][MyPickupWorld] 	= Garages[h][i][WorldG];
-							PlayersDataOnline[playerid][MyPickupLock]  	= Garages[h][i][LockOut]; // HouseData[MyWorld][Lock];
-
-				            PlayersDataOnline[playerid][MyPickupX_Now]  = Garages[h][i][Xg];
-				            PlayersDataOnline[playerid][MyPickupY_Now]  = Garages[h][i][Yg];
-				            PlayersDataOnline[playerid][MyPickupZ_Now]  = Garages[h][i][Zg];
-						}
-						else if ( PlayersData[playerid][IsPlayerInHouse] )
-						{
-				            PlayersDataOnline[playerid][MyPickupX]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosXh];
-				            PlayersDataOnline[playerid][MyPickupY]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosYh];
-			    	        PlayersDataOnline[playerid][MyPickupZ]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosZh];
-      						PlayersDataOnline[playerid][MyPickupZZ] 	= TypeGarage[Garages[h][i][TypeGarageE]][PosZZh];
- 			        	    PlayersDataOnline[playerid][MyPickupInterior] = TypeGarage[Garages[h][i][TypeGarageE]][Interior];
-							PlayersDataOnline[playerid][MyPickupWorld] 	= Garages[h][i][WorldG];
-							PlayersDataOnline[playerid][MyPickupLock]  	= Garages[h][i][LockIn]; // HouseData[MyWorld][Lock];
-
-				            PlayersDataOnline[playerid][MyPickupX_Now]  = Garages[h][i][XgIn];
-				            PlayersDataOnline[playerid][MyPickupY_Now]  = Garages[h][i][YgIn];
-				            PlayersDataOnline[playerid][MyPickupZ_Now]  = Garages[h][i][ZgIn];
-						}
-			            PlayersDataOnline[playerid][InSpecialAnim]  = GetPlayerSpecialAction(playerid);
-			            PlayersData[playerid][IsPlayerInGarage]     = i - 50;
-			            PlayersDataOnline[playerid][InPickupTele] 	= h;
-
-			            TextDrawShowForPlayer(playerid, GarageTextDraw);
-			            PlayersDataOnline[playerid][MyTextDrawShow] = GarageTextDraw;
-					    return true;
-			        }
-		        }
-	        }
-		}
-        // GARAGES EX
-        else if ( pickupid >= GaragesEx[0][PickupIDOneP] &&
-             	  pickupid <= GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] )
-        {
-			for ( new i = 0; i <= MAX_GARAGES_EX; i++ )
-			{
-			    if ( GaragesEx[i][PickupIDOneP] == pickupid || GaragesEx[i][PickupIDTwoP] == pickupid )
-			    {
-			        if ( GaragesEx[i][PickupIDOneP] == pickupid )
-			        {
-			            PlayersDataOnline[playerid][MyPickupX]  	= GaragesEx[i][PosXTwoP];
-			            PlayersDataOnline[playerid][MyPickupY]  	= GaragesEx[i][PosYTwoP];
-		    	        PlayersDataOnline[playerid][MyPickupZ]  	= GaragesEx[i][PosZTwoP];
-  						PlayersDataOnline[playerid][MyPickupZZ] 	= GaragesEx[i][PosZZTwoP];
-		        	    PlayersDataOnline[playerid][MyPickupInterior] = 0;
-						PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
-						PlayersDataOnline[playerid][MyPickupLock]  	= GaragesEx[i][Lock];
-
-			            PlayersDataOnline[playerid][MyPickupX_Now]  = GaragesEx[i][PosXOneP];
-			            PlayersDataOnline[playerid][MyPickupY_Now]  = GaragesEx[i][PosYOneP];
-			            PlayersDataOnline[playerid][MyPickupZ_Now]  = GaragesEx[i][PosZOneP];
-					}
-					else
-					{
-			            PlayersDataOnline[playerid][MyPickupX]  	= GaragesEx[i][PosXOneP];
-			            PlayersDataOnline[playerid][MyPickupY]  	= GaragesEx[i][PosYOneP];
-		    	        PlayersDataOnline[playerid][MyPickupZ]  	= GaragesEx[i][PosZOneP];
-  						PlayersDataOnline[playerid][MyPickupZZ] 	= GaragesEx[i][PosZZOneP];
-		        	    PlayersDataOnline[playerid][MyPickupInterior] = GaragesEx[i][Interior];
-						PlayersDataOnline[playerid][MyPickupWorld] 	= GaragesEx[i][World];
-						PlayersDataOnline[playerid][MyPickupLock]  	= GaragesEx[i][Lock];
-
-			            PlayersDataOnline[playerid][MyPickupX_Now]  = GaragesEx[i][PosXTwoP];
-			            PlayersDataOnline[playerid][MyPickupY_Now]  = GaragesEx[i][PosYTwoP];
-			            PlayersDataOnline[playerid][MyPickupZ_Now]  = GaragesEx[i][PosZTwoP];
-					}
-
-		            TextDrawShowForPlayer(playerid, GarageTextDraw);
-		            PlayersDataOnline[playerid][MyTextDrawShow] = GarageTextDraw;
-		            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
-		            PlayersDataOnline[playerid][InPickupTele] 	= true;
-		            break;
-				}
-			}
-		}
-        // INFO TEXT´s
-        else if ( pickupid >= TextDrawInfo[0][PickupidTextInfo] &&
-             	  pickupid <= TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] )
-        {
-            for(new i=0;i<=MAX_TEXT_DRAW_INFO;i++)
-            {
-                if ( TextDrawInfo[i][PickupidTextInfo] == pickupid )
-                {
-		            PlayersDataOnline[playerid][MyPickupX_Now]  = TextDrawInfo[i][PosInfoX];
-		            PlayersDataOnline[playerid][MyPickupY_Now]  = TextDrawInfo[i][PosInfoY];
-		            PlayersDataOnline[playerid][MyPickupZ_Now]  = TextDrawInfo[i][PosInfoZ];
-
-		            TextDrawShowForPlayer(playerid, TextDrawInfoTextDraws[i]);
-		            PlayersDataOnline[playerid][MyTextDrawShow] = TextDrawInfoTextDraws[i];
-		            PlayersDataOnline[playerid][InPickupInfo] 	= true;
-		            break;
-	            }
-            }
-        }
-        //Locales
-	    else if (pickupid >= LocalData[0][Pickup] && pickupid <= LocalData[MAX_LOCAL_ID][Pickup])
-	    {
-	        for(new i=0; i <= MAX_LOCAL_ID; i++)
-		    {
-		        if (pickupid == LocalData[i][Pickup])
-		        {
-		            PlayersDataOnline[playerid][InLocalPickup] = i;
-		            break;
-		        }
-		    }
-	    }
-		else if (IsPlayerInPincho(playerid, pickupid))
-		{
-
-		}
-	}
-	else if (IsPlayerInPincho(playerid, pickupid))
-	{
-
-	}
-	return 1;
-}
-/*
 public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 {
+    IsPlayerInPincho(playerid, pickupid);
 	if ( PlayersDataOnline[playerid][InPickup] != pickupid )
 	{
-		HideTextDrawsTelesAndInfo(playerid);
-		PlayersDataOnline[playerid][InPickup] = pickupid;
-
-	    //Locales
-	    if (pickupid >= LocalData[0][Pickup] && pickupid <= LocalData[MAX_LOCAL_ID][Pickup])
+		ClearPlayerPickups(playerid);
+	    PlayersDataOnline[playerid][InPickup] = pickupid;
+	    
+	    // FACCIONES
+	    if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_FACCION)
 	    {
-	        for(new i=0; i <= MAX_LOCAL_ID; i++)
+	        new faccionid = PickupIndex[pickupid][Tipoid];
+	        
+	        if ( FaccionData[faccionid][PickupidOutF] == pickupid || FaccionData[faccionid][PickupidInF] == pickupid )
+            {
+                if ( FaccionData[faccionid][PickupidOutF] == pickupid )
+                {
+                    PlayersDataOnline[playerid][MyPickupX]  = FaccionData[faccionid][PickupIn_X];
+                    PlayersDataOnline[playerid][MyPickupY]  = FaccionData[faccionid][PickupIn_Y];
+                    PlayersDataOnline[playerid][MyPickupZ]  = FaccionData[faccionid][PickupIn_Z];
+                    PlayersDataOnline[playerid][MyPickupZZ] = FaccionData[faccionid][PickupIn_ZZ];
+                    PlayersDataOnline[playerid][MyPickupInterior] = FaccionData[faccionid][InteriorFaccion];
+
+					PlayersDataOnline[playerid][MyPickupX_Now] = FaccionData[faccionid][PickupOut_X];
+					PlayersDataOnline[playerid][MyPickupY_Now] = FaccionData[faccionid][PickupOut_Y];
+					PlayersDataOnline[playerid][MyPickupZ_Now] = FaccionData[faccionid][PickupOut_Z];
+					PlayersDataOnline[playerid][MyPickupWorld] = FaccionData[faccionid][World];
+                }
+                else
+                {
+                    PlayersDataOnline[playerid][MyPickupX]  = FaccionData[faccionid][PickupOut_X];
+                    PlayersDataOnline[playerid][MyPickupY]  = FaccionData[faccionid][PickupOut_Y];
+                    PlayersDataOnline[playerid][MyPickupZ]  = FaccionData[faccionid][PickupOut_Z];
+                    PlayersDataOnline[playerid][MyPickupZZ] = FaccionData[faccionid][PickupOut_ZZ];
+					PlayersDataOnline[playerid][MyPickupWorld] = 0;
+                    PlayersDataOnline[playerid][MyPickupInterior] = 0;
+
+					PlayersDataOnline[playerid][MyPickupX_Now] = FaccionData[faccionid][PickupIn_X];
+					PlayersDataOnline[playerid][MyPickupY_Now] = FaccionData[faccionid][PickupIn_Y];
+					PlayersDataOnline[playerid][MyPickupZ_Now] = FaccionData[faccionid][PickupIn_Z];
+				}
+				PlayersDataOnline[playerid][InPickupFaccion] = faccionid;
+				PlayersDataOnline[playerid][MyPickupLock] = FaccionData[faccionid][Lock];
+
+	            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
+			}
+	    }
+	    // TELES
+	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_TELE)
+	    {
+	        new teleid = PickupIndex[pickupid][Tipoid];
+
+	        if ( Teles[teleid][PickupID] == pickupid )
+            {
+                PlayersDataOnline[playerid][MyPickupX]  	= Teles[Teles[teleid][PickupIDGo]][PosX];
+                PlayersDataOnline[playerid][MyPickupY]  	= Teles[Teles[teleid][PickupIDGo]][PosY];
+                PlayersDataOnline[playerid][MyPickupZ]  	= Teles[Teles[teleid][PickupIDGo]][PosZ];
+                PlayersDataOnline[playerid][MyPickupZZ] 	= Teles[Teles[teleid][PickupIDGo]][PosZZ];
+                PlayersDataOnline[playerid][MyPickupInterior] = Teles[Teles[teleid][PickupIDGo]][Interior];
+                PlayersDataOnline[playerid][MyPickupWorld] = Teles[Teles[teleid][PickupIDGo]][World];
+                
+                if ( PlayersData[playerid][IsPlayerInVehInt] )
+                {
+                    PlayersDataOnline[playerid][MyPickupWorld] = GetVagonByVagonID(PlayersData[playerid][IsPlayerInVehInt], Teles[Teles[teleid][PickupIDGo]][World]);
+				}
+				
+				PlayersDataOnline[playerid][MyPickupLock]  	= Teles[teleid][Lock];
+
+                PlayersDataOnline[playerid][MyPickupX_Now]  = Teles[teleid][PosX];
+                PlayersDataOnline[playerid][MyPickupY_Now]  = Teles[teleid][PosY];
+                PlayersDataOnline[playerid][MyPickupZ_Now]  = Teles[teleid][PosZ];
+
+	            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
+                PlayersDataOnline[playerid][InPickupTele] 	= teleid;
+            }
+	    }
+		// NEGOCIOS
+	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_NEGOCIO)
+	    {
+	        new negocioid = PickupIndex[pickupid][Tipoid];
+
+	        if ( NegociosData[negocioid][PickupOutId] == pickupid )
+            {
+	            PlayersDataOnline[playerid][MyPickupX]  	= NegociosType[NegociosData[negocioid][Type]][PosInX];
+	            PlayersDataOnline[playerid][MyPickupY]  	= NegociosType[NegociosData[negocioid][Type]][PosInY];
+	            PlayersDataOnline[playerid][MyPickupZ]  	= NegociosType[NegociosData[negocioid][Type]][PosInZ];
+	            PlayersDataOnline[playerid][MyPickupZZ] 	= NegociosType[NegociosData[negocioid][Type]][PosInZZ];
+	            PlayersDataOnline[playerid][MyPickupInterior] = NegociosType[NegociosData[negocioid][Type]][InteriorId];
+				PlayersDataOnline[playerid][MyPickupWorld] 	= NegociosData[negocioid][World];
+				PlayersDataOnline[playerid][MyPickupLock]  	= NegociosData[negocioid][Lock];
+
+	            PlayersDataOnline[playerid][MyPickupX_Now]  = NegociosData[negocioid][PosOutX];
+	            PlayersDataOnline[playerid][MyPickupY_Now]  = NegociosData[negocioid][PosOutY];
+	            PlayersDataOnline[playerid][MyPickupZ_Now]  = NegociosData[negocioid][PosOutZ];
+
+
+	            PlayersDataOnline[playerid][InSpecialAnim]  = GetPlayerSpecialAction(playerid);
+	            PlayersDataOnline[playerid][InPickupNegocio] = negocioid;
+            }
+	    }
+	    // NEGOCIOS TYPE
+	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_NEGOCIO_TYPE)
+	    {
+	        new tipoid = PickupIndex[pickupid][Tipoid];
+
+	        if ( NegociosType[tipoid][PickupId] == pickupid )
+            {
+                new negocioid = PlayersData[playerid][IsPlayerInBizz];
+	            PlayersDataOnline[playerid][MyPickupX]  	= NegociosData[negocioid][PosOutX];
+	            PlayersDataOnline[playerid][MyPickupY]  	= NegociosData[negocioid][PosOutY];
+	            PlayersDataOnline[playerid][MyPickupZ]  	= NegociosData[negocioid][PosOutZ];
+	            PlayersDataOnline[playerid][MyPickupZZ] 	= NegociosData[negocioid][PosOutZZ];
+	            PlayersDataOnline[playerid][MyPickupInterior] = NegociosData[negocioid][InteriorOut];
+				PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
+				PlayersDataOnline[playerid][MyPickupLock]  	= NegociosData[negocioid][Lock];
+
+	            PlayersDataOnline[playerid][MyPickupX_Now]  = NegociosType[tipoid][PosInX];
+	            PlayersDataOnline[playerid][MyPickupY_Now]  = NegociosType[tipoid][PosInY];
+	            PlayersDataOnline[playerid][MyPickupZ_Now]  = NegociosType[tipoid][PosInZ];
+
+	            PlayersDataOnline[playerid][InSpecialAnim]  = GetPlayerSpecialAction(playerid);
+            }
+	    }
+		// CASAS
+	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_CASA)
+	    {
+	        new casaid = PickupIndex[pickupid][Tipoid];
+	        
+	        if ( HouseData[casaid][PickupId] == pickupid )
+            {
+	            PlayersDataOnline[playerid][MyPickupX]  	= TypeHouse[HouseData[casaid][TypeHouseId]][PosX];
+	            PlayersDataOnline[playerid][MyPickupY]  	= TypeHouse[HouseData[casaid][TypeHouseId]][PosY];
+	            PlayersDataOnline[playerid][MyPickupZ]  	= TypeHouse[HouseData[casaid][TypeHouseId]][PosZ];
+	            PlayersDataOnline[playerid][MyPickupZZ] 	= TypeHouse[HouseData[casaid][TypeHouseId]][PosZZ];
+	            PlayersDataOnline[playerid][MyPickupInterior] = TypeHouse[HouseData[casaid][TypeHouseId]][Interior];
+				PlayersDataOnline[playerid][MyPickupWorld] 	= HouseData[casaid][World];
+				PlayersDataOnline[playerid][MyPickupLock]  	= HouseData[casaid][Lock];
+
+	            PlayersDataOnline[playerid][MyPickupX_Now]  = HouseData[casaid][PosX];
+	            PlayersDataOnline[playerid][MyPickupY_Now]  = HouseData[casaid][PosY];
+	            PlayersDataOnline[playerid][MyPickupZ_Now]  = HouseData[casaid][PosZ];
+
+	            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
+	            PlayersDataOnline[playerid][InPickupCasa] = casaid;
+            }
+	    }
+	    // CASAS TIPO
+	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_CASA_TYPE)
+	    {
+	        new tipoid = PickupIndex[pickupid][Tipoid];
+	        
+	        if ( TypeHouse[tipoid][PickupId] == pickupid )
+	        {
+	            new houseid = PlayersData[playerid][IsPlayerInHouse];
+	            PlayersDataOnline[playerid][MyPickupX]  	= HouseData[houseid][PosX];
+	            PlayersDataOnline[playerid][MyPickupY]  	= HouseData[houseid][PosY];
+	            PlayersDataOnline[playerid][MyPickupZ]  	= HouseData[houseid][PosZ];
+	            PlayersDataOnline[playerid][MyPickupZZ] 	= HouseData[houseid][PosZZ];
+	            PlayersDataOnline[playerid][MyPickupInterior] = 0;
+				PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
+				PlayersDataOnline[playerid][MyPickupLock]  	= HouseData[houseid][Lock];
+
+	            PlayersDataOnline[playerid][MyPickupX_Now]  = TypeHouse[tipoid][PosX];
+	            PlayersDataOnline[playerid][MyPickupY_Now]  = TypeHouse[tipoid][PosY];
+	            PlayersDataOnline[playerid][MyPickupZ_Now]  = TypeHouse[tipoid][PosZ];
+
+	            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
+	        }
+	    }
+	    // GARAGES CASA
+	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_GARAGE_CASA)
+	    {
+	    	new i = PickupIndex[pickupid][Tipoid];
+	        new h = PickupIndex[pickupid][Tipoidextra];
+	    	
+	    	if ( Garages[h][i][PickupidIn] == pickupid || Garages[h][i][PickupidOut] == pickupid )
+	    	{
+	    	    if ( Garages[h][i][PickupidOut] == pickupid )
+				{
+		            PlayersDataOnline[playerid][MyPickupX]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosX];
+		            PlayersDataOnline[playerid][MyPickupY]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosY];
+	    	        PlayersDataOnline[playerid][MyPickupZ]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosZ];
+					PlayersDataOnline[playerid][MyPickupZZ] 	= TypeGarage[Garages[h][i][TypeGarageE]][PosZZ];
+	        	    PlayersDataOnline[playerid][MyPickupInterior] = TypeGarage[Garages[h][i][TypeGarageE]][Interior];
+					PlayersDataOnline[playerid][MyPickupWorld] 	= Garages[h][i][WorldG];
+					PlayersDataOnline[playerid][MyPickupLock]  	= Garages[h][i][LockOut];
+
+		            PlayersDataOnline[playerid][MyPickupX_Now]  = Garages[h][i][Xg];
+		            PlayersDataOnline[playerid][MyPickupY_Now]  = Garages[h][i][Yg];
+		            PlayersDataOnline[playerid][MyPickupZ_Now]  = Garages[h][i][Zg];
+				}
+				else if ( PlayersData[playerid][IsPlayerInHouse] )
+				{
+		            PlayersDataOnline[playerid][MyPickupX]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosXh];
+		            PlayersDataOnline[playerid][MyPickupY]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosYh];
+	    	        PlayersDataOnline[playerid][MyPickupZ]  	= TypeGarage[Garages[h][i][TypeGarageE]][PosZh];
+					PlayersDataOnline[playerid][MyPickupZZ] 	= TypeGarage[Garages[h][i][TypeGarageE]][PosZZh];
+	        	    PlayersDataOnline[playerid][MyPickupInterior] = TypeGarage[Garages[h][i][TypeGarageE]][Interior];
+					PlayersDataOnline[playerid][MyPickupWorld] 	= Garages[h][i][WorldG];
+					PlayersDataOnline[playerid][MyPickupLock]  	= Garages[h][i][LockIn];
+
+		            PlayersDataOnline[playerid][MyPickupX_Now]  = Garages[h][i][XgIn];
+		            PlayersDataOnline[playerid][MyPickupY_Now]  = Garages[h][i][YgIn];
+		            PlayersDataOnline[playerid][MyPickupZ_Now]  = Garages[h][i][ZgIn];
+				}
+	            PlayersDataOnline[playerid][InSpecialAnim]  = GetPlayerSpecialAction(playerid);
+	    	}
+	    }
+	    // GARAGES CASA TIPO
+	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_GARAGE_CASA_TYPE)
+	    {
+	        new i = PickupIndex[pickupid][Tipoid];
+	        new houseid = PlayersData[playerid][IsPlayerInHouse];
+	        
+	        if ( TypeGarage[i][PickupId] == pickupid || TypeGarage[i][PickupIdh] == pickupid )
+            {
+                if ( TypeGarage[i][PickupIdh] == pickupid )
+                {
+		            PlayersDataOnline[playerid][MyPickupX]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][XgIn];
+		            PlayersDataOnline[playerid][MyPickupY]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][YgIn];
+		            PlayersDataOnline[playerid][MyPickupZ]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][ZgIn];
+		            PlayersDataOnline[playerid][MyPickupZZ] 	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][ZZgIn];
+		            PlayersDataOnline[playerid][MyPickupInterior] = TypeHouse[HouseData[houseid][TypeHouseId]][Interior];
+					PlayersDataOnline[playerid][MyPickupWorld] 	= PlayersData[playerid][IsPlayerInHouse];
+					PlayersDataOnline[playerid][MyPickupLock]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][LockIn];
+
+		            PlayersDataOnline[playerid][MyPickupX_Now]  = TypeGarage[i][PosXh];
+		            PlayersDataOnline[playerid][MyPickupY_Now]  = TypeGarage[i][PosYh];
+		            PlayersDataOnline[playerid][MyPickupZ_Now]  = TypeGarage[i][PosZh];
+				}
+				else
+				{
+		            PlayersDataOnline[playerid][MyPickupX]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][Xg];
+		            PlayersDataOnline[playerid][MyPickupY]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][Yg];
+		            PlayersDataOnline[playerid][MyPickupZ]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][Zg];
+		            PlayersDataOnline[playerid][MyPickupZZ] 	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][ZZg];
+		            PlayersDataOnline[playerid][MyPickupInterior] = 0;
+					PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
+					PlayersDataOnline[playerid][MyPickupLock]  	= Garages[houseid][PlayersData[playerid][IsPlayerInGarage]][LockOut];
+
+		            PlayersDataOnline[playerid][MyPickupX_Now]  = TypeGarage[i][PosX];
+		            PlayersDataOnline[playerid][MyPickupY_Now]  = TypeGarage[i][PosY];
+		            PlayersDataOnline[playerid][MyPickupZ_Now]  = TypeGarage[i][PosZ];
+	            }
+	            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
+            }
+	    }
+	    // INFO PICKUPS
+        else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_INFO)
+        {
+            new pickupinfoid = PickupIndex[pickupid][Tipoid];
+            if ( PickupInfo[pickupinfoid][PickupId] == pickupid )
+            {
+	            PlayersDataOnline[playerid][MyPickupX_Now] = PickupInfo[pickupinfoid][PosInfoX];
+	            PlayersDataOnline[playerid][MyPickupY_Now] = PickupInfo[pickupinfoid][PosInfoY];
+	            PlayersDataOnline[playerid][MyPickupZ_Now] = PickupInfo[pickupinfoid][PosInfoZ];
+            }
+        }
+        // GARAGES EX
+        else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_GARAGE_EX)
+        {
+            new gid = PickupIndex[pickupid][Tipoid];
+            
+			if ( GaragesEx[gid][PickupIDOneP] == pickupid || GaragesEx[gid][PickupIDTwoP] == pickupid )
 		    {
-		        if (pickupid == LocalData[i][Pickup])
+		        if ( GaragesEx[gid][PickupIDOneP] == pickupid )
 		        {
-		            PlayersDataOnline[playerid][InLocalPickup] = i;
-		            break;
-		        }
+		            PlayersDataOnline[playerid][MyPickupX]  	= GaragesEx[gid][PosXTwoP];
+		            PlayersDataOnline[playerid][MyPickupY]  	= GaragesEx[gid][PosYTwoP];
+	    	        PlayersDataOnline[playerid][MyPickupZ]  	= GaragesEx[gid][PosZTwoP];
+					PlayersDataOnline[playerid][MyPickupZZ] 	= GaragesEx[gid][PosZZTwoP];
+	        	    PlayersDataOnline[playerid][MyPickupInterior] = 0;
+					PlayersDataOnline[playerid][MyPickupWorld] 	= 0;
+					PlayersDataOnline[playerid][MyPickupLock]  	= GaragesEx[gid][Lock];
+
+		            PlayersDataOnline[playerid][MyPickupX_Now]  = GaragesEx[gid][PosXOneP];
+		            PlayersDataOnline[playerid][MyPickupY_Now]  = GaragesEx[gid][PosYOneP];
+		            PlayersDataOnline[playerid][MyPickupZ_Now]  = GaragesEx[gid][PosZOneP];
+				}
+				else
+				{
+		            PlayersDataOnline[playerid][MyPickupX]  	= GaragesEx[gid][PosXOneP];
+		            PlayersDataOnline[playerid][MyPickupY]  	= GaragesEx[gid][PosYOneP];
+	    	        PlayersDataOnline[playerid][MyPickupZ]  	= GaragesEx[gid][PosZOneP];
+					PlayersDataOnline[playerid][MyPickupZZ] 	= GaragesEx[gid][PosZZOneP];
+	        	    PlayersDataOnline[playerid][MyPickupInterior] = GaragesEx[gid][Interior];
+					PlayersDataOnline[playerid][MyPickupWorld] 	= GaragesEx[gid][World];
+					PlayersDataOnline[playerid][MyPickupLock]  	= GaragesEx[gid][Lock];
+
+		            PlayersDataOnline[playerid][MyPickupX_Now]  = GaragesEx[gid][PosXTwoP];
+		            PlayersDataOnline[playerid][MyPickupY_Now]  = GaragesEx[gid][PosYTwoP];
+		            PlayersDataOnline[playerid][MyPickupZ_Now]  = GaragesEx[gid][PosZTwoP];
+				}
+	            PlayersDataOnline[playerid][InSpecialAnim] = GetPlayerSpecialAction(playerid);
+			}
+		}
+		// LOCALES
+		else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_LOCAL)
+	    {
+	        new localid = PickupIndex[pickupid][Tipoid];
+	        new type = LocalData[localid][Tipo] - 1;
+	        
+	        if (LocalData[localid][Pickup] == pickupid)
+	        {
+	            PlayersDataOnline[playerid][MyPickupX] = LocalTipo[type][PosX];
+	            PlayersDataOnline[playerid][MyPickupY] = LocalTipo[type][PosY];
+    	        PlayersDataOnline[playerid][MyPickupZ] = LocalTipo[type][PosZ];
+				PlayersDataOnline[playerid][MyPickupZZ] = LocalTipo[type][PosZZ];
+        	    PlayersDataOnline[playerid][MyPickupInterior] = LocalTipo[type][Interior];
+				PlayersDataOnline[playerid][MyPickupWorld] = localid+1;
+				PlayersDataOnline[playerid][MyPickupLock] = LocalData[localid][Seguro];
+
+                PlayersDataOnline[playerid][MyPickupX_Now] = LocalData[localid][PosX];
+	            PlayersDataOnline[playerid][MyPickupY_Now] = LocalData[localid][PosY];
+	            PlayersDataOnline[playerid][MyPickupZ_Now] = LocalData[localid][PosZ];
+	            
+	            PlayersDataOnline[playerid][InPickupLocal] = localid;
 		    }
 	    }
+	    // LOCALES TIPO
+		else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_LOCAL_TYPE)
+		{
+		    new type = PickupIndex[pickupid][Tipoid];
+		    new localid = PlayersData[playerid][InLocal];
+		    
+		    if (LocalTipo[type][Pickup] == pickupid)
+	        {
+	            PlayersDataOnline[playerid][MyPickupX] = LocalData[localid][PosX];
+	            PlayersDataOnline[playerid][MyPickupY] = LocalData[localid][PosY];
+    	        PlayersDataOnline[playerid][MyPickupZ] = LocalData[localid][PosZ];
+				PlayersDataOnline[playerid][MyPickupZZ] = LocalData[localid][PosZZ];
+        	    PlayersDataOnline[playerid][MyPickupInterior] = 0;
+				PlayersDataOnline[playerid][MyPickupWorld] = WORLD_NORMAL;
+				PlayersDataOnline[playerid][MyPickupLock] = LocalData[localid][Seguro];
+
+	            PlayersDataOnline[playerid][MyPickupX_Now] = LocalTipo[type][PosX];
+	            PlayersDataOnline[playerid][MyPickupY_Now] = LocalTipo[type][PosY];
+	            PlayersDataOnline[playerid][MyPickupZ_Now] = LocalTipo[type][PosZ];
+		    }
+		}
 	}
 	return 1;
 }
-*/
+
 public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 {
 
@@ -27524,7 +27617,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
 	/*
 	 16 - 1	= Enter 			- Entrar a un coche
-	  2 	= C       			- Agacharse
+	  2 	= C/H Mayuscula     - Agacharse / Bocina
 	 32 	= CONTROL 			- Saltar
 	  8 	= SHIFT Y ESPACIO	- Correr
 	  4     = Click izquierdo (MAYUS)  - Golpear, acciones
@@ -27543,238 +27636,46 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	{
 		if (newkeys == 16 || newkeys == 8192)
 		{
-			if(PlayersDataOnline[playerid][InPickup] != -1)
+			if( PlayersDataOnline[playerid][InPickup] )
 			{
-			    if (PlayersDataOnline[playerid][InPickupTele])
+		    	if (!IsPlayerInPickup(playerid)) return 1;
+			    if (IsPlayerInAnyVehicle(playerid)) return 1;
+
+				if ( PlayersData[playerid][IsPlayerInVehInt] )
 			    {
-			        if ( !IsPlayerInAnyVehicle(playerid) && IsPlayerInRangeOfPoint(playerid, 2.0, PlayersDataOnline[playerid][MyPickupX_Now], PlayersDataOnline[playerid][MyPickupY_Now], PlayersDataOnline[playerid][MyPickupZ_Now]))
-			        {
-			            if ( !PlayersDataOnline[playerid][MyPickupLock] || PlayersDataOnline[playerid][AdminOn] &&  PlayersData[playerid][Admin] >= 4 )
-			            {
-						    TextDrawHideForPlayer(playerid, PlayersDataOnline[playerid][MyTextDrawShow]);
-					        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-					             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] ||
-								 Teles[PickUpAlambraAndJizzy[0]][PickupIDGo] == PlayersDataOnline[playerid][InPickup] ||
-								 Teles[PickUpAlambraAndJizzy[1]][PickupIDGo] == PlayersDataOnline[playerid][InPickup] )
-					        {
-								if (PlayersData[playerid][Dinero] >= NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PriceJoin] )
-								{
-								    NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] = NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] + NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PriceJoin];
-								    GivePlayerMoneyEx(playerid, -NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PriceJoin]);
-
-							        SetFunctionsForBizz(playerid, NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Type]);
-							        PlayersData[playerid][IsPlayerInBizz] = PlayersDataOnline[playerid][MyPickupWorld];
-								}
-								else
-								{
-									SendInfoMessage(playerid, 0, "295", "No tienes suficiente dinero para entrar a este negocio");
-									return 1;
-								}
-					        }
-							else if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-					  				  PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
-					        {
-								PlayersData[playerid][IsPlayerInHouse] = PlayersDataOnline[playerid][MyPickupWorld];
-                                OnPlayerEnterInHouse(playerid);
-					        }
-					        // GARAGES TYPE
-					        else if ( PlayersDataOnline[playerid][InPickup] >= TypeGarage[0][PickupId] &&
-					             	  PlayersDataOnline[playerid][InPickup] <= TypeGarage[MAX_GARAGE_TYPE][PickupIdh] &&
-									  PlayersDataOnline[playerid][MyPickupWorld] )
-					        {
-   					            PlayersData[playerid][IsPlayerInHouse] = PlayersDataOnline[playerid][MyPickupWorld];
-					            if ( IsGarageToHouse(playerid, PlayersDataOnline[playerid][InPickup]) )
-					            {
-                                	PlayersData[playerid][IsPlayerInGarage] =  -1;
-                               	}
-                               	else
-                               	{
-                                	PlayersData[playerid][IsPlayerInGarage] =  PlayersData[playerid][IsPlayerInGarage] + 50;
-								}
-
-					        }
-					        else if ( PlayersDataOnline[playerid][InPickup] >= MIN_GARAGE_PICKUP &&
-					             	  PlayersDataOnline[playerid][InPickup] <= MAX_GARAGE_PICKUP )
-					        {
-					            PlayersData[playerid][IsPlayerInHouse] 	= PlayersDataOnline[playerid][InPickupTele];
-                                PlayersData[playerid][IsPlayerInGarage] =  PlayersData[playerid][IsPlayerInGarage] + 50;
-                                if ( Garages[PlayersData[playerid][IsPlayerInHouse]][PlayersData[playerid][IsPlayerInGarage]][PickupidIn] != PlayersDataOnline[playerid][InPickup] )
-                                {
-									OnPlayerEnterInHouse(playerid);
-								}
-					        }
-					        else if ( PlayersDataOnline[playerid][InPickup] == BANCO_PICKUPID_out )
-					        {
-								PlayersData[playerid][IsPlayerInBank] = true;
-							}
-							else if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out ||
-									  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[0] ||
-									  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[1] ||
-									  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[2] ||
-									  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[3] ||
-									  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[4] ||
-									  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[5] ||
-									  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[6]
-									 )
-							{
-								if (PlayersData[playerid][Dinero] >= 40 )
-								{
-									FaccionData[GOBIERNO][Deposito] = FaccionData[GOBIERNO][Deposito] + 40;
-									GivePlayerMoneyEx(playerid, -40);
-									if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out )
-									{
-										PlayersDataOnline[playerid][IsPlayerInHotel] = true;
-									}
-								}
-								else
-								{
-									SendInfoMessage(playerid, 0, "870", "No tienes suficiente dinero para entrar a está instalación del Gobierno!");
-									return 1;
-								}
-							}
-					        else
-					        {
-						        DisablePlayerCheckpoint(playerid);
-						        PlayersData[playerid][IsPlayerInHouse] 		= false;
-						        PlayersData[playerid][IsPlayerInBizz] 		= false;
-								PlayersData[playerid][IsPlayerInBank] = false;
-								PlayersDataOnline[playerid][IsPlayerInHotel]= false;
-								PlayersData[playerid][IsPlayerInGarage] 	= -1;
-								OnPlayerExitHouse(playerid);
-
-							}
-							new InterioridTele = PlayersDataOnline[playerid][MyPickupInterior];
-							new WorldTele = PlayersDataOnline[playerid][MyPickupWorld];
-							SetPlayerInteriorEx(playerid, InterioridTele);
-							SetPlayerVirtualWorldEx(playerid, WorldTele);
-						    SetPlayerPos(playerid, PlayersDataOnline[playerid][MyPickupX], PlayersDataOnline[playerid][MyPickupY], PlayersDataOnline[playerid][MyPickupZ]);
-							SetPlayerFacingAngle(playerid, PlayersDataOnline[playerid][MyPickupZZ]);
-							SetCameraBehindPlayer(playerid);
-
-			                if ( PlayersData[playerid][IsPlayerInVehInt] )
-			                {
-			                    PlayersData[playerid][IsPlayerInVehInt] = WorldTele;
-			                }
-
-							if(PlayersDataOnline[playerid][IsEspectando])
-							{
-								UpdateSpectatedPlayers(playerid, false, InterioridTele, WorldTele);
-							}
-							if ( newkeys == 8192 )
-							{
-								SetPlayerSpecialAction(playerid, 0);
-						    	ClearAnimations(playerid, true);
-								SetPlayerSpecialAction(playerid, PlayersDataOnline[playerid][InSpecialAnim]);
-							}
-						}
-						else
-						{
-							GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
-						}
-					}
-			    }
-			    //Locales
-			    else if (PlayersDataOnline[playerid][InLocalPickup] != -1)
-			    {
-			        new localID = PlayersDataOnline[playerid][InLocalPickup];
-			        if (!IsPlayerInAnyVehicle(playerid) && IsPlayerInRangeOfPoint(playerid, 2.0, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ]))
-			        {
-			            if (LocalData[localID][Seguro] && !PlayersDataOnline[playerid][AdminOn]) return GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
-			            if (LocalData[localID][PrecioEntrada] > PlayersData[playerid][Dinero] ) return SendInfoMessage(playerid, 0, "", "No tiene suficiente dinero para entrar a este local.");
-			            new type = LocalData[localID][Tipo] - 1;
-			            
-			            //LocalData[localID][]
-			            //LocalTipo[type][]
-			            SetPlayerInteriorEx(playerid, LocalTipo[type][Interior]);
-			            SetPlayerVirtualWorldEx(playerid, localID+1);
-			            SetPlayerPos(playerid, LocalTipo[type][PosX], LocalTipo[type][PosY], LocalTipo[type][PosZ]);
-			            SetPlayerFacingAngle(playerid, LocalTipo[type][PosZZ]);
-			            GivePlayerMoneyEx(playerid, -LocalData[localID][PrecioEntrada]);
-			            
-			            PlayersData[playerid][InLocal] = PlayersDataOnline[playerid][InLocalPickup];
-					    DisablePlayerCheckpoint(playerid);
-				        PlayersData[playerid][IsPlayerInHouse] 		= false;
-				        PlayersData[playerid][IsPlayerInBizz] 		= false;
-						PlayersData[playerid][IsPlayerInBank] = false;
-						PlayersDataOnline[playerid][IsPlayerInHotel]= false;
-						PlayersData[playerid][IsPlayerInGarage] 	= -1;
-						OnPlayerExitHouse(playerid);
-			            /*
-			            else
-						{
-							GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
-						}
-						*/
-			        }
-			    }
-			    //Locales Tipo	    
-			    else if (PlayersDataOnline[playerid][InPickup] >= LocalTipo[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalTipo[MAX_LOCAL_TYPE_COUNT-1][Pickup])
-			    {
-			        for(new i=0; i != MAX_LOCAL_TYPE_COUNT; i++)
-				    {
-				        if (PlayersDataOnline[playerid][InPickup] == LocalTipo[i][Pickup])
-				        {
-				            new localID = PlayersData[playerid][InLocal];
-				            if (localID != -1)
-				            {
-				                if (!IsPlayerInAnyVehicle(playerid) && IsPlayerInRangeOfPoint(playerid, 2.0, LocalTipo[i][PosX], LocalTipo[i][PosY], LocalTipo[i][PosZ]))
-				                {
-				                    if (LocalData[localID][Seguro] && !PlayersDataOnline[playerid][AdminOn]) return GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
-
-					                SetPlayerPos(playerid, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ]);
-						            SetPlayerFacingAngle(playerid, LocalData[localID][PosZZ]);
-						            SetPlayerInteriorEx(playerid, 0);
-						            SetPlayerVirtualWorldEx(playerid, WORLD_NORMAL);
-
-						            PlayersData[playerid][InLocal] = -1;
-								    DisablePlayerCheckpoint(playerid);
-							        PlayersData[playerid][IsPlayerInHouse] 		= false;
-							        PlayersData[playerid][IsPlayerInBizz] 		= false;
-									PlayersData[playerid][IsPlayerInBank] = false;
-									PlayersDataOnline[playerid][IsPlayerInHotel]= false;
-									PlayersData[playerid][IsPlayerInGarage] 	= -1;
-									OnPlayerExitHouse(playerid);
-				                }
-				            }
-				            break;
-				        }
-				    }
-			    }
-			    else if ( PlayersData[playerid][IsPlayerInVehInt] )
-			    {
-			        if ( TextDrawInfo[PickupidAmbulance][PickupidTextInfo] == PlayersDataOnline[playerid][InPickup] ||
-						  TextDrawInfo[PickupidFurgoCNN][PickupidTextInfo] == PlayersDataOnline[playerid][InPickup] ||
-						  TextDrawInfo[PickupidPoliceFurgo][PickupidTextInfo] == PlayersDataOnline[playerid][InPickup] ||
-						  TextDrawInfo[PickupExitVagones[0]][PickupidTextInfo] == PlayersDataOnline[playerid][InPickup] ||
-						  TextDrawInfo[PickupExitVagones[1]][PickupidTextInfo] == PlayersDataOnline[playerid][InPickup] ||
-						  TextDrawInfo[PickupExitVagones[2]][PickupidTextInfo] == PlayersDataOnline[playerid][InPickup] )
+			        if ( PickupInfo[PickupidAmbulance][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+					  	 PickupInfo[PickupidFurgoCNN][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+						 PickupInfo[PickupidPoliceFurgo][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+						 PickupInfo[PickupExitVagones[0]][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+						 PickupInfo[PickupExitVagones[1]][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+						 PickupInfo[PickupExitVagones[2]][PickupId] == PlayersDataOnline[playerid][InPickup] )
 					{
-			            new WorldTele = PlayersData[playerid][IsPlayerInVehInt];
+			            new vehicleid = PlayersData[playerid][IsPlayerInVehInt];
 				        if ( GetPlayerVirtualWorld(playerid) > 0 && GetPlayerVirtualWorld(playerid) <= MAX_CAR)
 				        {
-				            if ( !DataCars[WorldTele][Lock] )
+				            if ( !DataCars[vehicleid][Lock] )
 				            {
 					            PlayersData[playerid][IsPlayerInVehInt] = false;
-					            SetPlayerInteriorEx(playerid, DataCars[WorldTele][InteriorLast]);
-								SetPlayerVirtualWorldEx(playerid, DataCars[WorldTele][WorldLast]);
-								if ( GetVehicleVirtualWorld(WorldTele) != 999 )
+					            SetPlayerInteriorEx(playerid, DataCars[vehicleid][InteriorLast]);
+								SetPlayerVirtualWorldEx(playerid, DataCars[vehicleid][WorldLast]);
+								if ( GetVehicleVirtualWorld(vehicleid) != 999 )
 								{
-								    if ( coches_Todos_Type[GetVehicleModel(WorldTele) - 400] == TREN )
+								    if ( coches_Todos_Type[GetVehicleModel(vehicleid) - 400] == TREN )
 								    {
-								        new Float:VehiclePos[3]; GetVehiclePos(WorldTele, VehiclePos[0], VehiclePos[1], VehiclePos[2]);
+								        new Float:VehiclePos[3]; GetVehiclePos(vehicleid, VehiclePos[0], VehiclePos[1], VehiclePos[2]);
 										SetPlayerPos(playerid, VehiclePos[0] + 2, VehiclePos[1] + 2, VehiclePos[2]);
 						            }
 						            else
 						            {
 							            PlayersDataOnline[playerid][ExitedVehicle] = true;
-										PutPlayerInVehicle(playerid, WorldTele, 2);
+										PutPlayerInVehicle(playerid, vehicleid, 2);
 										RemovePlayerFromVehicle(playerid);
 							            SetTimerEx("PlayerRestoreVarExitedVehicle", 1000, false, "d", playerid);
 									}
 								}
 								else
 								{
-								    SetPlayerPos(playerid, DataCars[WorldTele][PosX], DataCars[WorldTele][PosY], DataCars[WorldTele][PosZ]);
+								    SetPlayerPos(playerid, DataCars[vehicleid][PosX], DataCars[vehicleid][PosY], DataCars[vehicleid][PosZ]);
 								}
 							}
 							else
@@ -27783,6 +27684,123 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 							}
 						}
 					}
+					return 1;
+				}
+				
+	            if ( PlayersDataOnline[playerid][MyPickupLock] && (!PlayersDataOnline[playerid][AdminOn] || PlayersData[playerid][Admin] < 4) ) return GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
+
+			    // NEGOCIOS
+		        if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_NEGOCIO ||
+					Teles[PickUpAlambraAndJizzy[0]][PickupID] == PlayersDataOnline[playerid][InPickup] ||
+					Teles[PickUpAlambraAndJizzy[1]][PickupID] == PlayersDataOnline[playerid][InPickup] )
+				{
+				    new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+				    if (PlayersData[playerid][Dinero] >= NegociosData[bizzid][PriceJoin] )
+					{
+					    NegociosData[bizzid][Deposito] = NegociosData[bizzid][Deposito] + NegociosData[bizzid][PriceJoin];
+					    GivePlayerMoneyEx(playerid, -NegociosData[bizzid][PriceJoin]);
+
+				        SetFunctionsForBizz(playerid, NegociosData[bizzid][Type]);
+				        PlayersData[playerid][IsPlayerInBizz] = bizzid;
+					}
+					else
+					{
+						SendInfoMessage(playerid, 0, "295", "No tienes suficiente dinero para entrar a este negocio");
+						return 1;
+					}
+				}
+				else if ( PlayersDataOnline[playerid][InPickup] == BANCO_PICKUPID_out )
+		        {
+					PlayersData[playerid][IsPlayerInBank] = true;
+				}
+				else if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out ||
+						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[0] ||
+						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[1] ||
+						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[2] ||
+						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[3] ||
+						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[4] ||
+						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[5] ||
+						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[6] )
+				{
+					if (PlayersData[playerid][Dinero] >= 40 )
+					{
+						FaccionData[GOBIERNO][Deposito] = FaccionData[GOBIERNO][Deposito] + 40;
+						GivePlayerMoneyEx(playerid, -40);
+						if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out )
+						{
+							PlayersDataOnline[playerid][IsPlayerInHotel] = true;
+						}
+					}
+					else
+					{
+						SendInfoMessage(playerid, 0, "870", "No tienes suficiente dinero para entrar a está instalación del Gobierno!");
+						return 1;
+					}
+				}
+				// CASAS
+				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_CASA)
+				{
+				    PlayersData[playerid][IsPlayerInHouse] = PlayersDataOnline[playerid][InPickupCasa];
+                    OnPlayerEnterInHouse(playerid);
+				}
+				// CASAS GARAGE
+				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA)
+				{
+				    PlayersData[playerid][IsPlayerInGarage] = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
+				    PlayersData[playerid][IsPlayerInHouse] = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoidextra];
+				    OnPlayerEnterInHouse(playerid);
+				}
+				// CASAS GARAGE TIPO
+				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA_TYPE)
+				{
+				    new tipoid = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
+
+				    if ( PlayersDataOnline[playerid][InPickup] == TypeGarage[tipoid][PickupId])
+					{
+						PlayersData[playerid][IsPlayerInHouse] = 0;
+						OnPlayerExitHouse(playerid);
+				    }
+					PlayersData[playerid][IsPlayerInGarage] = -1;
+				}
+				// LOCALES
+				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_LOCAL )
+				{
+				    new localID = PlayersDataOnline[playerid][InPickupLocal];
+				    if (LocalData[localID][PrecioEntrada] > PlayersData[playerid][Dinero]) return SendInfoMessage(playerid, 0, "", "No tiene suficiente dinero para entrar a este local.");
+				    
+				    GivePlayerMoneyEx(playerid, -LocalData[localID][PrecioEntrada]);
+			        LocalData[localID][Deposito] += LocalData[localID][PrecioEntrada];
+				    
+				    PlayersData[playerid][InLocal] = localID;
+				}
+		        else
+		        {
+			        DisablePlayerCheckpoint(playerid);
+			        PlayersData[playerid][IsPlayerInHouse] = false;
+					PlayersData[playerid][IsPlayerInGarage] = -1;
+			        PlayersData[playerid][IsPlayerInBizz] = false;
+					PlayersData[playerid][IsPlayerInBank] = false;
+					PlayersDataOnline[playerid][IsPlayerInHotel] = false;
+					PlayersData[playerid][InLocal] = -1;
+					OnPlayerExitHouse(playerid);
+				}
+				new InterioridTele = PlayersDataOnline[playerid][MyPickupInterior];
+				new WorldTele = PlayersDataOnline[playerid][MyPickupWorld];
+				SetPlayerInteriorEx(playerid, InterioridTele);
+				SetPlayerVirtualWorldEx(playerid, WorldTele);
+			    SetPlayerPos(playerid, PlayersDataOnline[playerid][MyPickupX], PlayersDataOnline[playerid][MyPickupY], PlayersDataOnline[playerid][MyPickupZ]);
+				SetPlayerFacingAngle(playerid, PlayersDataOnline[playerid][MyPickupZZ]);
+				SetCameraBehindPlayer(playerid);
+
+				if(PlayersDataOnline[playerid][IsEspectando])
+				{
+					UpdateSpectatedPlayers(playerid, false, InterioridTele, WorldTele);
+				}
+				if ( newkeys == 8192 )
+				{
+					SetPlayerSpecialAction(playerid, 0);
+			    	ClearAnimations(playerid, true);
+					SetPlayerSpecialAction(playerid, PlayersDataOnline[playerid][InSpecialAnim]);
 				}
 			}
 			else if ( PlayersDataOnline[playerid][InAnim] )
@@ -27859,10 +27877,6 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				"CAR",
 				CAR_ANIMATIONS[4], false);
 		    }
-			/*if ( !PlayersDataOnline[playerid][ModeDM] )
-			{
-				CheckWeapondCheat(playerid);
-			}*/
 			NextPlayerSpect(playerid);
 		}
 		else if ( newkeys == 2048 )
@@ -27913,10 +27927,14 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 			}
 			else if ( PlayersDataOnline[playerid][InCarId] && IsPlayerInVehicle(playerid, PlayersDataOnline[playerid][InCarId])  && GetPlayerVehicleSeat(playerid) == 0  )
 			{
-				GetMyNearDoor(playerid, true, false);
-				if ( !IsPlayerNearGarage(GetPlayerVehicleID(playerid), playerid) )
-				{
-					IsPlayerNearGarageEx(GetPlayerVehicleID(playerid), playerid);
+                new Float:Speed[3]; GetVehicleVelocity(GetPlayerVehicleID(playerid), Speed[0], Speed[1], Speed[2]);
+			    if (Speed[0] == 0.0 && Speed[1] == 0.0 && Speed[2] == 0.0 )
+                {
+                    GetMyNearDoor(playerid, true, false);
+					if ( !IsPlayerNearGarage(GetPlayerVehicleID(playerid), playerid) )
+					{
+						IsPlayerNearGarageEx(GetPlayerVehicleID(playerid), playerid);
+					}
 				}
 			}
 		}
@@ -28112,8 +28130,11 @@ public OnPlayerUpdate(playerid)
 		{
 			SetPlayerArmedWeapon(playerid, 0);
 		}
-        //////////////// Check TextDraws Teles
-		HideTextDrawsTelesAndInfo(playerid);
+		
+		if ( PlayersDataOnline[playerid][InPickup] )
+		{
+		    IsPlayerInPickup(playerid);
+		}
 
         //////////////// Jail
 		if ( PlayersData[playerid][IsInJail] != -1 && PlayersData[playerid][Jail] <= MyTime )
@@ -31906,7 +31927,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				SendClientMessageToAll(COLOR_MESSAGES[2], ReasonClose);
 			   	SendClientMessageToAll(0x000000FF, " ");
 				SendClientMessageToAll(COLOR_MESSAGES[2], "{E6E6E6}Saludos Cordiales,");
-				SendClientMessageToAll(COLOR_MESSAGES[2], "{E6E6E6}Equipo de Un Player.");
+				SendClientMessageToAll(COLOR_MESSAGES[2], "{E6E6E6}Equipo de Old Player.");
 				GameTextForAll( "~R~Servidor Cerrado...", 6000, 0);
 				SendRconCommand("exit");
 			}
@@ -32464,13 +32485,13 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		{
 		    if (response)
 		    {
-		        if (RemoveLocalKey(PlayersDataOnline[playerid][InLocalPickup], listitem))
+		        if (RemoveLocalKey(PlayersDataOnline[playerid][InPickupLocal], listitem))
 		        {
 		            new string[150];
-		            format(string, sizeof(string), "Le quitaste las llaves de tu local a %s", LocalKeys[PlayersDataOnline[playerid][InLocalPickup]][listitem]);
+		            format(string, sizeof(string), "Le quitaste las llaves de tu local a %s", LocalKeys[PlayersDataOnline[playerid][InPickupLocal]][listitem]);
 		            SendInfoMessage(playerid, 3, "", string);
 		        }
-		        ShowLocalKeys(playerid, PlayersDataOnline[playerid][InLocalPickup]);
+		        ShowLocalKeys(playerid, PlayersDataOnline[playerid][InPickupLocal]);
 		    }
 		}
 	}
@@ -32719,7 +32740,7 @@ public DataUserClean(playerid)
 	PlayersData[playerid][IntermitentState]= false;
 	PlayersData[playerid][MyStyleTalk]		= 0;
 	PlayersData[playerid][IsPlayerInBizz]	= false;
-	PlayersData[playerid][IsPlayerInGarage]	= 0;
+	PlayersData[playerid][IsPlayerInGarage]	= -1;
 
     PlayersData[playerid][WeaponS][0] 	= 0;
     PlayersData[playerid][WeaponS][1] 	= 0;
@@ -32821,6 +32842,7 @@ public DataUserClean(playerid)
 	PlayersData[playerid][Ayudante] = 0;
 	PlayersData[playerid][Local] = -1;
 	PlayersData[playerid][InLocal] = -1;
+	PlayersData[playerid][Mapper] = 0;
 
 
     // DATA USERS ONLINE
@@ -32839,9 +32861,12 @@ public DataUserClean(playerid)
 	PlayersDataOnline[playerid][CallTime]		  	= true;
 	PlayersDataOnline[playerid][StateJob] 			= false;
 	PlayersDataOnline[playerid][Paga] 				= false;
-	PlayersDataOnline[playerid][InPickup] 			= -1;
-	PlayersDataOnline[playerid][InPickupTele]		= false;
-	PlayersDataOnline[playerid][InPickupInfo]		= false;
+	PlayersDataOnline[playerid][InPickup] 			= 0;
+	PlayersDataOnline[playerid][InPickupFaccion]    = 0;
+	PlayersDataOnline[playerid][InPickupTele]		= -1;
+	PlayersDataOnline[playerid][InPickupNegocio]	= 0;
+	PlayersDataOnline[playerid][InPickupCasa]		= 0;
+	PlayersDataOnline[playerid][InPickupLocal]		= -1;
 	PlayersDataOnline[playerid][MyPickupX] 			= 0;
 	PlayersDataOnline[playerid][MyPickupY] 			= 0;
 	PlayersDataOnline[playerid][MyPickupZ] 			= 0;
@@ -33105,6 +33130,9 @@ public DataUserLoad(playerid)
 		cache_get_value_name_int(0, "ObjetosVision8", PlayersData[playerid][ObjetosVision][8]);
 		cache_get_value_name_int(0, "TypePhone", PlayersData[playerid][TypePhone]);
 		cache_get_value_name_int(0, "Ayudante", PlayersData[playerid][Ayudante]);
+		cache_get_value_name_int(0, "Local", PlayersData[playerid][Local]);
+		cache_get_value_name_int(0, "InLocal", PlayersData[playerid][InLocal]);
+		cache_get_value_name_int(0, "Mapper", PlayersData[playerid][Mapper]);
 
 		new SplitPos[2] = {0,0};
 		new GetAWeaponsData[13][10];
@@ -33267,7 +33295,7 @@ public DataUserSave(playerid)
 	strcat(query, "`CarteraI2`='%i',`CarteraI3`='%i',`CarteraI4`='%i',`CarteraI5`='%i',`IsPlayerInBank`='%i',`AlertSMSBank`='%i',`HorasWork`='%i',`CameraLogin`='%i',`Enfermedad`='%i',`Description`='%i',");
 	strcat(query, "`EnableDescription`='%i',`DescriptionString`='%e',`DescriptionColor`='%i',`DescriptionSelect`='%i',`SpawnFac`='%i',`WantAudio`='%i',`Objetos0`='%i',`Objetos1`='%i',`Objetos2`='%i',`Objetos3`='%i',");
 	strcat(query, "`Objetos4`='%i',`Objetos5`='%i',`Objetos6`='%i',`Objetos7`='%i',`Objetos8`='%i',`ObjetosVision0`='%i',`ObjetosVision1`='%i',`ObjetosVision2`='%i',`ObjetosVision3`='%i',`ObjetosVision4`='%i',");
-	strcat(query, "`ObjetosVision5`='%i',`ObjetosVision6`='%i',`ObjetosVision7`='%i',`ObjetosVision8`='%i',`TypePhone`='%i',`Ayudante`='%i'");
+	strcat(query, "`ObjetosVision5`='%i',`ObjetosVision6`='%i',`ObjetosVision7`='%i',`ObjetosVision8`='%i',`TypePhone`='%i',`Ayudante`='%i',`Local`='%i',`InLocal`='%i',`Mapper`='%i'");
 	strcat(query, " WHERE `ID`='%i';");
 
 	mysql_format(dataBase, query, 2000, query,
@@ -33354,6 +33382,9 @@ public DataUserSave(playerid)
 		PlayersData[playerid][ObjetosVision][8],
 		PlayersData[playerid][TypePhone],
 		PlayersData[playerid][Ayudante],
+		PlayersData[playerid][Local],
+		PlayersData[playerid][InLocal],
+		PlayersData[playerid][Mapper],
 
   		playerDBID
 	);
@@ -33485,26 +33516,9 @@ public LoadDataFaccion(faccionid)
 	FaccionData[faccionid][Bombas][0]    = strval(FaccionDataSlots[59]);
 	FaccionData[faccionid][Bombas][1]    = strval(FaccionDataSlots[60]);
 
-	new ActTextDraw[150];
-	if ( strlen(FaccionData[faccionid][Lider]) > 2 )
-	{
-	    format(ActTextDraw, sizeof(ActTextDraw), "~B~Lugar: ~W~%s ~N~~G~Propietario: ~W~%s", FaccionData[faccionid][NameFaccion], FaccionData[faccionid][Lider]);
-	}
-	else
-	{
-	    format(ActTextDraw, sizeof(ActTextDraw), "~B~Lugar: ~W~%s ~N~~G~Propietario: ~W~Nadie", FaccionData[faccionid][NameFaccion]);
-	}
-
-	LoadPickupsMisc();
-	LoadPickupsAlmacenes();
-
-	FaccionTextDraws[faccionid] = TextDrawCreateEx(200.0, 380.0, ActTextDraw);
-	TextDrawUseBox(FaccionTextDraws[faccionid], 1);
-	TextDrawBackgroundColor(FaccionTextDraws[faccionid] ,0x000000FF);
-	TextDrawBoxColor(FaccionTextDraws[faccionid], 0x00000066);
-	TextDrawTextSize(FaccionTextDraws[faccionid], 350.0, 380.0);
-	TextDrawSetShadow(FaccionTextDraws[faccionid], 1);
-	TextDrawLetterSize(FaccionTextDraws[faccionid], 0.5 , 1.2);
+	UpdateFaccionTextLabel(faccionid, false);
+	
+	LoadPickupsAlmacenes(faccionid);
 }
 
 public SaveDataFaccion(faccionid)
@@ -34208,21 +34222,6 @@ public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, String
 			PlayersData[playeridAC][IsInJail] = 2;
 			SetPlayerJail(playeridAC);
         }
-        // 		/KICK [ID] [Razón]				- Kikear a un jugador
-        case 7:
-        {
-			new StringFormat[250];
-			new StringFormatEX[100];
-			format(StringFormat, sizeof(StringFormat), "%s Han kickeado a %s por %s. Razón: %s",LOGO_STAFF, PlayersDataOnline[playeridAC][NameOnline], PlayersDataOnline[playerid][NameOnline], String);
-			format(StringFormatEX, sizeof(StringFormatEX), "%s Has kickeado a %s[%i].",LOGO_STAFF, PlayersDataOnline[playeridAC][NameOnline], playeridAC);
-            MsgKBJWReportsToAdmins(playeridAC, StringFormat);
-            SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, StringFormatEX);
-
-			print(StringFormat);
-			KickEx(playeridAC, 6);
-
-            return 1;
-        }
 		//		/BAN [ID] [Razón]				- Banear a un jugador
         case 8:
         {
@@ -34365,37 +34364,6 @@ public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, String
 			{
 				RemoveObjectHoldToPlayer(playeridAC, -1, HaveTaser);
 			}
-
-            return 1;
-		}
-		//		/PARAR[ID]                     - Freezar a un jugador
-		case 13:
-		{ // 01 = Congelar
-		  // 02 = Descongelar
-
-			new StringFormat[120];
-			new StringFormatEX[100];
-
-			if (Cantidad_o_Tipo == 1)
-			{
-				format(StringFormat, sizeof(StringFormat), "%s %s Te ha congelado.",LOGO_STAFF, PlayersDataOnline[playerid][NameOnline]);
-				format(StringFormatEX, sizeof(StringFormatEX), "%s Has congelado a %s [%i]",LOGO_STAFF, PlayersDataOnline[playeridAC][NameOnline], playeridAC);
-
-				PlayersDataOnline[playeridAC][Freeze] = false;
-		        TogglePlayerControllableEx(playeridAC, 0);
-                SetPlayerArmedWeapon(playeridAC, 0);
-		    }
-		    else if ( Cantidad_o_Tipo == 2 )
-		    {
-				format(StringFormat, sizeof(StringFormat), "%s %s te ha descongelado.",LOGO_STAFF, PlayersDataOnline[playerid][NameOnline]);
-				format(StringFormatEX, sizeof(StringFormatEX), "%s Has descongelado a %s [%i]",LOGO_STAFF, PlayersDataOnline[playeridAC][NameOnline], playeridAC);
-
-				PlayersDataOnline[playeridAC][Freeze] = true;
-            	TogglePlayerControllableEx(playeridAC, 1);
-            }
-
-            SendClientMessage(playeridAC, COLOR_MENSAJES_DE_AVISOS, StringFormat);
-            SendClientMessage(playerid, COLOR_MENSAJES_DE_AVISOS, StringFormatEX);
 
             return 1;
 		}
@@ -34793,9 +34761,10 @@ public MostrarHora(Accion ,playerid)
 	getdate(Ano, Mes, Dia);
 	Mes--;
 
+	new FechaHoraFormateada[150];
+	
 	if ( Accion == 0 )
 	{
-	    new FechaHoraFormateada[90];
 	    if ( PlayersData[playerid][Jail] == 0 )
 	    {
 			format(FechaHoraFormateada, sizeof(FechaHoraFormateada), "~W~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
@@ -34809,11 +34778,10 @@ public MostrarHora(Accion ,playerid)
 	}
 	else if ( Accion == 1 )
 	{
-	    new MostrarHoraText[90];
 		if (Bonus)
-		format(MostrarHoraText, sizeof(MostrarHoraText), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i~N~~p~¡~r~B~g~O~b~N~r~U~b~S~p~!", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
-	    else
-	    format(MostrarHoraText, sizeof(MostrarHoraText), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
+		format(FechaHoraFormateada, sizeof(FechaHoraFormateada), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i~N~~p~¡~r~B~g~O~b~N~r~U~b~S~p~!", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
+     	else
+	    format(FechaHoraFormateada, sizeof(FechaHoraFormateada), "~W~Hora de la Paga!~N~%i ~B~%s ~W~%i ~N~Son las %i~R~:~W~%i~R~:~W~%i", Dia, Meses[Mes], Ano, Hora, Minutos, Segundos);
 		new MensajeBanco[5][70];
 		new Intereses;
 		new TimeNow = gettime();
@@ -34823,7 +34791,7 @@ public MostrarHora(Accion ,playerid)
 	    {
 			if ( IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && ((TimeNow - PlayersDataOnline[i][IsPagaO]) + PlayersData[i][IsPaga]) > 1200)
 			{
-			    GameTextForPlayer(i, MostrarHoraText, 6000, 1);
+			    GameTextForPlayer(i, FechaHoraFormateada, 6000, 1);
 			
 			    Intereses = PlayersData[i][Banco] / 2000;
 
@@ -35338,7 +35306,17 @@ public AparcarVehicle(playerid, vehicleid)
 }
 public LockVehicle(playerid)
 {
-	new MyNearCar = IsPlayerInNearVehicle(playerid);
+    new MyNearCar;
+    if (!PlayersData[playerid][IsPlayerInVehInt])
+    {
+		MyNearCar = IsPlayerInNearVehicle(playerid);
+	}
+	else if (PickupInfo[PickupidAmbulance][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+			 PickupInfo[PickupidFurgoCNN][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+			 PickupInfo[PickupidPoliceFurgo][PickupId] == PlayersDataOnline[playerid][InPickup])
+	{
+		MyNearCar = PlayersData[playerid][IsPlayerInVehInt];
+	}
 	if ( MyNearCar )
 	{
 		if (IsVehicleMyVehicle(playerid, MyNearCar) ||
@@ -45239,7 +45217,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1486,2641.3386230469,1888.6214599609,18.790573120117,0,0,0,-1, 3, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1955,2641.8837890625,1888.9328613281,18.657318115234,0,0,237.75723266602,-1, 3, -1, MAX_RADIO_STREAM);
 
-// AMBULANCE INTERIOR
+// AMBULANCIAS INTERIOR
 	CreateDynamicObjectExULP(18082,2453.443359375,1845.6177978516,17.58194732666,0,0,0,-1, 3, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(18082,2451.1811523438,1850.7144775391,16.071947097778,0,0,180,-1, 3, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(18082,2450.9826660156,1850.8326416016,16.871946334839,0,0,179.9945068359,-1, 3, -1, MAX_RADIO_STREAM);
@@ -48248,3785 +48226,3785 @@ public LoadStaticObjects()
 public LoadTelesPublics()
 {
 	/////////////////////////////////////////////////////////////////////
-	Teles[MAX_TELE][PosX] 		= -2675.2092;
-	Teles[MAX_TELE][PosY] 		= 552.2344;
-	Teles[MAX_TELE][PosZ] 		= 14.6094;
-	Teles[MAX_TELE][PosZZ] 		= 0.8626;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][PosX] = -2675.2092;
+	Teles[MAX_TELE][PosY] = 552.2344;
+	Teles[MAX_TELE][PosZ] = 14.6094;
+	Teles[MAX_TELE][PosZZ] = 0.8626;
 	Teles[MAX_TELE][Interior] 	= 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
 	Teles[MAX_TELE][World] 		= WORLD_NORMAL;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Bajos de la SFMD");
-	Teles[MAX_TELE][Dueno]      = SFMD;
+	SetText3DTele(MAX_TELE, "Bajos de la SFMD");
+	Teles[MAX_TELE][Dueno] = SFMD;
 	//////////////////////////////
 	MAX_TELE++;
 	Teles[MAX_TELE][PosX] 		= -2651.6423339844;
 	Teles[MAX_TELE][PosY] 		= 543.31774902344;
 	Teles[MAX_TELE][PosZ] 		= 48.010936737061;
 	Teles[MAX_TELE][PosZZ] 		= 180;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][Interior] 	= 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][World] 		= WORLD_NORMAL;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Techo de la SFMD");
-	Teles[MAX_TELE][Dueno]      = SFMD;
+	SetText3DTele(MAX_TELE, "Techo de la SFMD");
+	Teles[MAX_TELE][Dueno] = SFMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1719.2092285156;
-	Teles[MAX_TELE][PosY]       = 720.77124023438;
-	Teles[MAX_TELE][PosZ]       = 10.873438072205;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Sala de Operaciones");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2791.6501;
-	Teles[MAX_TELE][PosY]       = 2509.3916;
-	Teles[MAX_TELE][PosZ]       = 17.6737;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Sala de Operaciones");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1715.8145751953;
-	Teles[MAX_TELE][PosY]       = 710.45025634766;
-	Teles[MAX_TELE][PosZ]       = 10.878179740906;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Oficina");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2467.5247;
-	Teles[MAX_TELE][PosY]       = 1042.7755;
-	Teles[MAX_TELE][PosZ]       = 58.9644;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1673.9642333984;
-	Teles[MAX_TELE][PosY]       = 709.21551513672;
-	Teles[MAX_TELE][PosZ]       = 10.874180030823;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Sala de Espera");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2826.6069;
-	Teles[MAX_TELE][PosY]       = 2465.6450;
-	Teles[MAX_TELE][PosZ]       = 18.4234;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Sala de Espera");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1677.0227050781;
-	Teles[MAX_TELE][PosY]       = 715.69012451172;
-	Teles[MAX_TELE][PosZ]       = 10.873433303833;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Consultorio");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2802.4231;
-	Teles[MAX_TELE][PosY]       = 2522.6433;
-	Teles[MAX_TELE][PosZ]       = 10.8203;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Consultorio");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2026.9376220703;
-	Teles[MAX_TELE][PosY]       = 67.168426513672;
-	Teles[MAX_TELE][PosZ]       = 28.691593170166;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Bomberos");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1474.0496826172;
-	Teles[MAX_TELE][PosY]       = 2746.30859375;
-	Teles[MAX_TELE][PosZ]       = 11.247332572937;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Bomberos");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2047.6833496094;
-	Teles[MAX_TELE][PosY]       = 67.107147216797;
-	Teles[MAX_TELE][PosZ]       = 28.645565032959;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada Trasera");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1494.8901367188;
-	Teles[MAX_TELE][PosY]       = 2746.3122558594;
-	Teles[MAX_TELE][PosZ]       = 11.247332572937;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida Trasera");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1302.8802490234;
-	Teles[MAX_TELE][PosY]       = 2666.3251953125;
-	Teles[MAX_TELE][PosZ]       = 10.841632843018;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida al Garage");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1480.9244384766;
-	Teles[MAX_TELE][PosY]       = 2744.7133789063;
-	Teles[MAX_TELE][PosZ]       = 10.863215446472;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada del Garage");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1342.86328125;
-	Teles[MAX_TELE][PosY]       = 2645.3054199219;
-	Teles[MAX_TELE][PosZ]       = 10.860591888428;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de Garage");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1488.9517822266;
-	Teles[MAX_TELE][PosY]       = 2744.6943359375;
-	Teles[MAX_TELE][PosZ]       = 10.847518920898;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1480.1163330078;
-	Teles[MAX_TELE][PosY]       = 2856.2021484375;
-	Teles[MAX_TELE][PosZ]       = 10.830624580383;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Despacho");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1485.041015625;
-	Teles[MAX_TELE][PosY]       = 2744.7016601563;
-	Teles[MAX_TELE][PosZ]       = 10.855165481567;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 14;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Despacho");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2596.15625;
-	Teles[MAX_TELE][PosY]       = 1352.5087890625;
-	Teles[MAX_TELE][PosZ]       = 78.476387023926;
-	Teles[MAX_TELE][PosZZ]       = 180.0000;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 9;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Oficina del Director");
-	Teles[MAX_TELE][Dueno]      = ADP;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2557.8662109375;
-	Teles[MAX_TELE][PosY]       = 1345.7208251953;
-	Teles[MAX_TELE][PosZ]       = 78.476387023926;
-	Teles[MAX_TELE][PosZZ]       = 94.3142;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 9;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina del Director");
-	Teles[MAX_TELE][Dueno]      = ADP;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2193.2927246094;
-	Teles[MAX_TELE][PosY]       = -1147.6652832031;
-	Teles[MAX_TELE][PosZ]       = 1033.796875;
-	Teles[MAX_TELE][PosZZ]       = 352.0667;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Sal\xa6n");
-	Teles[MAX_TELE][Dueno]      = TAXI;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2228.5393066406;
-	Teles[MAX_TELE][PosY]       = -1150.5076904297;
-	Teles[MAX_TELE][PosZ]       = 1029.796875;
-	Teles[MAX_TELE][PosZZ]       = 92.7406;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina");
-	Teles[MAX_TELE][Dueno]      = TAXI;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1951.0385742188;
-	Teles[MAX_TELE][PosY]       = 1887.2598876953;
-	Teles[MAX_TELE][PosZ]       = 27.461999893188;
-	Teles[MAX_TELE][PosZZ]       = 353.1283;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       8);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = 8;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Oficina del Director");
-	Teles[MAX_TELE][Dueno]      = TAXI;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2193.2702636719;
-	Teles[MAX_TELE][PosY]       = -1148.0888671875;
-	Teles[MAX_TELE][PosZ]       = 1029.796875;
-	Teles[MAX_TELE][PosZZ]       = 357.0116;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Oficina del Director");
-	Teles[MAX_TELE][Dueno]      = TAXI;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -794.9324;
-	Teles[MAX_TELE][PosY]       = 489.4544;
-	Teles[MAX_TELE][PosZ]       = 1376.1953;
-	Teles[MAX_TELE][PosZZ]      = 0.5641;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1719.2092285156;
+	Teles[MAX_TELE][PosY] = 720.77124023438;
+	Teles[MAX_TELE][PosZ] = 10.873438072205;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]   = 1;
-	Teles[MAX_TELE][World]      = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Uscita di Ristorante Italiano");
-	Teles[MAX_TELE][Dueno]      = LCN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Sala de Operaciones");
+	Teles[MAX_TELE][Dueno] = SFMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1217.3870;
-	Teles[MAX_TELE][PosY]       = -1692.6326;
-	Teles[MAX_TELE][PosZ]       = 19.7344;
-	Teles[MAX_TELE][PosZZ]       = 273.5764;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Ingresso di Ristorante Italiano");
-	Teles[MAX_TELE][Dueno]      = LCN;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2281.1328125;
-	Teles[MAX_TELE][PosY]       = 1310.5087890625;
-	Teles[MAX_TELE][PosZ]       = 10.82034778595;
-	Teles[MAX_TELE][PosZZ]       = 89.5909;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina");
-	Teles[MAX_TELE][Dueno]      = NFS;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1494.6038;
-	Teles[MAX_TELE][PosY]       = 1304.2933;
-	Teles[MAX_TELE][PosZ]       = 1093.2891;
-	Teles[MAX_TELE][PosZZ]       = 352.4487;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada de la Oficina");
-	Teles[MAX_TELE][Dueno]      = NFS;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2278.2338867188;
-	Teles[MAX_TELE][PosY]       = 1307.0657958984;
-	Teles[MAX_TELE][PosZ]       = 10.82034778595;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada del Aseo");
-	Teles[MAX_TELE][Dueno]      = NFS;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2295.4775390625;
-	Teles[MAX_TELE][PosY]       = 1302.2651367188;
-	Teles[MAX_TELE][PosZ]       = 10.8203125;
-	Teles[MAX_TELE][PosZZ]       = 87.4208;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Aseo");
-	Teles[MAX_TELE][Dueno]      = NFS;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2022.8104;
-	Teles[MAX_TELE][PosY]       = -113.7378;
-	Teles[MAX_TELE][PosZ]       = 1035.1719;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Oficina del Director");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2264.0251464844;
-	Teles[MAX_TELE][PosY]       = 1008.1618652344;
-	Teles[MAX_TELE][PosZ]       = 79.5546875;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2791.6501;
+	Teles[MAX_TELE][PosY] = 2509.3916;
+	Teles[MAX_TELE][PosZ] = 17.6737;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Sala de Operaciones");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1715.8145751953;
+	Teles[MAX_TELE][PosY] = 710.45025634766;
+	Teles[MAX_TELE][PosZ] = 10.878179740906;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Oficina");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2467.5247;
+	Teles[MAX_TELE][PosY] = 1042.7755;
+	Teles[MAX_TELE][PosZ] = 58.9644;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Oficina");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1673.9642333984;
+	Teles[MAX_TELE][PosY] = 709.21551513672;
+	Teles[MAX_TELE][PosZ] = 10.874180030823;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Sala de Espera");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2826.6069;
+	Teles[MAX_TELE][PosY] = 2465.6450;
+	Teles[MAX_TELE][PosZ] = 18.4234;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Sala de Espera");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1677.0227050781;
+	Teles[MAX_TELE][PosY] = 715.69012451172;
+	Teles[MAX_TELE][PosZ] = 10.873433303833;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Consultorio");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2802.4231;
+	Teles[MAX_TELE][PosY] = 2522.6433;
+	Teles[MAX_TELE][PosZ] = 10.8203;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Consultorio");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -2026.9376220703;
+	Teles[MAX_TELE][PosY] = 67.168426513672;
+	Teles[MAX_TELE][PosZ] = 28.691593170166;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Bomberos");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1474.0496826172;
+	Teles[MAX_TELE][PosY] = 2746.30859375;
+	Teles[MAX_TELE][PosZ] = 11.247332572937;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Bomberos");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -2047.6833496094;
+	Teles[MAX_TELE][PosY] = 67.107147216797;
+	Teles[MAX_TELE][PosZ] = 28.645565032959;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada Trasera");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1494.8901367188;
+	Teles[MAX_TELE][PosY] = 2746.3122558594;
+	Teles[MAX_TELE][PosZ] = 11.247332572937;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida Trasera");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1302.8802490234;
+	Teles[MAX_TELE][PosY] = 2666.3251953125;
+	Teles[MAX_TELE][PosZ] = 10.841632843018;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida al Garage");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1480.9244384766;
+	Teles[MAX_TELE][PosY] = 2744.7133789063;
+	Teles[MAX_TELE][PosZ] = 10.863215446472;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada del Garage");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1342.86328125;
+	Teles[MAX_TELE][PosY] = 2645.3054199219;
+	Teles[MAX_TELE][PosZ] = 10.860591888428;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de Garage");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1488.9517822266;
+	Teles[MAX_TELE][PosY] = 2744.6943359375;
+	Teles[MAX_TELE][PosZ] = 10.847518920898;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1480.1163330078;
+	Teles[MAX_TELE][PosY] = 2856.2021484375;
+	Teles[MAX_TELE][PosZ] = 10.830624580383;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Despacho");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1485.041015625;
+	Teles[MAX_TELE][PosY] = 2744.7016601563;
+	Teles[MAX_TELE][PosZ] = 10.855165481567;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 14;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Despacho");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2596.15625;
+	Teles[MAX_TELE][PosY] = 1352.5087890625;
+	Teles[MAX_TELE][PosZ] = 78.476387023926;
+	Teles[MAX_TELE][PosZZ] = 180.0000;
+	Teles[MAX_TELE][Interior] = 9;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Oficina del Director");
+	Teles[MAX_TELE][Dueno] = ADP;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2557.8662109375;
+	Teles[MAX_TELE][PosY] = 1345.7208251953;
+	Teles[MAX_TELE][PosZ] = 78.476387023926;
+	Teles[MAX_TELE][PosZZ] = 94.3142;
+	Teles[MAX_TELE][Interior] = 9;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Oficina del Director");
+	Teles[MAX_TELE][Dueno] = ADP;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2193.2927246094;
+	Teles[MAX_TELE][PosY] = -1147.6652832031;
+	Teles[MAX_TELE][PosZ] = 1033.796875;
+	Teles[MAX_TELE][PosZZ] = 352.0667;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Salon");
+	Teles[MAX_TELE][Dueno] = TAXI;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2228.5393066406;
+	Teles[MAX_TELE][PosY] = -1150.5076904297;
+	Teles[MAX_TELE][PosZ] = 1029.796875;
+	Teles[MAX_TELE][PosZZ] = 92.7406;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Oficina");
+	Teles[MAX_TELE][Dueno] = TAXI;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1951.0385742188;
+	Teles[MAX_TELE][PosY] = 1887.2598876953;
+	Teles[MAX_TELE][PosZ] = 27.461999893188;
+	Teles[MAX_TELE][PosZZ] = 353.1283;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], 8, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = 8;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Oficina del Director");
+	Teles[MAX_TELE][Dueno] = TAXI;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2193.2702636719;
+	Teles[MAX_TELE][PosY] = -1148.0888671875;
+	Teles[MAX_TELE][PosZ] = 1029.796875;
+	Teles[MAX_TELE][PosZZ] = 357.0116;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Oficina del Director");
+	Teles[MAX_TELE][Dueno] = TAXI;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -794.9324;
+	Teles[MAX_TELE][PosY] = 489.4544;
+	Teles[MAX_TELE][PosZ] = 1376.1953;
+	Teles[MAX_TELE][PosZZ] = 0.5641;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Uscita di Ristorante Italiano");
+	Teles[MAX_TELE][Dueno] = LCN;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1217.3870;
+	Teles[MAX_TELE][PosY] = -1692.6326;
+	Teles[MAX_TELE][PosZ] = 19.7344;
+	Teles[MAX_TELE][PosZZ] = 273.5764;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Ingresso di Ristorante Italiano");
+	Teles[MAX_TELE][Dueno] = LCN;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2281.1328125;
+	Teles[MAX_TELE][PosY] = 1310.5087890625;
+	Teles[MAX_TELE][PosZ] = 10.82034778595;
+	Teles[MAX_TELE][PosZZ] = 89.5909;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Oficina");
+	Teles[MAX_TELE][Dueno] = NFS;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1494.6038;
+	Teles[MAX_TELE][PosY] = 1304.2933;
+	Teles[MAX_TELE][PosZ] = 1093.2891;
+	Teles[MAX_TELE][PosZZ] = 352.4487;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada de la Oficina");
+	Teles[MAX_TELE][Dueno] = NFS;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2278.2338867188;
+	Teles[MAX_TELE][PosY] = 1307.0657958984;
+	Teles[MAX_TELE][PosZ] = 10.82034778595;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada del Aseo");
+	Teles[MAX_TELE][Dueno] = NFS;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2295.4775390625;
+	Teles[MAX_TELE][PosY] = 1302.2651367188;
+	Teles[MAX_TELE][PosZ] = 10.8203125;
+	Teles[MAX_TELE][PosZZ] = 87.4208;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Aseo");
+	Teles[MAX_TELE][Dueno] = NFS;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -2022.8104;
+	Teles[MAX_TELE][PosY] = -113.7378;
+	Teles[MAX_TELE][PosZ] = 1035.1719;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Oficina del Director");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2264.0251464844;
+	Teles[MAX_TELE][PosY] = 1008.1618652344;
+	Teles[MAX_TELE][PosZ] = 79.5546875;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
 	Teles[MAX_TELE][PosX] 		= -2029.7047;
 	Teles[MAX_TELE][PosY] 		= -120.7131;
 	Teles[MAX_TELE][PosZ] 		= 35.1714;
 	Teles[MAX_TELE][PosZZ] 		= 175.2865;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
 	Teles[MAX_TELE][Interior] 	= 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
 	Teles[MAX_TELE][World] 		= WORLD_NORMAL;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Patio de los Licencieros");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	SetText3DTele(MAX_TELE, "Patio de los Licencieros");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 //////////////////////////////
 	MAX_TELE++;
 	Teles[MAX_TELE][PosX] 		= -2029.7854;
 	Teles[MAX_TELE][PosY] 		= -119.6171;
 	Teles[MAX_TELE][PosZ] 		= 1035.1719;
 	Teles[MAX_TELE][PosZZ] 		= 0.3638;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][Interior] 	= 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][World] 		= WORLD_DEFAULT_INTERIOR;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Puerta trasera Licencieros");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	SetText3DTele(MAX_TELE, "Puerta trasera Licencieros");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 /////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
 	Teles[MAX_TELE][PosX] 		= 1525.4343;
 	Teles[MAX_TELE][PosY] 		= -1677.7581;
 	Teles[MAX_TELE][PosZ] 		= 5.8906;
 	Teles[MAX_TELE][PosZZ] 		= 274.0949;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
 	Teles[MAX_TELE][Interior] 	= 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
 	Teles[MAX_TELE][World] 		= WORLD_NORMAL;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Parqueo al fondo LSPD");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	SetText3DTele(MAX_TELE, "Parqueo al fondo LSPD");
+	Teles[MAX_TELE][Dueno] = LSPD;
 //////////////////////////////
 	MAX_TELE++;
 	Teles[MAX_TELE][PosX] 		= 246.3023;
 	Teles[MAX_TELE][PosY] 		= 87.4573;
 	Teles[MAX_TELE][PosZ] 		= 1003.6406;
 	Teles[MAX_TELE][PosZZ] 		= 180.3136;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][Interior] 	= 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][World] 		= WORLD_DEFAULT_INTERIOR;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Puerta trasera de la LSPD");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	SetText3DTele(MAX_TELE, "Puerta trasera de la LSPD");
+	Teles[MAX_TELE][Dueno] = LSPD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2360.966796875;
-	Teles[MAX_TELE][PosY]       = 1558.0955810547;
-	Teles[MAX_TELE][PosZ]       = 27.956249237061;
-	Teles[MAX_TELE][PosZZ]      = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "C\x98maras de Seguridad");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	Teles[MAX_TELE][PosX] = 2360.966796875;
+	Teles[MAX_TELE][PosY] = 1558.0955810547;
+	Teles[MAX_TELE][PosZ] = 27.956249237061;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Camaras de Seguridad");
+	Teles[MAX_TELE][Dueno] = LSPD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 220.17153930664;
-	Teles[MAX_TELE][PosY]       = 74.203353881836;
-	Teles[MAX_TELE][PosZ]       = 1005.0390625;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "C\x98maras de Seguridad");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	Teles[MAX_TELE][PosX] = 220.17153930664;
+	Teles[MAX_TELE][PosY] = 74.203353881836;
+	Teles[MAX_TELE][PosZ] = 1005.0390625;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Camaras de Seguridad");
+	Teles[MAX_TELE][Dueno] = LSPD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
 	Teles[MAX_TELE][PosX] 		= 1568.6110;
 	Teles[MAX_TELE][PosY] 		= -1690.9406;
 	Teles[MAX_TELE][PosZ] 		= 5.8906;
 	Teles[MAX_TELE][PosZZ] 		= 182.5682;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
 	Teles[MAX_TELE][Interior] 	= 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
 	Teles[MAX_TELE][World] 		= WORLD_NORMAL;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Parqueo a la entrada LSPD");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	SetText3DTele(MAX_TELE, "Parqueo a la entrada LSPD");
+	Teles[MAX_TELE][Dueno] = LSPD;
 	//////////////////////////////
 	MAX_TELE++;
 	Teles[MAX_TELE][PosX] 		= 243.1564;
 	Teles[MAX_TELE][PosY] 		= 66.3322;
 	Teles[MAX_TELE][PosZ] 		= 1003.6406;
 	Teles[MAX_TELE][PosZZ] 		= 269.0457;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][Interior] 	= 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
 	Teles[MAX_TELE][World] 		= WORLD_DEFAULT_INTERIOR;
 	Teles[MAX_TELE][Lock] 		= false;
-	SetStyleTextDrawTeles(MAX_TELE, "Puerta a la entrada LSPD");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	SetText3DTele(MAX_TELE, "Puerta a la entrada LSPD");
+	Teles[MAX_TELE][Dueno] = LSPD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1548.6943;
-	Teles[MAX_TELE][PosY]       = -1364.4369;
-	Teles[MAX_TELE][PosZ]       = 326.2183;
-	Teles[MAX_TELE][PosZZ]       = 186.1149;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Asensor a la cima del Edificio");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1574.7563;
-	Teles[MAX_TELE][PosY]       = -1335.8326;
-	Teles[MAX_TELE][PosZ]       = 16.4844;
-	Teles[MAX_TELE][PosZZ]       = 314.2043;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Asensor a la salida del Edificio");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 155.6292;
-	Teles[MAX_TELE][PosY]       = -1950.2883;
-	Teles[MAX_TELE][PosZ]       = 47.8750;
-	Teles[MAX_TELE][PosZZ]       = 6.2527;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Escaleras a la cima del Faro");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 154.2622;
-	Teles[MAX_TELE][PosY]       = -1946.1864;
-	Teles[MAX_TELE][PosZ]       = 5.1198;
-	Teles[MAX_TELE][PosZZ]       = 2.4509;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Escaleras a la salida del Faro");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1445.7500;
-	Teles[MAX_TELE][PosY]       = -206.1691;
-	Teles[MAX_TELE][PosZ]       = 6.0000;
-	Teles[MAX_TELE][PosZZ]       = 273.1129;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Asensor al Subterraneo del Aereo");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1422.1642;
-	Teles[MAX_TELE][PosY]       = -287.7517;
-	Teles[MAX_TELE][PosZ]       = 14.1484;
-	Teles[MAX_TELE][PosZZ]       = 141.0719;
-	Teles[MAX_TELE][PickupID] 	= CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Asensor a la Salida del Aereo");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1951.8713;
-	Teles[MAX_TELE][PosY]       = -865.8907;
-	Teles[MAX_TELE][PosZ]       = 32.2266;
-	Teles[MAX_TELE][PosZZ]      = 2.1572;
-	Teles[MAX_TELE][PickupID]  = CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1548.6943;
+	Teles[MAX_TELE][PosY] = -1364.4369;
+	Teles[MAX_TELE][PosZ] = 326.2183;
+	Teles[MAX_TELE][PosZZ] = 186.1149;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]   = 0;
-	Teles[MAX_TELE][World]      = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Asensor a la entrada del Parque");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Asensor a la cima del Edificio");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1945.5076;
-	Teles[MAX_TELE][PosY]       = -877.2965;
-	Teles[MAX_TELE][PosZ]       = 35.8906;
-	Teles[MAX_TELE][PosZZ]      = 89.7439;
-	Teles[MAX_TELE][PickupID]  = CreatePickup	(1239, 	1, 	Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],	 	WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1574.7563;
+	Teles[MAX_TELE][PosY] = -1335.8326;
+	Teles[MAX_TELE][PosZ] = 16.4844;
+	Teles[MAX_TELE][PosZZ] = 314.2043;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]   = 0;
-	Teles[MAX_TELE][World]      = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Asensor a la salida del Parque");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Asensor a la salida del Edificio");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2269.5566;
-	Teles[MAX_TELE][PosY]       = -156.0913;
-	Teles[MAX_TELE][PosZ]       = 35.3203;
-	Teles[MAX_TELE][PosZZ]       = 269.8338;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada del GYM");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	Teles[MAX_TELE][PosX] = 155.6292;
+	Teles[MAX_TELE][PosY] = -1950.2883;
+	Teles[MAX_TELE][PosZ] = 47.8750;
+	Teles[MAX_TELE][PosZZ] = 6.2527;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Escaleras a la cima del Faro");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 774.4182;
-	Teles[MAX_TELE][PosY]       = -50.2380;
-	Teles[MAX_TELE][PosZ]       = 1000.5859;
-	Teles[MAX_TELE][PosZZ]       = 0.2655;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del GYM");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	Teles[MAX_TELE][PosX] = 154.2622;
+	Teles[MAX_TELE][PosY] = -1946.1864;
+	Teles[MAX_TELE][PosZ] = 5.1198;
+	Teles[MAX_TELE][PosZZ] = 2.4509;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Escaleras a la salida del Faro");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2229.2881;
-	Teles[MAX_TELE][PosY]       = -1721.8671;
-	Teles[MAX_TELE][PosZ]       = 13.5669;
-	Teles[MAX_TELE][PosZZ]       = 126.9885;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada del GYM");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	Teles[MAX_TELE][PosX] = -1445.7500;
+	Teles[MAX_TELE][PosY] = -206.1691;
+	Teles[MAX_TELE][PosZ] = 6.0000;
+	Teles[MAX_TELE][PosZZ] = 273.1129;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Asensor al Subterraneo del Aereo");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 772.3953;
-	Teles[MAX_TELE][PosY]       = -4.5627;
-	Teles[MAX_TELE][PosZ]       = 1000.7291;
-	Teles[MAX_TELE][PosZZ]       = 2.6997;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del GYM");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	Teles[MAX_TELE][PosX] = -1422.1642;
+	Teles[MAX_TELE][PosY] = -287.7517;
+	Teles[MAX_TELE][PosZ] = 14.1484;
+	Teles[MAX_TELE][PosZZ] = 141.0719;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] 	= CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Asensor a la Salida del Aereo");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2495.3052;
-	Teles[MAX_TELE][PosY]       = -1690.0558;
-	Teles[MAX_TELE][PosZ]       = 14.7656;
-	Teles[MAX_TELE][PosZZ]       = 2.9780;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Casa de CJ");
+	Teles[MAX_TELE][PosX] = -1951.8713;
+	Teles[MAX_TELE][PosY] = -865.8907;
+	Teles[MAX_TELE][PosZ] = 32.2266;
+	Teles[MAX_TELE][PosZZ] = 2.1572;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Asensor a la entrada del Parque");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2495.8784;
-	Teles[MAX_TELE][PosY]       = -1692.3300;
-	Teles[MAX_TELE][PosZ]       = 1014.7422;
-	Teles[MAX_TELE][PosZZ]       = 182.0026;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la casa de CJ");
+	Teles[MAX_TELE][PosX] = -1945.5076;
+	Teles[MAX_TELE][PosY] = -877.2965;
+	Teles[MAX_TELE][PosZ] = 35.8906;
+	Teles[MAX_TELE][PosZZ] = 89.7439;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Asensor a la salida del Parque");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1989.6453;
-	Teles[MAX_TELE][PosY]       = 1117.8682;
-	Teles[MAX_TELE][PosZ]       = 54.4688;
-	Teles[MAX_TELE][PosZZ]       = 271.0806;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada de la Iglesia");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -2269.5566;
+	Teles[MAX_TELE][PosY] = -156.0913;
+	Teles[MAX_TELE][PosZ] = 35.3203;
+	Teles[MAX_TELE][PosZZ] = 269.8338;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada del GYM");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1921.4556884766;
-	Teles[MAX_TELE][PosY]       = 1199.9836425781;
-	Teles[MAX_TELE][PosZ]       = 18.10000038147;
-	Teles[MAX_TELE][PosZZ]       = 357.7330;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       8);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = 8;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Iglesia");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 774.4182;
+	Teles[MAX_TELE][PosY] = -50.2380;
+	Teles[MAX_TELE][PosZ] = 1000.5859;
+	Teles[MAX_TELE][PosZZ] = 0.2655;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del GYM");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2649.0046;
-	Teles[MAX_TELE][PosY]       = 376.0089;
-	Teles[MAX_TELE][PosZ]       = 6.1593;
-	Teles[MAX_TELE][PosZZ]       = 89.0708;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada Oficina del Gobierno");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 2229.2881;
+	Teles[MAX_TELE][PosY] = -1721.8671;
+	Teles[MAX_TELE][PosZ] = 13.5669;
+	Teles[MAX_TELE][PosZZ] = 126.9885;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada del GYM");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2465.5559082031;
-	Teles[MAX_TELE][PosY]       = 2250.4775390625;
-	Teles[MAX_TELE][PosZ]       = 91.631156921387;
-	Teles[MAX_TELE][PosZZ]       = 89.5417;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida Oficina del Gobierno");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 772.3953;
+	Teles[MAX_TELE][PosY] = -4.5627;
+	Teles[MAX_TELE][PosZ] = 1000.7291;
+	Teles[MAX_TELE][PosZZ] = 2.6997;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del GYM");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2495.3052;
+	Teles[MAX_TELE][PosY] = -1690.0558;
+	Teles[MAX_TELE][PosZ] = 14.7656;
+	Teles[MAX_TELE][PosZZ] = 2.9780;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Casa de CJ");
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2495.8784;
+	Teles[MAX_TELE][PosY] = -1692.3300;
+	Teles[MAX_TELE][PosZ] = 1014.7422;
+	Teles[MAX_TELE][PosZZ] = 182.0026;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la casa de CJ");
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -1989.6453;
+	Teles[MAX_TELE][PosY] = 1117.8682;
+	Teles[MAX_TELE][PosZ] = 54.4688;
+	Teles[MAX_TELE][PosZZ] = 271.0806;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada de la Iglesia");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1921.4556884766;
+	Teles[MAX_TELE][PosY] = 1199.9836425781;
+	Teles[MAX_TELE][PosZ] = 18.10000038147;
+	Teles[MAX_TELE][PosZZ] = 357.7330;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], 8, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = 8;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Iglesia");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -2649.0046;
+	Teles[MAX_TELE][PosY] = 376.0089;
+	Teles[MAX_TELE][PosZ] = 6.1593;
+	Teles[MAX_TELE][PosZZ] = 89.0708;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada Oficina del Gobierno");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2465.5559082031;
+	Teles[MAX_TELE][PosY] = 2250.4775390625;
+	Teles[MAX_TELE][PosZ] = 91.631156921387;
+	Teles[MAX_TELE][PosZZ] = 89.5417;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida Oficina del Gobierno");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 /////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2766.0508;
-	Teles[MAX_TELE][PosY]       = 375.5933;
-	Teles[MAX_TELE][PosZ]       = 6.3347;
-	Teles[MAX_TELE][PosZZ]       = 271.1547;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1274,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Banco de San Fierro");
+	Teles[MAX_TELE][PosX] = -2766.0508;
+	Teles[MAX_TELE][PosY] = 375.5933;
+	Teles[MAX_TELE][PosZ] = 6.3347;
+	Teles[MAX_TELE][PosZZ] = 271.1547;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1274, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Banco de San Fierro");
 	BANCO_PICKUPID_out = Teles[MAX_TELE][PickupID];
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2305.4546;
-	Teles[MAX_TELE][PosY]       = -16.1226;
-	Teles[MAX_TELE][PosZ]       = 26.7496;
-	Teles[MAX_TELE][PosZZ]       = 270.0407;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1274,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Banco de San Fierro");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 2305.4546;
+	Teles[MAX_TELE][PosY] = -16.1226;
+	Teles[MAX_TELE][PosZ] = 26.7496;
+	Teles[MAX_TELE][PosZZ] = 270.0407;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1274, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Banco de San Fierro");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 368.50451660156;
-	Teles[MAX_TELE][PosY]       = 206.96217346191;
-	Teles[MAX_TELE][PosZ]       = 1008.3828125;
-	Teles[MAX_TELE][PosZZ]       = 86.4808;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Oficina");
+	Teles[MAX_TELE][PosX] = 368.50451660156;
+	Teles[MAX_TELE][PosY] = 206.96217346191;
+	Teles[MAX_TELE][PosZ] = 1008.3828125;
+	Teles[MAX_TELE][PosZZ] = 86.4808;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
+	SetText3DTele(MAX_TELE, "Entrada a la Oficina");
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1857.7513427734;
-	Teles[MAX_TELE][PosY]       = 1426.7786865234;
-	Teles[MAX_TELE][PosZ]       = 16.922342300415;
-	Teles[MAX_TELE][PosZZ]       = 261.6124;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1857.7513427734;
+	Teles[MAX_TELE][PosY] = 1426.7786865234;
+	Teles[MAX_TELE][PosZ] = 16.922342300415;
+	Teles[MAX_TELE][PosZZ] = 261.6124;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Oficina");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1859.1119384766;
-	Teles[MAX_TELE][PosY]       = 1413.4916992188;
-	Teles[MAX_TELE][PosZ]       = 16.922342300415;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Azotea");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1859.1119384766;
+	Teles[MAX_TELE][PosY] = 1413.4916992188;
+	Teles[MAX_TELE][PosZ] = 16.922342300415;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Azotea");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1437.8747558594;
-	Teles[MAX_TELE][PosY]       = -1786.3486328125;
-	Teles[MAX_TELE][PosZ]       = 33.4296875;
-	Teles[MAX_TELE][PosZZ]       = 83.3475;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Azotea");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1437.8747558594;
+	Teles[MAX_TELE][PosY] = -1786.3486328125;
+	Teles[MAX_TELE][PosZ] = 33.4296875;
+	Teles[MAX_TELE][PosZZ] = 83.3475;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Azotea");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2444.9885253906;
-	Teles[MAX_TELE][PosY]       = 755.20709228516;
-	Teles[MAX_TELE][PosZ]       = 35.171875;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al SuperMercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -2444.9885253906;
+	Teles[MAX_TELE][PosY] = 755.20709228516;
+	Teles[MAX_TELE][PosZ] = 35.171875;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al SuperMercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1463.3393554688;
-	Teles[MAX_TELE][PosY]       = 1457.1593017578;
-	Teles[MAX_TELE][PosZ]       = 11.051670074463;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del SuperMercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1463.3393554688;
+	Teles[MAX_TELE][PosY] = 1457.1593017578;
+	Teles[MAX_TELE][PosZ] = 11.051670074463;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del SuperMercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2440.337890625;
-	Teles[MAX_TELE][PosY]       = 755.37475585938;
-	Teles[MAX_TELE][PosZ]       = 35.171875;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al SuperMercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -2440.337890625;
+	Teles[MAX_TELE][PosY] = 755.37475585938;
+	Teles[MAX_TELE][PosZ] = 35.171875;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al SuperMercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1463.3317871094;
-	Teles[MAX_TELE][PosY]       = 1448.8151855469;
-	Teles[MAX_TELE][PosZ]       = 11.044595718384;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del SuperMercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1463.3317871094;
+	Teles[MAX_TELE][PosY] = 1448.8151855469;
+	Teles[MAX_TELE][PosZ] = 11.044595718384;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del SuperMercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1488.4030761719;
-	Teles[MAX_TELE][PosY]       = 1439.1560058594;
-	Teles[MAX_TELE][PosZ]       = 10.999785423279;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tiendas Metro");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1488.4030761719;
+	Teles[MAX_TELE][PosY] = 1439.1560058594;
+	Teles[MAX_TELE][PosZ] = 10.999785423279;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tiendas Metro");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1321.6187744141;
-	Teles[MAX_TELE][PosY]       = 1370.10546875;
-	Teles[MAX_TELE][PosZ]       = 10.879687309265;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 2;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tiendas Metro");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1321.6187744141;
+	Teles[MAX_TELE][PosY] = 1370.10546875;
+	Teles[MAX_TELE][PosZ] = 10.879687309265;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 2;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tiendas Metro");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1486.8168945313;
-	Teles[MAX_TELE][PosY]       = 1469.2908935547;
-	Teles[MAX_TELE][PosZ]       = 17.923244476318;
-	Teles[MAX_TELE][PosZZ]       = 184.5551;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tiendas Wong");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1486.8168945313;
+	Teles[MAX_TELE][PosY] = 1469.2908935547;
+	Teles[MAX_TELE][PosZ] = 17.923244476318;
+	Teles[MAX_TELE][PosZZ] = 184.5551;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tiendas Wong");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1321.1669921875;
-	Teles[MAX_TELE][PosY]       = 1341.4766845703;
-	Teles[MAX_TELE][PosZ]       = 10.825604438782;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tiendas Wong");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1321.1669921875;
+	Teles[MAX_TELE][PosY] = 1341.4766845703;
+	Teles[MAX_TELE][PosZ] = 10.825604438782;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tiendas Wong");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1488.4807128906;
-	Teles[MAX_TELE][PosY]       = 1467.4925537109;
-	Teles[MAX_TELE][PosZ]       = 10.99523639679;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tienda de Discos");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1488.4807128906;
+	Teles[MAX_TELE][PosY] = 1467.4925537109;
+	Teles[MAX_TELE][PosZ] = 10.99523639679;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tienda de Discos");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1288.4362792969;
-	Teles[MAX_TELE][PosY]       = 1304.3870849609;
-	Teles[MAX_TELE][PosZ]       = 10.89999961853;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 4;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tienda de Discos");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1288.4362792969;
+	Teles[MAX_TELE][PosY] = 1304.3870849609;
+	Teles[MAX_TELE][PosZ] = 10.89999961853;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 4;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tienda de Discos");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1492.9178466797;
-	Teles[MAX_TELE][PosY]       = 1437.2796630859;
-	Teles[MAX_TELE][PosZ]       = 17.958332061768;
-	Teles[MAX_TELE][PosZZ]       = 357.9750;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tienda de Licores");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1492.9178466797;
+	Teles[MAX_TELE][PosY] = 1437.2796630859;
+	Teles[MAX_TELE][PosZ] = 17.958332061768;
+	Teles[MAX_TELE][PosZZ] = 357.9750;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tienda de Licores");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1336.8875732422;
-	Teles[MAX_TELE][PosY]       = 1331.4705810547;
-	Teles[MAX_TELE][PosZ]       = 10.820769309998;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tienda de Licores");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 1336.8875732422;
+	Teles[MAX_TELE][PosY] = 1331.4705810547;
+	Teles[MAX_TELE][PosZ] = 10.820769309998;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tienda de Licores");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2851.2627;
-	Teles[MAX_TELE][PosY]       = -1532.5386;
-	Teles[MAX_TELE][PosZ]       = 11.0938;
-	Teles[MAX_TELE][PosZZ]       = 264.7181;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Recreation Park");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 2851.2627;
+	Teles[MAX_TELE][PosY] = -1532.5386;
+	Teles[MAX_TELE][PosZ] = 11.0938;
+	Teles[MAX_TELE][PosZZ] = 264.7181;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Recreation Park");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -928.1292;
-	Teles[MAX_TELE][PosY]       = 2192.6589;
-	Teles[MAX_TELE][PosZ]       = 43.3984;
-	Teles[MAX_TELE][PosZZ]       = 359.3733;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Recreation Park");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -928.1292;
+	Teles[MAX_TELE][PosY] = 2192.6589;
+	Teles[MAX_TELE][PosZ] = 43.3984;
+	Teles[MAX_TELE][PosZZ] = 359.3733;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Recreation Park");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -916.2724;
-	Teles[MAX_TELE][PosY]       = 2225.0378;
-	Teles[MAX_TELE][PosZ]       = 43.3984;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Segundo Piso");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -916.2724;
+	Teles[MAX_TELE][PosY] = 2225.0378;
+	Teles[MAX_TELE][PosZ] = 43.3984;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Segundo Piso");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -916.1951;
-	Teles[MAX_TELE][PosY]       = 2225.0432;
-	Teles[MAX_TELE][PosZ]       = 51.3453;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Primer Piso");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -916.1951;
+	Teles[MAX_TELE][PosY] = 2225.0432;
+	Teles[MAX_TELE][PosZ] = 51.3453;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Primer Piso");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -920.5874;
-	Teles[MAX_TELE][PosY]       = 2225.0952;
-	Teles[MAX_TELE][PosZ]       = 51.3453;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Tercer Piso");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -920.5874;
+	Teles[MAX_TELE][PosY] = 2225.0952;
+	Teles[MAX_TELE][PosZ] = 51.3453;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Tercer Piso");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -920.7510;
-	Teles[MAX_TELE][PosY]       = 2225.0178;
-	Teles[MAX_TELE][PosZ]       = 59.9453;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Segundo Piso");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -920.7510;
+	Teles[MAX_TELE][PosY] = 2225.0178;
+	Teles[MAX_TELE][PosZ] = 59.9453;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Segundo Piso");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
     MAX_TELE++;
-    Teles[MAX_TELE][PosX]       = 613.4033;
-    Teles[MAX_TELE][PosY]       = 3.5391;
-    Teles[MAX_TELE][PosZ]       = 1000.9219;
-    Teles[MAX_TELE][PosZZ]       = 180;
-    Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+    Teles[MAX_TELE][PosX] = 613.4033;
+    Teles[MAX_TELE][PosY] = 3.5391;
+    Teles[MAX_TELE][PosZ] = 1000.9219;
+    Teles[MAX_TELE][PosZZ] = 180;
+    Teles[MAX_TELE][Interior] = 1;
+    Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
     Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-    Teles[MAX_TELE][Interior]    = 1;
-    Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-    Teles[MAX_TELE][Lock]       = false;
-    SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Oficina");
-    Teles[MAX_TELE][Dueno]      = TALLER_SF;
+    Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+    Teles[MAX_TELE][Lock] = false;
+    SetText3DTele(MAX_TELE, "Entrada a la Oficina");
+    Teles[MAX_TELE][Dueno] = TALLER_SF;
 
    //////////////////////////////
     MAX_TELE++;
-    Teles[MAX_TELE][PosX]       = 2146.7790527344;
-    Teles[MAX_TELE][PosY]       = 2413.2453613281;
-    Teles[MAX_TELE][PosZ]       = 65.303955078125;
-    Teles[MAX_TELE][PosZZ]       = 0;
-    Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+    Teles[MAX_TELE][PosX] = 2146.7790527344;
+    Teles[MAX_TELE][PosY] = 2413.2453613281;
+    Teles[MAX_TELE][PosZ] = 65.303955078125;
+    Teles[MAX_TELE][PosZZ] = 0;
+    Teles[MAX_TELE][Interior] = 3;
+    Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
     Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-    Teles[MAX_TELE][Interior]    = 3;
-    Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-    Teles[MAX_TELE][Lock]       = false;
-    SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina");
-    Teles[MAX_TELE][Dueno]      = TALLER_SF;
+    Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+    Teles[MAX_TELE][Lock] = false;
+    SetText3DTele(MAX_TELE, "Salida de la Oficina");
+    Teles[MAX_TELE][Dueno] = TALLER_SF;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2170.2810;
-	Teles[MAX_TELE][PosY]       = 635.5530;
-	Teles[MAX_TELE][PosZ]       = 1052.3750;
-	Teles[MAX_TELE][PosZZ]       = 2.5660;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al s\xa6tano");
-	Teles[MAX_TELE][Dueno]      = CONTRABANDISTAS;
+	Teles[MAX_TELE][PosX] = -2170.2810;
+	Teles[MAX_TELE][PosY] = 635.5530;
+	Teles[MAX_TELE][PosZ] = 1052.3750;
+	Teles[MAX_TELE][PosZZ] = 2.5660;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al sotano");
+	Teles[MAX_TELE][Dueno] = CONTRABANDISTAS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1889.8413;
-	Teles[MAX_TELE][PosY]       = 1017.8366;
-	Teles[MAX_TELE][PosZ]       = 31.8828;
-	Teles[MAX_TELE][PosZZ]       = 268.9445;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 10;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del s\xa6tano");
-	Teles[MAX_TELE][Dueno]      = CONTRABANDISTAS;
+	Teles[MAX_TELE][PosX] = 1889.8413;
+	Teles[MAX_TELE][PosY] = 1017.8366;
+	Teles[MAX_TELE][PosZ] = 31.8828;
+	Teles[MAX_TELE][PosZZ] = 268.9445;
+	Teles[MAX_TELE][Interior] = 10;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del sotano");
+	Teles[MAX_TELE][Dueno] = CONTRABANDISTAS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2157.3743;
-	Teles[MAX_TELE][PosY]       = 1596.4598;
-	Teles[MAX_TELE][PosZ]       = 999.9688;
-	Teles[MAX_TELE][PosZZ]       = 4.7598;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Estudio CNN");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 2157.3743;
+	Teles[MAX_TELE][PosY] = 1596.4598;
+	Teles[MAX_TELE][PosZ] = 999.9688;
+	Teles[MAX_TELE][PosZZ] = 4.7598;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Estudio CNN");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1101;
-	Teles[MAX_TELE][PosY]       = 1249;
-	Teles[MAX_TELE][PosZ]       = 11;
-	Teles[MAX_TELE][PosZZ]       = 269.0042;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Estudio CNN");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1101;
+	Teles[MAX_TELE][PosY] = 1249;
+	Teles[MAX_TELE][PosZ] = 11;
+	Teles[MAX_TELE][PosZZ] = 269.0042;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Estudio CNN");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 738.1631;
-	Teles[MAX_TELE][PosY]       = -1340.1409;
-	Teles[MAX_TELE][PosZ]       = 13.5280;
-	Teles[MAX_TELE][PosZZ]       = 265.0780;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la CNN");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 738.1631;
+	Teles[MAX_TELE][PosY] = -1340.1409;
+	Teles[MAX_TELE][PosZ] = 13.5280;
+	Teles[MAX_TELE][PosZZ] = 265.0780;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la CNN");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2168.2505;
-	Teles[MAX_TELE][PosY]       = 1618.6906;
-	Teles[MAX_TELE][PosZ]       = 999.9783;
-	Teles[MAX_TELE][PosZZ]       = 94.5618;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la CNN");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 2168.2505;
+	Teles[MAX_TELE][PosY] = 1618.6906;
+	Teles[MAX_TELE][PosZ] = 999.9783;
+	Teles[MAX_TELE][PosZZ] = 94.5618;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la CNN");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1134.5614;
-	Teles[MAX_TELE][PosY]       = 1536.8871;
-	Teles[MAX_TELE][PosZ]       = 8.7609;
-	Teles[MAX_TELE][PosZZ]       = 11.6660;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Escenario");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1134.5614;
+	Teles[MAX_TELE][PosY] = 1536.8871;
+	Teles[MAX_TELE][PosZ] = 8.7609;
+	Teles[MAX_TELE][PosZZ] = 11.6660;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Escenario");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1429.37890625;
-	Teles[MAX_TELE][PosY]       = 1330.96484375;
-	Teles[MAX_TELE][PosZ]       = 10.824451446533;
-	Teles[MAX_TELE][PosZZ]       = 8.9184;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada del Escenario");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1429.37890625;
+	Teles[MAX_TELE][PosY] = 1330.96484375;
+	Teles[MAX_TELE][PosZ] = 10.824451446533;
+	Teles[MAX_TELE][PosZZ] = 8.9184;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada del Escenario");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1467.587890625;
-	Teles[MAX_TELE][PosY]       = 1768.2156982422;
-	Teles[MAX_TELE][PosZ]       = 10.886232376099;
-	Teles[MAX_TELE][PosZZ]       = 256.6949;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada del Escenario");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1467.587890625;
+	Teles[MAX_TELE][PosY] = 1768.2156982422;
+	Teles[MAX_TELE][PosZ] = 10.886232376099;
+	Teles[MAX_TELE][PosZZ] = 256.6949;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada del Escenario");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1136.5123291016;
-	Teles[MAX_TELE][PosY]       = 1563.9095458984;
-	Teles[MAX_TELE][PosZ]       = 7.9992809295654;
-	Teles[MAX_TELE][PosZZ]       = 87.8791;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Escenario");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1136.5123291016;
+	Teles[MAX_TELE][PosY] = 1563.9095458984;
+	Teles[MAX_TELE][PosZ] = 7.9992809295654;
+	Teles[MAX_TELE][PosZZ] = 87.8791;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Escenario");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1108.5697021484;
-	Teles[MAX_TELE][PosY]       = 1243.2000732422;
-	Teles[MAX_TELE][PosZ]       = 10.8203125;
-	Teles[MAX_TELE][PosZZ]       = 1.9525;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Disquera");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1108.5697021484;
+	Teles[MAX_TELE][PosY] = 1243.2000732422;
+	Teles[MAX_TELE][PosZ] = 10.8203125;
+	Teles[MAX_TELE][PosZZ] = 1.9525;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Disquera");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1164.0368652344;
-	Teles[MAX_TELE][PosY]       = 1234.8566894531;
-	Teles[MAX_TELE][PosZ]       = 10.86562538147;
-	Teles[MAX_TELE][PosZZ]       = 93.6875;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Disquera");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1164.0368652344;
+	Teles[MAX_TELE][PosY] = 1234.8566894531;
+	Teles[MAX_TELE][PosZ] = 10.86562538147;
+	Teles[MAX_TELE][PosZZ] = 93.6875;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Disquera");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2172.9865722656;
-	Teles[MAX_TELE][PosY]       = 1602.1372070313;
-	Teles[MAX_TELE][PosZ]       = 999.966796875;
-	Teles[MAX_TELE][PosZZ]       = 81.4674;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Oficina");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 2172.9865722656;
+	Teles[MAX_TELE][PosY] = 1602.1372070313;
+	Teles[MAX_TELE][PosZ] = 999.966796875;
+	Teles[MAX_TELE][PosZZ] = 81.4674;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Oficina");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1157.4987792969;
-	Teles[MAX_TELE][PosY]       = 1323.1114501953;
-	Teles[MAX_TELE][PosZ]       = 10.825625419617;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1157.4987792969;
+	Teles[MAX_TELE][PosY] = 1323.1114501953;
+	Teles[MAX_TELE][PosZ] = 10.825625419617;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Oficina");
+	Teles[MAX_TELE][Dueno] = CNN;
 /////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1454.3125;
-	Teles[MAX_TELE][PosY]       = 1768.3715820313;
-	Teles[MAX_TELE][PosZ]       = 10.876362800598;
-	Teles[MAX_TELE][PosZZ]       = 87.5658;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada del Escenario");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1454.3125;
+	Teles[MAX_TELE][PosY] = 1768.3715820313;
+	Teles[MAX_TELE][PosZ] = 10.876362800598;
+	Teles[MAX_TELE][PosZZ] = 87.5658;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada del Escenario");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1115.4089355469;
-	Teles[MAX_TELE][PosY]       = 1572.2352294922;
-	Teles[MAX_TELE][PosZ]       = 7.9992809295654;
-	Teles[MAX_TELE][PosZZ]       = 255.4415;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Escenario");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1115.4089355469;
+	Teles[MAX_TELE][PosY] = 1572.2352294922;
+	Teles[MAX_TELE][PosZ] = 7.9992809295654;
+	Teles[MAX_TELE][PosZZ] = 255.4415;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Escenario");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2227.1040;
-	Teles[MAX_TELE][PosY]       = 258.4172;
-	Teles[MAX_TELE][PosZ]       = 35.3203;
-	Teles[MAX_TELE][PosZZ]       = 91.3942;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = -2227.1040;
+	Teles[MAX_TELE][PosY] = 258.4172;
+	Teles[MAX_TELE][PosZ] = 35.3203;
+	Teles[MAX_TELE][PosZZ] = 91.3942;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1466.6284179688;
-	Teles[MAX_TELE][PosY]       = 1785.3125;
-	Teles[MAX_TELE][PosZ]       = 10.890875816345;
-	Teles[MAX_TELE][PosZZ]       = 173.0341;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1466.6284179688;
+	Teles[MAX_TELE][PosY] = 1785.3125;
+	Teles[MAX_TELE][PosZ] = 10.890875816345;
+	Teles[MAX_TELE][PosZZ] = 173.0341;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2227.2205;
-	Teles[MAX_TELE][PosY]       = 245.8377;
-	Teles[MAX_TELE][PosZ]       = 35.3203;
-	Teles[MAX_TELE][PosZZ]       = 88.4293;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = -2227.2205;
+	Teles[MAX_TELE][PosY] = 245.8377;
+	Teles[MAX_TELE][PosZ] = 35.3203;
+	Teles[MAX_TELE][PosZZ] = 88.4293;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1454.88671875;
-	Teles[MAX_TELE][PosY]       = 1785.3096923828;
-	Teles[MAX_TELE][PosZ]       = 10.887344360352;
-	Teles[MAX_TELE][PosZZ]       = 178.9875;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1454.88671875;
+	Teles[MAX_TELE][PosY] = 1785.3096923828;
+	Teles[MAX_TELE][PosZ] = 10.887344360352;
+	Teles[MAX_TELE][PosZZ] = 178.9875;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2172.0320;
-	Teles[MAX_TELE][PosY]       = 258.4347;
-	Teles[MAX_TELE][PosZ]       = 35.3285;
-	Teles[MAX_TELE][PosZZ]       = 267.4893;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = -2172.0320;
+	Teles[MAX_TELE][PosY] = 258.4347;
+	Teles[MAX_TELE][PosZ] = 35.3285;
+	Teles[MAX_TELE][PosZZ] = 267.4893;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1420.767578125;
-	Teles[MAX_TELE][PosY]       = 1342.3922119141;
-	Teles[MAX_TELE][PosZ]       = 10.824451446533;
-	Teles[MAX_TELE][PosZZ]       = 170.4316;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1420.767578125;
+	Teles[MAX_TELE][PosY] = 1342.3922119141;
+	Teles[MAX_TELE][PosZ] = 10.824451446533;
+	Teles[MAX_TELE][PosZZ] = 170.4316;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2172.0396;
-	Teles[MAX_TELE][PosY]       = 245.8115;
-	Teles[MAX_TELE][PosZ]       = 35.3307;
-	Teles[MAX_TELE][PosZZ]       = 274.1675;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = -2172.0396;
+	Teles[MAX_TELE][PosY] = 245.8115;
+	Teles[MAX_TELE][PosZ] = 35.3307;
+	Teles[MAX_TELE][PosZZ] = 274.1675;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1432.4573974609;
-	Teles[MAX_TELE][PosY]       = 1342.3981933594;
-	Teles[MAX_TELE][PosZ]       = 10.824451446533;
-	Teles[MAX_TELE][PosZZ]       = 158.0665;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][PosX] = 1432.4573974609;
+	Teles[MAX_TELE][PosY] = 1342.3981933594;
+	Teles[MAX_TELE][PosZ] = 10.824451446533;
+	Teles[MAX_TELE][PosZZ] = 158.0665;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 552.0045;
-	Teles[MAX_TELE][PosY]       = -2982.3110;
-	Teles[MAX_TELE][PosZ]       = 10.9435;
-	Teles[MAX_TELE][PosZZ]       = 9.9225;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada Casa en la Isla");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 552.0045;
+	Teles[MAX_TELE][PosY] = -2982.3110;
+	Teles[MAX_TELE][PosZ] = 10.9435;
+	Teles[MAX_TELE][PosZZ] = 9.9225;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada Casa en la Isla");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 422.1125;
-	Teles[MAX_TELE][PosY]       = 2536.4973;
-	Teles[MAX_TELE][PosZ]       = 10.0000;
-	Teles[MAX_TELE][PosZZ]       = 84.6123;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 10;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida Casa en la Isla");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 422.1125;
+	Teles[MAX_TELE][PosY] = 2536.4973;
+	Teles[MAX_TELE][PosZ] = 10.0000;
+	Teles[MAX_TELE][PosZZ] = 84.6123;
+	Teles[MAX_TELE][Interior] = 10;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida Casa en la Isla");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 718.6540;
-	Teles[MAX_TELE][PosY]       = -1476.3484;
-	Teles[MAX_TELE][PosZ]       = 5.4688;
-	Teles[MAX_TELE][PosZZ]       = 176.4081;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada Trasera Contrabandistas");
-	Teles[MAX_TELE][Dueno]      = CONTRABANDISTAS;
+	Teles[MAX_TELE][PosX] = 718.6540;
+	Teles[MAX_TELE][PosY] = -1476.3484;
+	Teles[MAX_TELE][PosZ] = 5.4688;
+	Teles[MAX_TELE][PosZZ] = 176.4081;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada Trasera Contrabandistas");
+	Teles[MAX_TELE][Dueno] = CONTRABANDISTAS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2170.2568;
-	Teles[MAX_TELE][PosY]       = 639.5164;
-	Teles[MAX_TELE][PosZ]       = 1052.3750;
-	Teles[MAX_TELE][PosZZ]       = 178.6796;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 1;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida Trasera Contrabandistas");
-	Teles[MAX_TELE][Dueno]      = CONTRABANDISTAS;
+	Teles[MAX_TELE][PosX] = -2170.2568;
+	Teles[MAX_TELE][PosY] = 639.5164;
+	Teles[MAX_TELE][PosZ] = 1052.3750;
+	Teles[MAX_TELE][PosZZ] = 178.6796;
+	Teles[MAX_TELE][Interior] = 1;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida Trasera Contrabandistas");
+	Teles[MAX_TELE][Dueno] = CONTRABANDISTAS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1564.8403;
-	Teles[MAX_TELE][PosY]       = -1666.9033;
-	Teles[MAX_TELE][PosZ]       = 28.3956;
-	Teles[MAX_TELE][PosZZ]       = 1.3394;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Ascensor a la LSPD");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	Teles[MAX_TELE][PosX] = 1564.8403;
+	Teles[MAX_TELE][PosY] = -1666.9033;
+	Teles[MAX_TELE][PosZ] = 28.3956;
+	Teles[MAX_TELE][PosZZ] = 1.3394;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Ascensor a la LSPD");
+	Teles[MAX_TELE][Dueno] = LSPD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 217.4351;
-	Teles[MAX_TELE][PosY]       = 68.2754;
-	Teles[MAX_TELE][PosZ]       = 1005.0466;
-	Teles[MAX_TELE][PosZZ]       = 270.9305;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Ascensor al techo de LSPD");
-	Teles[MAX_TELE][Dueno]      = LSPD;
+	Teles[MAX_TELE][PosX] = 217.4351;
+	Teles[MAX_TELE][PosY] = 68.2754;
+	Teles[MAX_TELE][PosZ] = 1005.0466;
+	Teles[MAX_TELE][PosZZ] = 270.9305;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Ascensor al techo de LSPD");
+	Teles[MAX_TELE][Dueno] = LSPD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1606.3125;
-	Teles[MAX_TELE][PosY]       = 672.0709;
-	Teles[MAX_TELE][PosZ]       = -4.9063;
-	Teles[MAX_TELE][PosZZ]       = 357.5396;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la SFPD");
-	Teles[MAX_TELE][Dueno]      = SFPD;
+	Teles[MAX_TELE][PosX] = -1606.3125;
+	Teles[MAX_TELE][PosY] = 672.0709;
+	Teles[MAX_TELE][PosZ] = -4.9063;
+	Teles[MAX_TELE][PosZZ] = 357.5396;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la SFPD");
+	Teles[MAX_TELE][Dueno] = SFPD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 214.3840;
-	Teles[MAX_TELE][PosY]       = 121.9527;
-	Teles[MAX_TELE][PosZ]       = 999.0156;
-	Teles[MAX_TELE][PosZZ]       = 272.1939;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 10;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida al Parqueo SFPD");
-	Teles[MAX_TELE][Dueno]      = SFPD;
+	Teles[MAX_TELE][PosX] = 214.3840;
+	Teles[MAX_TELE][PosY] = 121.9527;
+	Teles[MAX_TELE][PosZ] = 999.0156;
+	Teles[MAX_TELE][PosZZ] = 272.1939;
+	Teles[MAX_TELE][Interior] = 10;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida al Parqueo SFPD");
+	Teles[MAX_TELE][Dueno] = SFPD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 259.27764892578;
-	Teles[MAX_TELE][PosY]       = 107.46966552734;
-	Teles[MAX_TELE][PosZ]       = 1003.2257080078;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 10;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "C\x98maras de Seguridad");
-	Teles[MAX_TELE][Dueno]      = SFPD;
+	Teles[MAX_TELE][PosX] = 259.27764892578;
+	Teles[MAX_TELE][PosY] = 107.46966552734;
+	Teles[MAX_TELE][PosZ] = 1003.2257080078;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 10;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Camaras de Seguridad");
+	Teles[MAX_TELE][Dueno] = SFPD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1954.5887451172;
-	Teles[MAX_TELE][PosY]       = 968.81573486328;
-	Teles[MAX_TELE][PosZ]       = 21.870922088623;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "C\x98maras de Seguridad");
-	Teles[MAX_TELE][Dueno]      = SFPD;
+	Teles[MAX_TELE][PosX] = 1954.5887451172;
+	Teles[MAX_TELE][PosY] = 968.81573486328;
+	Teles[MAX_TELE][PosZ] = 21.870922088623;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Camaras de Seguridad");
+	Teles[MAX_TELE][Dueno] = SFPD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2706.5669;
-	Teles[MAX_TELE][PosY]       = -1315.4844;
-	Teles[MAX_TELE][PosZ]       = 1009.6639;
-	Teles[MAX_TELE][PosZZ]       = 87.3108;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 2;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Univeresidad");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	Teles[MAX_TELE][PosX] = 2706.5669;
+	Teles[MAX_TELE][PosY] = -1315.4844;
+	Teles[MAX_TELE][PosZ] = 1009.6639;
+	Teles[MAX_TELE][PosZZ] = 87.3108;
+	Teles[MAX_TELE][Interior] = 2;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Univeresidad");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1492.4878;
-	Teles[MAX_TELE][PosY]       = 920.1396;
-	Teles[MAX_TELE][PosZ]       = 7.1875;
-	Teles[MAX_TELE][PosZZ]       = 88.9468;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada de la Universidad");
-	Teles[MAX_TELE][Dueno]      = LICENCIEROS;
+	Teles[MAX_TELE][PosX] = -1492.4878;
+	Teles[MAX_TELE][PosY] = 920.1396;
+	Teles[MAX_TELE][PosZ] = 7.1875;
+	Teles[MAX_TELE][PosZZ] = 88.9468;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada de la Universidad");
+	Teles[MAX_TELE][Dueno] = LICENCIEROS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -328.7082;
-	Teles[MAX_TELE][PosY]       = -877.2928;
-	Teles[MAX_TELE][PosZ]       = 49.2925;
-	Teles[MAX_TELE][PosZZ]       = 331.9713;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Hotel Blur~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -328.7082;
+	Teles[MAX_TELE][PosY] = -877.2928;
+	Teles[MAX_TELE][PosZ] = 49.2925;
+	Teles[MAX_TELE][PosZZ] = 331.9713;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Hotel Blur~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	HOTEL_PICKUPID_out = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 965.0988;
-	Teles[MAX_TELE][PosY]       = -53.1099;
-	Teles[MAX_TELE][PosZ]       = 1001.1246;
-	Teles[MAX_TELE][PosZZ]       = 86.4610;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Hotel Blur");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2393.4978027344;
-	Teles[MAX_TELE][PosY]       = 1156.5870361328;
-	Teles[MAX_TELE][PosZ]       = 34.606250762939;
-	Teles[MAX_TELE][PosZZ]       = 267.0350;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       -1);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = 1;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Cocina del Tren");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2368.111132813;
-	Teles[MAX_TELE][PosY]       = 1106.6160888672;
-	Teles[MAX_TELE][PosZ]       = 35.5234375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       -1);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = 1;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Primer Vag\xa6n");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2407.4384765625;
-	Teles[MAX_TELE][PosY]       = 1159.5922851563;
-	Teles[MAX_TELE][PosZ]       = 34.606250762939;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       -1);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = 1;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Segundo Vag\xa6n");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2394.1958007813;
-	Teles[MAX_TELE][PosY]       = 1136.3139648438;
-	Teles[MAX_TELE][PosZ]       = 34.267810821533;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       -1);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = 2;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Primer Vag\xa6n");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2408.9052734375;
-	Teles[MAX_TELE][PosY]       = 1133.2030029297;
-	Teles[MAX_TELE][PosZ]       = 34.267810821533;
-	Teles[MAX_TELE][PosZZ]       = 93.6150;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       -1);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = 2;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Bar del Tren");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2391.4890136719;
-	Teles[MAX_TELE][PosY]       = 1110.3713378906;
-	Teles[MAX_TELE][PosZ]       = 34.726249694824;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       -1);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = 3;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Segundo Vag\xa6n");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2156.4973144531;
-	Teles[MAX_TELE][PosY]       = 645.49560546875;
-	Teles[MAX_TELE][PosZ]       = 52.3671875;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Callej\xa6n");
-	Teles[MAX_TELE][Dueno]      = YKZ;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 958.16076660156;
-	Teles[MAX_TELE][PosY]       = 1724.9559326172;
-	Teles[MAX_TELE][PosZ]       = 8.6735439300537;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Callej\xa6n");
-	Teles[MAX_TELE][Dueno]      = YKZ;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 922.11932373047;
-	Teles[MAX_TELE][PosY]       = 1893.5383300781;
-	Teles[MAX_TELE][PosZ]       = 10.953544616699;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Callej\xa6n");
-	Teles[MAX_TELE][Dueno]      = YKZ;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 959.18499755859;
-	Teles[MAX_TELE][PosY]       = 1734.5708007813;
-	Teles[MAX_TELE][PosZ]       = 8.6735439300537;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage");
-	Teles[MAX_TELE][Dueno]      = YKZ;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2172.4489746094;
-	Teles[MAX_TELE][PosY]       = 679.87506103516;
-	Teles[MAX_TELE][PosZ]       = 55.161350250244;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Callej\xa6n");
-	Teles[MAX_TELE][Dueno]      = YKZ;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 963.85028076172;
-	Teles[MAX_TELE][PosY]       = 1742.0075683594;
-	Teles[MAX_TELE][PosZ]       = 8.6735439300537;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Callej\xa6n");
-	Teles[MAX_TELE][Dueno]      = YKZ;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1670.0425;
-	Teles[MAX_TELE][PosY]       = 715.2111;
-	Teles[MAX_TELE][PosZ]       = 10.8751;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Segundo Piso");
-	Teles[MAX_TELE][Dueno]      = SFMD;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1712.5504;
-	Teles[MAX_TELE][PosY]       = 712.4996;
-	Teles[MAX_TELE][PosZ]       = 10.8751;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 965.0988;
+	Teles[MAX_TELE][PosY] = -53.1099;
+	Teles[MAX_TELE][PosZ] = 1001.1246;
+	Teles[MAX_TELE][PosZZ] = 86.4610;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Primer Piso");
-	Teles[MAX_TELE][Dueno]      = SFMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Hotel Blur");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1719.3922;
-	Teles[MAX_TELE][PosY]       = 730.5467;
-	Teles[MAX_TELE][PosZ]       = 10.8729;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2393.4978027344;
+	Teles[MAX_TELE][PosY] = 1156.5870361328;
+	Teles[MAX_TELE][PosZ] = 34.606250762939;
+	Teles[MAX_TELE][PosZZ] = 267.0350;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], -1, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Parking");
-	Teles[MAX_TELE][Dueno]      = SFMD;
+	Teles[MAX_TELE][World] = -1;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Cocina del Tren");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2116.4800;
-	Teles[MAX_TELE][PosY]       = 2405.5039;
-	Teles[MAX_TELE][PosZ]       = 10.8281;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2368.111132813;
+	Teles[MAX_TELE][PosY] = 1106.6160888672;
+	Teles[MAX_TELE][PosZ] = 35.5234375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], -1, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Segundo Piso");
-	Teles[MAX_TELE][Dueno]      = SFMD;
+	Teles[MAX_TELE][World] = -1;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Primer Vagon");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1924.6778564453;
-	Teles[MAX_TELE][PosY]       = 292.90539550781;
-	Teles[MAX_TELE][PosZ]       = 41.046875;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al concesionario");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 2407.4384765625;
+	Teles[MAX_TELE][PosY] = 1159.5922851563;
+	Teles[MAX_TELE][PosZ] = 34.606250762939;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], -1, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = -1;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Segundo Vagon");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -496.75540161133;
-	Teles[MAX_TELE][PosY]       = 2565.6108398438;
-	Teles[MAX_TELE][PosZ]       = 53.870487213135;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del concesionario");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 2394.1958007813;
+	Teles[MAX_TELE][PosY] = 1136.3139648438;
+	Teles[MAX_TELE][PosZ] = 34.267810821533;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], -1, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = -1;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Primer Vagon");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1752.5007;
-	Teles[MAX_TELE][PosY]       = -1912.1681;
-	Teles[MAX_TELE][PosZ]       = 13.5675;
-	Teles[MAX_TELE][PosZZ]       = 271.2171;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada trasera");
-	Teles[MAX_TELE][Dueno]      = TAXI;
+	Teles[MAX_TELE][PosX] = 2408.9052734375;
+	Teles[MAX_TELE][PosY] = 1133.2030029297;
+	Teles[MAX_TELE][PosZ] = 34.267810821533;
+	Teles[MAX_TELE][PosZZ] = 93.6150;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], -1, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = -1;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Bar del Tren");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2193.3528;
-	Teles[MAX_TELE][PosY]       = -1138.6293;
-	Teles[MAX_TELE][PosZ]       = 1029.7969;
-	Teles[MAX_TELE][PosZZ]       = 183.2019;
-	Teles[MAX_TELE][PickupID]   = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida trasera");
-	Teles[MAX_TELE][Dueno]      = TAXI;
+	Teles[MAX_TELE][PosX] = 2391.4890136719;
+	Teles[MAX_TELE][PosY] = 1110.3713378906;
+	Teles[MAX_TELE][PosZ] = 34.726249694824;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], -1, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = 3;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Segundo Vagon");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2468.2424316406;
-	Teles[MAX_TELE][PosY]       = 136.53466796875;
-	Teles[MAX_TELE][PosZ]       = 35.171875;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo ~B~Colonial SF~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -2156.4973144531;
+	Teles[MAX_TELE][PosY] = 645.49560546875;
+	Teles[MAX_TELE][PosZ] = 52.3671875;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Callejon");
+	Teles[MAX_TELE][Dueno] = YKZ;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 958.16076660156;
+	Teles[MAX_TELE][PosY] = 1724.9559326172;
+	Teles[MAX_TELE][PosZ] = 8.6735439300537;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Callejon");
+	Teles[MAX_TELE][Dueno] = YKZ;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 922.11932373047;
+	Teles[MAX_TELE][PosY] = 1893.5383300781;
+	Teles[MAX_TELE][PosZ] = 10.953544616699;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Callejon");
+	Teles[MAX_TELE][Dueno] = YKZ;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 959.18499755859;
+	Teles[MAX_TELE][PosY] = 1734.5708007813;
+	Teles[MAX_TELE][PosZ] = 8.6735439300537;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage");
+	Teles[MAX_TELE][Dueno] = YKZ;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -2172.4489746094;
+	Teles[MAX_TELE][PosY] = 679.87506103516;
+	Teles[MAX_TELE][PosZ] = 55.161350250244;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Callejon");
+	Teles[MAX_TELE][Dueno] = YKZ;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 963.85028076172;
+	Teles[MAX_TELE][PosY] = 1742.0075683594;
+	Teles[MAX_TELE][PosZ] = 8.6735439300537;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Callejon");
+	Teles[MAX_TELE][Dueno] = YKZ;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1670.0425;
+	Teles[MAX_TELE][PosY] = 715.2111;
+	Teles[MAX_TELE][PosZ] = 10.8751;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Segundo Piso");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1712.5504;
+	Teles[MAX_TELE][PosY] = 712.4996;
+	Teles[MAX_TELE][PosZ] = 10.8751;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Primer Piso");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1719.3922;
+	Teles[MAX_TELE][PosY] = 730.5467;
+	Teles[MAX_TELE][PosZ] = 10.8729;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Parking");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2116.4800;
+	Teles[MAX_TELE][PosY] = 2405.5039;
+	Teles[MAX_TELE][PosZ] = 10.8281;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Segundo Piso");
+	Teles[MAX_TELE][Dueno] = SFMD;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -1924.6778564453;
+	Teles[MAX_TELE][PosY] = 292.90539550781;
+	Teles[MAX_TELE][PosZ] = 41.046875;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al concesionario");
+	Teles[MAX_TELE][Dueno] = NFS;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -496.75540161133;
+	Teles[MAX_TELE][PosY] = 2565.6108398438;
+	Teles[MAX_TELE][PosZ] = 53.870487213135;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del concesionario");
+	Teles[MAX_TELE][Dueno] = NFS;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1752.5007;
+	Teles[MAX_TELE][PosY] = -1912.1681;
+	Teles[MAX_TELE][PosZ] = 13.5675;
+	Teles[MAX_TELE][PosZZ] = 271.2171;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada trasera");
+	Teles[MAX_TELE][Dueno] = TAXI;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 2193.3528;
+	Teles[MAX_TELE][PosY] = -1138.6293;
+	Teles[MAX_TELE][PosZ] = 1029.7969;
+	Teles[MAX_TELE][PosZZ] = 183.2019;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida trasera");
+	Teles[MAX_TELE][Dueno] = TAXI;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -2468.2424316406;
+	Teles[MAX_TELE][PosY] = 136.53466796875;
+	Teles[MAX_TELE][PosZ] = 35.171875;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo ~B~Colonial SF~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	MUSEO_PICKUPID_out[0] = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 319.75296020508;
-	Teles[MAX_TELE][PosY]       = 2524.7204589844;
-	Teles[MAX_TELE][PosZ]       = 16.950752258301;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Museo ~B~Colonial");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 319.75296020508;
+	Teles[MAX_TELE][PosY] = 2524.7204589844;
+	Teles[MAX_TELE][PosZ] = 16.950752258301;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Museo ~B~Colonial");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2458.8830566406;
-	Teles[MAX_TELE][PosY]       = 127.17351531982;
-	Teles[MAX_TELE][PosZ]       = 35.175952911377;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo ~B~Colonial~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = -2458.8830566406;
+	Teles[MAX_TELE][PosY] = 127.17351531982;
+	Teles[MAX_TELE][PosZ] = 35.175952911377;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo ~B~Colonial~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	MUSEO_PICKUPID_out[1] = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 325.13787841797;
-	Teles[MAX_TELE][PosY]       = 2524.6809082031;
-	Teles[MAX_TELE][PosZ]       = 16.950752258301;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Museo ~B~Colonial");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 325.13787841797;
+	Teles[MAX_TELE][PosY] = 2524.6809082031;
+	Teles[MAX_TELE][PosZ] = 16.950752258301;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Museo ~B~Colonial");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 356.43566894531;
-	Teles[MAX_TELE][PosY]       = 2502.3215332031;
-	Teles[MAX_TELE][PosZ]       = 17.695938110352;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Segunda Planta");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 356.43566894531;
+	Teles[MAX_TELE][PosY] = 2502.3215332031;
+	Teles[MAX_TELE][PosZ] = 17.695938110352;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Segunda Planta");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 211.33430480957;
-	Teles[MAX_TELE][PosY]       = 2464.2944335938;
-	Teles[MAX_TELE][PosZ]       = 17.695938110352;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Segunda Planta");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 211.33430480957;
+	Teles[MAX_TELE][PosY] = 2464.2944335938;
+	Teles[MAX_TELE][PosZ] = 17.695938110352;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Segunda Planta");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 356.42413330078;
-	Teles[MAX_TELE][PosY]       = 2492.5109863281;
-	Teles[MAX_TELE][PosZ]       = 17.688510894775;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Segunda Planta");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 356.42413330078;
+	Teles[MAX_TELE][PosY] = 2492.5109863281;
+	Teles[MAX_TELE][PosZ] = 17.688510894775;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Segunda Planta");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 220.27177429199;
-	Teles[MAX_TELE][PosY]       = 2464.259765625;
-	Teles[MAX_TELE][PosZ]       = 17.695938110352;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Segunda Planta");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 220.27177429199;
+	Teles[MAX_TELE][PosY] = 2464.259765625;
+	Teles[MAX_TELE][PosZ] = 17.695938110352;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Segunda Planta");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 216.9066;
-	Teles[MAX_TELE][PosY]       = 2518.2739;
-	Teles[MAX_TELE][PosZ]       = 16.9508;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Tumba de Skiruch");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 216.9066;
+	Teles[MAX_TELE][PosY] = 2518.2739;
+	Teles[MAX_TELE][PosZ] = 16.9508;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Tumba de Skiruch");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 574.20227050781;
-	Teles[MAX_TELE][PosY]       = 1666.4656982422;
-	Teles[MAX_TELE][PosZ]       = 7.1796875;
-	Teles[MAX_TELE][PosZZ]       = 177.3484;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Tumba de Skiruch");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 574.20227050781;
+	Teles[MAX_TELE][PosY] = 1666.4656982422;
+	Teles[MAX_TELE][PosZ] = 7.1796875;
+	Teles[MAX_TELE][PosZZ] = 177.3484;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Tumba de Skiruch");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2347.5518;
-	Teles[MAX_TELE][PosY]       = -661.9667;
-	Teles[MAX_TELE][PosZ]       = 128.3023;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Almac\x9en");
-	Teles[MAX_TELE][Dueno]      = LCN;
+	Teles[MAX_TELE][PosX] = 2347.5518;
+	Teles[MAX_TELE][PosY] = -661.9667;
+	Teles[MAX_TELE][PosZ] = 128.3023;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Almac\x9en");
+	Teles[MAX_TELE][Dueno] = LCN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 672.85406494141;
-	Teles[MAX_TELE][PosY]       = 1833.5776367188;
-	Teles[MAX_TELE][PosZ]       = 5.623797416687;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 12;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Almac\x9en");
-	Teles[MAX_TELE][Dueno]      = LCN;
+	Teles[MAX_TELE][PosX] = 672.85406494141;
+	Teles[MAX_TELE][PosY] = 1833.5776367188;
+	Teles[MAX_TELE][PosZ] = 5.623797416687;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 12;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Almac\x9en");
+	Teles[MAX_TELE][Dueno] = LCN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1736.0247;
-	Teles[MAX_TELE][PosY]       = -2052.7773;
-	Teles[MAX_TELE][PosZ]       = 20.6677;
-	Teles[MAX_TELE][PosZZ]       = 359.9336;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Taller");
-	Teles[MAX_TELE][Dueno]      = TALLER_LS;
+	Teles[MAX_TELE][PosX] = 1736.0247;
+	Teles[MAX_TELE][PosY] = -2052.7773;
+	Teles[MAX_TELE][PosZ] = 20.6677;
+	Teles[MAX_TELE][PosZZ] = 359.9336;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Taller");
+	Teles[MAX_TELE][Dueno] = TALLER_LS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1736.4465;
-	Teles[MAX_TELE][PosY]       = -2054.0835;
-	Teles[MAX_TELE][PosZ]       = 13.5707;
-	Teles[MAX_TELE][PosZZ]       = 186.8224;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Taller");
-	Teles[MAX_TELE][Dueno]      = TALLER_LS;
+	Teles[MAX_TELE][PosX] = 1736.4465;
+	Teles[MAX_TELE][PosY] = -2054.0835;
+	Teles[MAX_TELE][PosZ] = 13.5707;
+	Teles[MAX_TELE][PosZZ] = 186.8224;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Taller");
+	Teles[MAX_TELE][Dueno] = TALLER_LS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1297.4171;
-	Teles[MAX_TELE][PosY]       = -800.9077;
-	Teles[MAX_TELE][PosZ]       = 84.1406;
-	Teles[MAX_TELE][PosZZ]       = 273.6443;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Subida a la Piscina");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 1297.4171;
+	Teles[MAX_TELE][PosY] = -800.9077;
+	Teles[MAX_TELE][PosZ] = 84.1406;
+	Teles[MAX_TELE][PosZZ] = 273.6443;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Subida a la Piscina");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1302.2789;
-	Teles[MAX_TELE][PosY]       = -784.9661;
-	Teles[MAX_TELE][PosZ]       = 88.3125;
-	Teles[MAX_TELE][PosZZ]       = 173.7368;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Bajada a la entrada");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 1302.2789;
+	Teles[MAX_TELE][PosY] = -784.9661;
+	Teles[MAX_TELE][PosZ] = 88.3125;
+	Teles[MAX_TELE][PosZZ] = 173.7368;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Bajada a la entrada");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1295.4213;
-	Teles[MAX_TELE][PosY]       = -787.3893;
-	Teles[MAX_TELE][PosZ]       = 88.3125;
-	Teles[MAX_TELE][PosZZ]       = 270.2211;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Subida a el techo");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 1295.4213;
+	Teles[MAX_TELE][PosY] = -787.3893;
+	Teles[MAX_TELE][PosZ] = 88.3125;
+	Teles[MAX_TELE][PosZZ] = 270.2211;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Subida a el techo");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1293.5460;
-	Teles[MAX_TELE][PosY]       = -788.4596;
-	Teles[MAX_TELE][PosZ]       = 92.0313;
-	Teles[MAX_TELE][PosZZ]       = 178.7269;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Bajada a la Piscina");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 1293.5460;
+	Teles[MAX_TELE][PosY] = -788.4596;
+	Teles[MAX_TELE][PosZ] = 92.0313;
+	Teles[MAX_TELE][PosZZ] = 178.7269;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Bajada a la Piscina");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1280.5542;
-	Teles[MAX_TELE][PosY]       = -812.2928;
-	Teles[MAX_TELE][PosZ]       = 83.4447;
-	Teles[MAX_TELE][PosZZ]       = 180.4959;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al balc\xa6n");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 1280.5542;
+	Teles[MAX_TELE][PosY] = -812.2928;
+	Teles[MAX_TELE][PosZ] = 83.4447;
+	Teles[MAX_TELE][PosZZ] = 180.4959;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al balcon");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1280.5941;
-	Teles[MAX_TELE][PosY]       = -828.9892;
-	Teles[MAX_TELE][PosZ]       = 76.7210;
-	Teles[MAX_TELE][PosZZ]       = 179.8692;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del balc\xa6n");
-	Teles[MAX_TELE][Dueno]      = CIVIL;
+	Teles[MAX_TELE][PosX] = 1280.5941;
+	Teles[MAX_TELE][PosY] = -828.9892;
+	Teles[MAX_TELE][PosZ] = 76.7210;
+	Teles[MAX_TELE][PosZZ] = 179.8692;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del balcon");
+	Teles[MAX_TELE][Dueno] = CIVIL;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1730.4862;
-	Teles[MAX_TELE][PosY]       = -2022.9677;
-	Teles[MAX_TELE][PosZ]       = 20.6677;
-	Teles[MAX_TELE][PosZZ]       = 273.4293;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Oficina");
-	Teles[MAX_TELE][Dueno]      = TALLER_LS;
+	Teles[MAX_TELE][PosX] = 1730.4862;
+	Teles[MAX_TELE][PosY] = -2022.9677;
+	Teles[MAX_TELE][PosZ] = 20.6677;
+	Teles[MAX_TELE][PosZZ] = 273.4293;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Oficina");
+	Teles[MAX_TELE][Dueno] = TALLER_LS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1588.6605;
-	Teles[MAX_TELE][PosY]       = -2505.8286;
-	Teles[MAX_TELE][PosZ]       = 13.5547;
-	Teles[MAX_TELE][PosZZ]       = 267.3497;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       6);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 15;
-	Teles[MAX_TELE][World]       = 6;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Oficina");
-	Teles[MAX_TELE][Dueno]      = TALLER_LS;
+	Teles[MAX_TELE][PosX] = 1588.6605;
+	Teles[MAX_TELE][PosY] = -2505.8286;
+	Teles[MAX_TELE][PosZ] = 13.5547;
+	Teles[MAX_TELE][PosZZ] = 267.3497;
+	Teles[MAX_TELE][Interior] = 15;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], 6, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = 6;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Oficina");
+	Teles[MAX_TELE][Dueno] = TALLER_LS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1636.3885;
-	Teles[MAX_TELE][PosY]       = -2491.0374;
-	Teles[MAX_TELE][PosZ]       = 13.6198;
-	Teles[MAX_TELE][PosZZ]       = 273.1169;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a el Recibidor");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 1636.3885;
+	Teles[MAX_TELE][PosY] = -2491.0374;
+	Teles[MAX_TELE][PosZ] = 13.6198;
+	Teles[MAX_TELE][PosZZ] = 273.1169;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a el Recibidor");
+	Teles[MAX_TELE][Dueno] = NFS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1502.6072;
-	Teles[MAX_TELE][PosY]       = 1308.4796;
-	Teles[MAX_TELE][PosZ]       = 1093.2891;
-	Teles[MAX_TELE][PosZZ]       = 89.9395;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Concesionario");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 1502.6072;
+	Teles[MAX_TELE][PosY] = 1308.4796;
+	Teles[MAX_TELE][PosZ] = 1093.2891;
+	Teles[MAX_TELE][PosZZ] = 89.9395;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Concesionario");
+	Teles[MAX_TELE][Dueno] = NFS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 549.5990;
-	Teles[MAX_TELE][PosY]       = -1293.8884;
-	Teles[MAX_TELE][PosZ]       = 17.2482;
-	Teles[MAX_TELE][PosZZ]       = 4.7037;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Concesionario");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 549.5990;
+	Teles[MAX_TELE][PosY] = -1293.8884;
+	Teles[MAX_TELE][PosZ] = 17.2482;
+	Teles[MAX_TELE][PosZZ] = 4.7037;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Concesionario");
+	Teles[MAX_TELE][Dueno] = NFS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1647.4929;
-	Teles[MAX_TELE][PosY]       = -2486.1321;
-	Teles[MAX_TELE][PosZ]       = 13.6146;
-	Teles[MAX_TELE][PosZZ]       = 178.7792;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Concesionario");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 1647.4929;
+	Teles[MAX_TELE][PosY] = -2486.1321;
+	Teles[MAX_TELE][PosZ] = 13.6146;
+	Teles[MAX_TELE][PosZZ] = 178.7792;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Concesionario");
+	Teles[MAX_TELE][Dueno] = NFS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 548.6264;
-	Teles[MAX_TELE][PosY]       = -1314.2053;
-	Teles[MAX_TELE][PosZ]       = 17.2422;
-	Teles[MAX_TELE][PosZZ]       = 183.6187;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Concesionario");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 548.6264;
+	Teles[MAX_TELE][PosY] = -1314.2053;
+	Teles[MAX_TELE][PosZ] = 17.2422;
+	Teles[MAX_TELE][PosZZ] = 183.6187;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Concesionario");
+	Teles[MAX_TELE][Dueno] = NFS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1646.8503;
-	Teles[MAX_TELE][PosY]       = -2502.7546;
-	Teles[MAX_TELE][PosZ]       = 13.6146;
-	Teles[MAX_TELE][PosZZ]       = 353.6208;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 3;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Concesionario");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 1646.8503;
+	Teles[MAX_TELE][PosY] = -2502.7546;
+	Teles[MAX_TELE][PosZ] = 13.6146;
+	Teles[MAX_TELE][PosZZ] = 353.6208;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Concesionario");
+	Teles[MAX_TELE][Dueno] = NFS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2233.8840;
-	Teles[MAX_TELE][PosY]       = -1333.2333;
-	Teles[MAX_TELE][PosZ]       = 23.9815;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Iglesia");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 2233.8840;
+	Teles[MAX_TELE][PosY] = -1333.2333;
+	Teles[MAX_TELE][PosZ] = 23.9815;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Iglesia");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2870.7888183594;
-	Teles[MAX_TELE][PosY]       = 911.54583740234;
-	Teles[MAX_TELE][PosZ]       = 10.780518531799;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 19;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Iglesia");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 2870.7888183594;
+	Teles[MAX_TELE][PosY] = 911.54583740234;
+	Teles[MAX_TELE][PosZ] = 10.780518531799;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 19;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Iglesia");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2254.2273;
-	Teles[MAX_TELE][PosY]       = -1333.2040;
-	Teles[MAX_TELE][PosZ]       = 23.9815;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Iglesia");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 2254.2273;
+	Teles[MAX_TELE][PosY] = -1333.2040;
+	Teles[MAX_TELE][PosZ] = 23.9815;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Iglesia");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2858.1708984375;
-	Teles[MAX_TELE][PosY]       = 911.40795898438;
-	Teles[MAX_TELE][PosZ]       = 10.780572891235;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 19;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Iglesia");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][PosX] = 2858.1708984375;
+	Teles[MAX_TELE][PosY] = 911.40795898438;
+	Teles[MAX_TELE][PosZ] = 10.780572891235;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 19;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Iglesia");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -999.5003;
-	Teles[MAX_TELE][PosY]       = -416.4885;
-	Teles[MAX_TELE][PosZ]       = 36.2180;
-	Teles[MAX_TELE][PosZZ]       = 317.9548;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Garita");
-	Teles[MAX_TELE][Dueno]      = SFPD;
+	Teles[MAX_TELE][PosX] = -999.5003;
+	Teles[MAX_TELE][PosY] = -416.4885;
+	Teles[MAX_TELE][PosZ] = 36.2180;
+	Teles[MAX_TELE][PosZZ] = 317.9548;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Garita");
+	Teles[MAX_TELE][Dueno] = SFPD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -1229.4156;
-	Teles[MAX_TELE][PosY]       = -228.9857;
-	Teles[MAX_TELE][PosZ]       = 14.4109;
-	Teles[MAX_TELE][PosZZ]       = 309.2047;
-	Teles[MAX_TELE][PickupID]           = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 4;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Garita");
-	Teles[MAX_TELE][Dueno]      = SFPD;
+	Teles[MAX_TELE][PosX] = -1229.4156;
+	Teles[MAX_TELE][PosY] = -228.9857;
+	Teles[MAX_TELE][PosZ] = 14.4109;
+	Teles[MAX_TELE][PosZZ] = 309.2047;
+	Teles[MAX_TELE][Interior] = 4;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX], Teles[MAX_TELE][PosY], Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Garita");
+	Teles[MAX_TELE][Dueno] = SFPD;
 	/////////////////////////////////////////////////////////////////////sssssssssssssssssssssssssssssssssssss
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2338.822265625;
-	Teles[MAX_TELE][PosY]       = -1176.9663085938;
-	Teles[MAX_TELE][PosZ]       = 1027.9765625;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2338.822265625;
+	Teles[MAX_TELE][PosY] = -1176.9663085938;
+	Teles[MAX_TELE][PosZ] = 1027.9765625;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Sala");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Sala");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2345.2273;
-	Teles[MAX_TELE][PosY]       = -1180.6946;
-	Teles[MAX_TELE][PosZ]       = 1031.9688;
-	Teles[MAX_TELE][PosZZ]       = 83.8390;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2345.2273;
+	Teles[MAX_TELE][PosY] = -1180.6946;
+	Teles[MAX_TELE][PosZ] = 1031.9688;
+	Teles[MAX_TELE][PosZZ] = 83.8390;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Sala");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Sala");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2329.5974121094;
-	Teles[MAX_TELE][PosY]       = -1178.0240478516;
-	Teles[MAX_TELE][PosZ]       = 1031.9765625;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2329.5974121094;
+	Teles[MAX_TELE][PosY] = -1178.0240478516;
+	Teles[MAX_TELE][PosZ] = 1031.9765625;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Cocina");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Cocina");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2330.2036132813;
-	Teles[MAX_TELE][PosY]       = -1173.0665283203;
-	Teles[MAX_TELE][PosZ]       = 1027.9765625;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2330.2036132813;
+	Teles[MAX_TELE][PosY] = -1173.0665283203;
+	Teles[MAX_TELE][PosZ] = 1027.9765625;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Cocina");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Cocina");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2319.7219238281;
-	Teles[MAX_TELE][PosY]       = -1185.8811035156;
-	Teles[MAX_TELE][PosZ]       = 1028.6401367188;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2319.7219238281;
+	Teles[MAX_TELE][PosY] = -1185.8811035156;
+	Teles[MAX_TELE][PosZ] = 1028.6401367188;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Subterr\x98neo");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Subterraneo");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1088.2927246094;
-	Teles[MAX_TELE][PosY]       = 1707.5489501953;
-	Teles[MAX_TELE][PosZ]       = 10.915323257446;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1088.2927246094;
+	Teles[MAX_TELE][PosY] = 1707.5489501953;
+	Teles[MAX_TELE][PosZ] = 10.915323257446;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entada a la Casa Colts");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entada a la Casa Colts");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1103.0180664063;
-	Teles[MAX_TELE][PosY]       = 1707.4780273438;
-	Teles[MAX_TELE][PosZ]       = 10.915323257446;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1103.0180664063;
+	Teles[MAX_TELE][PosY] = 1707.4780273438;
+	Teles[MAX_TELE][PosZ] = 10.915323257446;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage Colts");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage Colts");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1080.2182617188;
-	Teles[MAX_TELE][PosY]       = 1752.4036865234;
-	Teles[MAX_TELE][PosZ]       = 10.872812271118;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1080.2182617188;
+	Teles[MAX_TELE][PosY] = 1752.4036865234;
+	Teles[MAX_TELE][PosZ] = 10.872812271118;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Subterr\x98neo");
-	Teles[MAX_TELE][Dueno]      = COLTS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Subterraneo");
+	Teles[MAX_TELE][Dueno] = COLTS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2688.6977539063;
-	Teles[MAX_TELE][PosY]       = 819.4150390625;
-	Teles[MAX_TELE][PosZ]       = 10.963800430298;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2688.6977539063;
+	Teles[MAX_TELE][PosY] = 819.4150390625;
+	Teles[MAX_TELE][PosZ] = 10.963800430298;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage");
-	Teles[MAX_TELE][Dueno]      = AK;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage");
+	Teles[MAX_TELE][Dueno] = AK;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2653.9909667969;
-	Teles[MAX_TELE][PosY]       = 800.59191894531;
-	Teles[MAX_TELE][PosZ]       = 11.072454452515;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2653.9909667969;
+	Teles[MAX_TELE][PosY] = 800.59191894531;
+	Teles[MAX_TELE][PosZ] = 11.072454452515;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 6;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 6;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Casa AK");
-	Teles[MAX_TELE][Dueno]      = AK;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Casa AK");
+	Teles[MAX_TELE][Dueno] = AK;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1290.7635498047;
-	Teles[MAX_TELE][PosY]       = -1161.25390625;
-	Teles[MAX_TELE][PosZ]       = 23.960971832275;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1290.7635498047;
+	Teles[MAX_TELE][PosY] = -1161.25390625;
+	Teles[MAX_TELE][PosZ] = 23.960971832275;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1536.1700439453;
-	Teles[MAX_TELE][PosY]       = 1715.9340820313;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1536.1700439453;
+	Teles[MAX_TELE][PosY] = 1715.9340820313;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1283.6845703125;
-	Teles[MAX_TELE][PosY]       = -1161.2530517578;
-	Teles[MAX_TELE][PosZ]       = 23.960971832275;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1283.6845703125;
+	Teles[MAX_TELE][PosY] = -1161.2530517578;
+	Teles[MAX_TELE][PosZ] = 23.960971832275;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1536.1544189453;
-	Teles[MAX_TELE][PosY]       = 1724.9639892578;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1536.1544189453;
+	Teles[MAX_TELE][PosY] = 1724.9639892578;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1312.9364013672;
-	Teles[MAX_TELE][PosY]       = -1172.4615478516;
-	Teles[MAX_TELE][PosZ]       = 23.798957824707;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1312.9364013672;
+	Teles[MAX_TELE][PosY] = -1172.4615478516;
+	Teles[MAX_TELE][PosZ] = 23.798957824707;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Pasillo");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Pasillo");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1486.4763183594;
-	Teles[MAX_TELE][PosY]       = 1668.74609375;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1486.4763183594;
+	Teles[MAX_TELE][PosY] = 1668.74609375;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Pasillo");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Pasillo");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1262.4205322266;
-	Teles[MAX_TELE][PosY]       = -1172.4796142578;
-	Teles[MAX_TELE][PosZ]       = 23.81217956543;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1262.4205322266;
+	Teles[MAX_TELE][PosY] = -1172.4796142578;
+	Teles[MAX_TELE][PosZ] = 23.81217956543;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Pasillo");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Pasillo");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1507.8590087891;
-	Teles[MAX_TELE][PosY]       = 1668.7855224609;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1507.8590087891;
+	Teles[MAX_TELE][PosY] = 1668.7855224609;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Pasillo");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Pasillo");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1257.2631835938;
-	Teles[MAX_TELE][PosY]       = -1165.2355957031;
-	Teles[MAX_TELE][PosZ]       = 23.828125;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1257.2631835938;
+	Teles[MAX_TELE][PosY] = -1165.2355957031;
+	Teles[MAX_TELE][PosZ] = 23.828125;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada Secundaria");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada Secundaria");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1560.9891357422;
-	Teles[MAX_TELE][PosY]       = 1427.7696533203;
-	Teles[MAX_TELE][PosZ]       = 10.93593788147;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1560.9891357422;
+	Teles[MAX_TELE][PosY] = 1427.7696533203;
+	Teles[MAX_TELE][PosZ] = 10.93593788147;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1552.3513183594;
-	Teles[MAX_TELE][PosY]       = 1426.0701904297;
-	Teles[MAX_TELE][PosZ]       = 10.93593788147;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1552.3513183594;
+	Teles[MAX_TELE][PosY] = 1426.0701904297;
+	Teles[MAX_TELE][PosZ] = 10.93593788147;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Boleteria");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Boleteria");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1527.1134033203;
-	Teles[MAX_TELE][PosY]       = 1720.8371582031;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1527.1134033203;
+	Teles[MAX_TELE][PosY] = 1720.8371582031;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida de la Boleteria");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida de la Boleteria");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1530.4528808594;
-	Teles[MAX_TELE][PosY]       = 1425.8669433594;
-	Teles[MAX_TELE][PosZ]       = 10.93593788147;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1530.4528808594;
+	Teles[MAX_TELE][PosY] = 1425.8669433594;
+	Teles[MAX_TELE][PosZ] = 10.93593788147;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Solo Actores");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Solo Actores");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1409.2100830078;
-	Teles[MAX_TELE][PosY]       = 1826.9398193359;
-	Teles[MAX_TELE][PosZ]       = 10.93593788147;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1409.2100830078;
+	Teles[MAX_TELE][PosY] = 1826.9398193359;
+	Teles[MAX_TELE][PosZ] = 10.93593788147;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1488.2552490234;
-	Teles[MAX_TELE][PosY]       = 1645.0343017578;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1488.2552490234;
+	Teles[MAX_TELE][PosY] = 1645.0343017578;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1533.6856689453;
-	Teles[MAX_TELE][PosY]       = 1709.6895751953;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1533.6856689453;
+	Teles[MAX_TELE][PosY] = 1709.6895751953;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Pasillo");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Pasillo");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1506.0463867188;
-	Teles[MAX_TELE][PosY]       = 1645.3109130859;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1506.0463867188;
+	Teles[MAX_TELE][PosY] = 1645.3109130859;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1533.8020019531;
-	Teles[MAX_TELE][PosY]       = 1730.5770263672;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1533.8020019531;
+	Teles[MAX_TELE][PosY] = 1730.5770263672;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Pasillo");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Pasillo");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1526.9104003906;
-	Teles[MAX_TELE][PosY]       = 1730.3848876953;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1526.9104003906;
+	Teles[MAX_TELE][PosY] = 1730.3848876953;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Pasillo Principal");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Pasillo Principal");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1585.0755615234;
-	Teles[MAX_TELE][PosY]       = 1598.1029052734;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1585.0755615234;
+	Teles[MAX_TELE][PosY] = 1598.1029052734;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1526.9020996094;
-	Teles[MAX_TELE][PosY]       = 1709.9836425781;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1526.9020996094;
+	Teles[MAX_TELE][PosY] = 1709.9836425781;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Pasillo Principal");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Pasillo Principal");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1604.3533935547;
-	Teles[MAX_TELE][PosY]       = 1598.0865478516;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1604.3533935547;
+	Teles[MAX_TELE][PosY] = 1598.0865478516;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1594.6496582031;
-	Teles[MAX_TELE][PosY]       = 1591.458984375;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1594.6496582031;
+	Teles[MAX_TELE][PosY] = 1591.458984375;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Teatro");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Teatro");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1370.279296875;
-	Teles[MAX_TELE][PosY]       = 1829.9675292969;
-	Teles[MAX_TELE][PosZ]       = 10.8359375;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1370.279296875;
+	Teles[MAX_TELE][PosY] = 1829.9675292969;
+	Teles[MAX_TELE][PosZ] = 10.8359375;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1245.2952880859;
-	Teles[MAX_TELE][PosY]       = -1177.4346923828;
-	Teles[MAX_TELE][PosZ]       = 23.51279258728;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],        WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1245.2952880859;
+	Teles[MAX_TELE][PosY] = -1177.4346923828;
+	Teles[MAX_TELE][PosZ] = 23.51279258728;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Parking");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Parking");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1960.4025878906;
-	Teles[MAX_TELE][PosY]       = 1860.1754150391;
-	Teles[MAX_TELE][PosZ]       = 27.63437461853;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1960.4025878906;
+	Teles[MAX_TELE][PosY] = 1860.1754150391;
+	Teles[MAX_TELE][PosZ] = 27.63437461853;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Parkin");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Parkin");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1225.7741699219;
-	Teles[MAX_TELE][PosY]       = -1178.9755859375;
-	Teles[MAX_TELE][PosZ]       = 22.388561248779;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1225.7741699219;
+	Teles[MAX_TELE][PosY] = -1178.9755859375;
+	Teles[MAX_TELE][PosZ] = 22.388561248779;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Parking");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Parking");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1958.3662109375;
-	Teles[MAX_TELE][PosY]       = 1890.8638916016;
-	Teles[MAX_TELE][PosZ]       = 27.63437461853;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1958.3662109375;
+	Teles[MAX_TELE][PosY] = 1890.8638916016;
+	Teles[MAX_TELE][PosZ] = 27.63437461853;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Parking");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Parking");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1232.5668945313;
-	Teles[MAX_TELE][PosY]       = -1210.4500732422;
-	Teles[MAX_TELE][PosZ]       = 25.60440826416;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1232.5668945313;
+	Teles[MAX_TELE][PosY] = -1210.4500732422;
+	Teles[MAX_TELE][PosZ] = 25.60440826416;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Parking");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Parking");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1883.4437255859;
-	Teles[MAX_TELE][PosY]       = 1888.3226318359;
-	Teles[MAX_TELE][PosZ]       = 27.63437461853;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1883.4437255859;
+	Teles[MAX_TELE][PosY] = 1888.3226318359;
+	Teles[MAX_TELE][PosZ] = 27.63437461853;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Segundo Piso");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Segundo Piso");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1051.7932128906;
-	Teles[MAX_TELE][PosY]       = -346.07562255859;
-	Teles[MAX_TELE][PosZ]       = 73.9921875;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1051.7932128906;
+	Teles[MAX_TELE][PosY] = -346.07562255859;
+	Teles[MAX_TELE][PosZ] = 73.9921875;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Almacen");
-	Teles[MAX_TELE][Dueno]      = TRAFICANTES;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Almacen");
+	Teles[MAX_TELE][Dueno] = TRAFICANTES;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2817.095703125;
-	Teles[MAX_TELE][PosY]       = 2010.1229248047;
-	Teles[MAX_TELE][PosZ]       = 16.792163848877;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2817.095703125;
+	Teles[MAX_TELE][PosY] = 2010.1229248047;
+	Teles[MAX_TELE][PosZ] = 16.792163848877;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 10;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 10;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Almacen");
-	Teles[MAX_TELE][Dueno]      = TRAFICANTES;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Almacen");
+	Teles[MAX_TELE][Dueno] = TRAFICANTES;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1871.1759033203;
-	Teles[MAX_TELE][PosY]       = -1668.7211914063;
-	Teles[MAX_TELE][PosZ]       = 31.811527252197;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1871.1759033203;
+	Teles[MAX_TELE][PosY] = -1668.7211914063;
+	Teles[MAX_TELE][PosZ] = 31.811527252197;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Alhambra");
-	Teles[MAX_TELE][Dueno]      = LCN;
-	//////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 473.89947509766;
-	Teles[MAX_TELE][PosY]       = -11.645506858826;
-	Teles[MAX_TELE][PosZ]       = 1003.6953125;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       20);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 17;
-	Teles[MAX_TELE][World]       = 20;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Piso Superior");
-	Teles[MAX_TELE][Dueno]      = LCN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Alhambra");
+	Teles[MAX_TELE][Dueno] = LCN;
 	PickUpAlambraAndJizzy[0] = MAX_TELE;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2679.7185;
-	Teles[MAX_TELE][PosY]       = 1403.4821;
-	Teles[MAX_TELE][PosZ]       = 23.8926;
-	Teles[MAX_TELE][PosZZ]       = 344.8997;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Jizzy's");
-	Teles[MAX_TELE][Dueno]      = YKZ;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2676.2512207031;
-	Teles[MAX_TELE][PosY]       = 1392.9838867188;
-	Teles[MAX_TELE][PosZ]       = 918.3515625;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       11);
+	Teles[MAX_TELE][PosX] = 473.89947509766;
+	Teles[MAX_TELE][PosY] = -11.645506858826;
+	Teles[MAX_TELE][PosZ] = 1003.6953125;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 17;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], 20, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 3;
-	Teles[MAX_TELE][World]       = 11;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Piso Superior");
-	Teles[MAX_TELE][Dueno]      = YKZ;
+	Teles[MAX_TELE][World] = 20;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Piso Superior");
+	Teles[MAX_TELE][Dueno] = LCN;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -2679.7185;
+	Teles[MAX_TELE][PosY] = 1403.4821;
+	Teles[MAX_TELE][PosZ] = 23.8926;
+	Teles[MAX_TELE][PosZZ] = 344.8997;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Jizzy's");
+	Teles[MAX_TELE][Dueno] = YKZ;
 	PickUpAlambraAndJizzy[1] = MAX_TELE;
-	/////////////////////////////////////////////////////////////////////
-	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 755.12426757813;
-	Teles[MAX_TELE][PosY]       = -1361.5046386719;
-	Teles[MAX_TELE][PosZ]       = 13.512796401978;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Parking");
-	Teles[MAX_TELE][Dueno]      = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2324.7255859375;
-	Teles[MAX_TELE][PosY]       = 1419.7823486328;
-	Teles[MAX_TELE][PosZ]       = 42.883346557617;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = -2676.2512207031;
+	Teles[MAX_TELE][PosY] = 1392.9838867188;
+	Teles[MAX_TELE][PosZ] = 918.3515625;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 3;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], 11, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 11;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Parking");
-	Teles[MAX_TELE][Dueno]      = CNN;
+	Teles[MAX_TELE][World] = 11;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Piso Superior");
+	Teles[MAX_TELE][Dueno] = YKZ;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1546.3073;
-	Teles[MAX_TELE][PosY]       = 1282.2327;
-	Teles[MAX_TELE][PosZ]       = 10.8268;
-	Teles[MAX_TELE][PosZZ]       = 265.0191;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]            = 10;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Almac\x9en NFS");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 755.12426757813;
+	Teles[MAX_TELE][PosY] = -1361.5046386719;
+	Teles[MAX_TELE][PosZ] = 13.512796401978;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Parking");
+	Teles[MAX_TELE][Dueno] = CNN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -50.6239;
-	Teles[MAX_TELE][PosY]       = -233.6132;
-	Teles[MAX_TELE][PosZ]       = 6.7646;
-	Teles[MAX_TELE][PosZZ]       = 0.9264;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
-	Teles[MAX_TELE][PickupIDGo]        = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]            = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al almac\x9en NFS");
-	Teles[MAX_TELE][Dueno]      = NFS;
+	Teles[MAX_TELE][PosX] = 2324.7255859375;
+	Teles[MAX_TELE][PosY] = 1419.7823486328;
+	Teles[MAX_TELE][PosZ] = 42.883346557617;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 11;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Parking");
+	Teles[MAX_TELE][Dueno] = CNN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1219.2227783203;
-	Teles[MAX_TELE][PosY]       = -1811.7043457031;
-	Teles[MAX_TELE][PosZ]       = 16.59375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1546.3073;
+	Teles[MAX_TELE][PosY] = 1282.2327;
+	Teles[MAX_TELE][PosZ] = 10.8268;
+	Teles[MAX_TELE][PosZZ] = 265.0191;
+	Teles[MAX_TELE][Interior] = 10;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Almac\x9en NFS");
+	Teles[MAX_TELE][Dueno] = NFS;
+	//////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = -50.6239;
+	Teles[MAX_TELE][PosY] = -233.6132;
+	Teles[MAX_TELE][PosZ] = 6.7646;
+	Teles[MAX_TELE][PosZZ] = 0.9264;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al almac\x9en NFS");
+	Teles[MAX_TELE][Dueno] = NFS;
+	/////////////////////////////////////////////////////////////////////
+	MAX_TELE++;
+	Teles[MAX_TELE][PosX] = 1219.2227783203;
+	Teles[MAX_TELE][PosY] = -1811.7043457031;
+	Teles[MAX_TELE][PosZ] = 16.59375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	MUSEO_PICKUPID_out[2] = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1397.5463867188;
-	Teles[MAX_TELE][PosY]       = 1603.9676513672;
-	Teles[MAX_TELE][PosZ]       = 11.09531211853;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1397.5463867188;
+	Teles[MAX_TELE][PosY] = 1603.9676513672;
+	Teles[MAX_TELE][PosZ] = 11.09531211853;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Museo Colonial");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Museo Colonial");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1154.0031738281;
-	Teles[MAX_TELE][PosY]       = -1772.6787109375;
-	Teles[MAX_TELE][PosZ]       = 16.599193572998;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1154.0031738281;
+	Teles[MAX_TELE][PosY] = -1772.6787109375;
+	Teles[MAX_TELE][PosZ] = 16.599193572998;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	MUSEO_PICKUPID_out[3] = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1500.4696044922;
-	Teles[MAX_TELE][PosY]       = 1325.8043212891;
-	Teles[MAX_TELE][PosZ]       = 11.129955291748;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1500.4696044922;
+	Teles[MAX_TELE][PosY] = 1325.8043212891;
+	Teles[MAX_TELE][PosZ] = 11.129955291748;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Museo Colonial");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Museo Colonial");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1111.9200439453;
-	Teles[MAX_TELE][PosY]       = -1792.8372802734;
-	Teles[MAX_TELE][PosZ]       = 16.59375;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1111.9200439453;
+	Teles[MAX_TELE][PosY] = -1792.8372802734;
+	Teles[MAX_TELE][PosZ] = 16.59375;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	MUSEO_PICKUPID_out[4] = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1535.1656494141;
-	Teles[MAX_TELE][PosY]       = 1296.5877685547;
-	Teles[MAX_TELE][PosZ]       = 11.307640075684;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1535.1656494141;
+	Teles[MAX_TELE][PosY] = 1296.5877685547;
+	Teles[MAX_TELE][PosZ] = 11.307640075684;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Museo Colonial");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Museo Colonial");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1111.9191894531;
-	Teles[MAX_TELE][PosY]       = -1801.1604003906;
-	Teles[MAX_TELE][PosZ]       = 16.59375;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1111.9191894531;
+	Teles[MAX_TELE][PosY] = -1801.1604003906;
+	Teles[MAX_TELE][PosZ] = 16.59375;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	MUSEO_PICKUPID_out[5] = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1543.0972900391;
-	Teles[MAX_TELE][PosY]       = 1296.5903320313;
-	Teles[MAX_TELE][PosZ]       = 11.307619094849;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1543.0972900391;
+	Teles[MAX_TELE][PosY] = 1296.5903320313;
+	Teles[MAX_TELE][PosZ] = 11.307619094849;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Museo Colonial");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Museo Colonial");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1113.7189941406;
-	Teles[MAX_TELE][PosY]       = -1837.3305664063;
-	Teles[MAX_TELE][PosZ]       = 16.5999584198;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1113.7189941406;
+	Teles[MAX_TELE][PosY] = -1837.3305664063;
+	Teles[MAX_TELE][PosZ] = 16.5999584198;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo ~B~Colonial LS~N~~G~Precio: ~W~$40");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	MUSEO_PICKUPID_out[6] = Teles[MAX_TELE][PickupID];
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1387.5858154297;
-	Teles[MAX_TELE][PosY]       = 1214.0670166016;
-	Teles[MAX_TELE][PosZ]       = 10.985989570618;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1387.5858154297;
+	Teles[MAX_TELE][PosY] = 1214.0670166016;
+	Teles[MAX_TELE][PosZ] = 10.985989570618;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Museo Colonial");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Museo Colonial");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1449.5339355469;
-	Teles[MAX_TELE][PosY]       = 1601.7739257813;
-	Teles[MAX_TELE][PosZ]       = 10.841849327087;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1449.5339355469;
+	Teles[MAX_TELE][PosY] = 1601.7739257813;
+	Teles[MAX_TELE][PosZ] = 10.841849327087;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Pasillo");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Pasillo");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1338.0384521484;
-	Teles[MAX_TELE][PosY]       = 1214.0311279297;
-	Teles[MAX_TELE][PosZ]       = 10.842981338501;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1338.0384521484;
+	Teles[MAX_TELE][PosY] = 1214.0311279297;
+	Teles[MAX_TELE][PosZ] = 10.842981338501;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1368.1462402344;
-	Teles[MAX_TELE][PosY]       = 1210.2509765625;
-	Teles[MAX_TELE][PosZ]       = 11.014349937439;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1368.1462402344;
+	Teles[MAX_TELE][PosY] = 1210.2509765625;
+	Teles[MAX_TELE][PosZ] = 11.014349937439;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Museo");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Museo");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1549.8510742188;
-	Teles[MAX_TELE][PosY]       = 1338.1644287109;
-	Teles[MAX_TELE][PosZ]       = 11.148050308228;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1549.8510742188;
+	Teles[MAX_TELE][PosY] = 1338.1644287109;
+	Teles[MAX_TELE][PosZ] = 11.148050308228;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 7;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 7;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Pasillo");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Pasillo");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2770.6630859375;
-	Teles[MAX_TELE][PosY]       = -1628.7229003906;
-	Teles[MAX_TELE][PosZ]       = 12.177460670471;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 2770.6630859375;
+	Teles[MAX_TELE][PosY] = -1628.7229003906;
+	Teles[MAX_TELE][PosZ] = 12.177460670471;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Almac\x9en");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Almac\x9en");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2437.7485351563;
-	Teles[MAX_TELE][PosY]       = 2083.6484375;
-	Teles[MAX_TELE][PosZ]       = 62.359275817871;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2437.7485351563;
+	Teles[MAX_TELE][PosY] = 2083.6484375;
+	Teles[MAX_TELE][PosZ] = 62.359275817871;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 4;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 4;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Almac\x9en");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Almac\x9en");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2468.8718261719;
-	Teles[MAX_TELE][PosY]       = 2275.6091308594;
-	Teles[MAX_TELE][PosZ]       = 92.460479736328;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2468.8718261719;
+	Teles[MAX_TELE][PosY] = 2275.6091308594;
+	Teles[MAX_TELE][PosZ] = 92.460479736328;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 4;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 4;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Almac\x9en");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Almac\x9en");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2439.1596679688;
-	Teles[MAX_TELE][PosY]       = 2096.5361328125;
-	Teles[MAX_TELE][PosZ]       = 62.359275817871;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2439.1596679688;
+	Teles[MAX_TELE][PosY] = 2096.5361328125;
+	Teles[MAX_TELE][PosZ] = 62.359275817871;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 4;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 4;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -2129.2333984375;
-	Teles[MAX_TELE][PosY]       = 894.77954101563;
-	Teles[MAX_TELE][PosZ]       = 80;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = -2129.2333984375;
+	Teles[MAX_TELE][PosY] = 894.77954101563;
+	Teles[MAX_TELE][PosZ] = 80;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage");
-	Teles[MAX_TELE][Dueno]      = VELTRAN;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage");
+	Teles[MAX_TELE][Dueno] = VELTRAN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -53.895202636719;
-	Teles[MAX_TELE][PosY]       = 2515.6477050781;
-	Teles[MAX_TELE][PosZ]       = 16.518749237061;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = -53.895202636719;
+	Teles[MAX_TELE][PosY] = 2515.6477050781;
+	Teles[MAX_TELE][PosZ] = 16.518749237061;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Garage");
-	Teles[MAX_TELE][Dueno]      = VELTRAN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Garage");
+	Teles[MAX_TELE][Dueno] = VELTRAN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 39.081974029541;
-	Teles[MAX_TELE][PosY]       = 2496.4230957031;
-	Teles[MAX_TELE][PosZ]       = 16.493684768677;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 39.081974029541;
+	Teles[MAX_TELE][PosY] = 2496.4230957031;
+	Teles[MAX_TELE][PosZ] = 16.493684768677;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage");
-	Teles[MAX_TELE][Dueno]      = VELTRAN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage");
+	Teles[MAX_TELE][Dueno] = VELTRAN;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -18.352540969849;
-	Teles[MAX_TELE][PosY]       = 2500.5434570313;
-	Teles[MAX_TELE][PosZ]       = 16.518749237061;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = -18.352540969849;
+	Teles[MAX_TELE][PosY] = 2500.5434570313;
+	Teles[MAX_TELE][PosZ] = 16.518749237061;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 5;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 5;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada a la Casa Volts");
-	Teles[MAX_TELE][Dueno]      = VELTRAN;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada a la Casa Volts");
+	Teles[MAX_TELE][Dueno] = VELTRAN;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2807.4494628906;
-	Teles[MAX_TELE][PosY]       = -1165.1273193359;
-	Teles[MAX_TELE][PosZ]       = 1025.5703125;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2807.4494628906;
+	Teles[MAX_TELE][PosY] = -1165.1273193359;
+	Teles[MAX_TELE][PosZ] = 1025.5703125;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salon Privado");
-	Teles[MAX_TELE][Dueno]      = SICARIOS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salon Privado");
+	Teles[MAX_TELE][Dueno] = SICARIOS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 397.35479736328;
-	Teles[MAX_TELE][PosY]       = 2435.0407714844;
-	Teles[MAX_TELE][PosZ]       = 16.5078125;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 397.35479736328;
+	Teles[MAX_TELE][PosY] = 2435.0407714844;
+	Teles[MAX_TELE][PosZ] = 16.5078125;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Salon Privado");
-	Teles[MAX_TELE][Dueno]      = SICARIOS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Salon Privado");
+	Teles[MAX_TELE][Dueno] = SICARIOS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2806.9921875;
-	Teles[MAX_TELE][PosY]       = -1161.3823242188;
-	Teles[MAX_TELE][PosZ]       = 1029.1645507813;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 2806.9921875;
+	Teles[MAX_TELE][PosY] = -1161.3823242188;
+	Teles[MAX_TELE][PosZ] = 1029.1645507813;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Armario");
-	Teles[MAX_TELE][Dueno]      = SICARIOS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Armario");
+	Teles[MAX_TELE][Dueno] = SICARIOS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 417.75735473633;
-	Teles[MAX_TELE][PosY]       = 2440.2165527344;
-	Teles[MAX_TELE][PosZ]       = 16.50937461853;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 417.75735473633;
+	Teles[MAX_TELE][PosY] = 2440.2165527344;
+	Teles[MAX_TELE][PosZ] = 16.50937461853;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 8;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 8;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Armario");
-	Teles[MAX_TELE][Dueno]      = SICARIOS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Armario");
+	Teles[MAX_TELE][Dueno] = SICARIOS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 373.23968505859;
-	Teles[MAX_TELE][PosY]       = 1912.1655273438;
-	Teles[MAX_TELE][PosZ]       = 17.715625762939;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 373.23968505859;
+	Teles[MAX_TELE][PosY] = 1912.1655273438;
+	Teles[MAX_TELE][PosZ] = 17.715625762939;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Segundo Piso");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Segundo Piso");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 309.90759277344;
-	Teles[MAX_TELE][PosY]       = 1810.9261474609;
-	Teles[MAX_TELE][PosZ]       = 17.647813796997;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 309.90759277344;
+	Teles[MAX_TELE][PosY] = 1810.9261474609;
+	Teles[MAX_TELE][PosZ] = 17.647813796997;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Primer Piso");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Primer Piso");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 384.9172668457;
-	Teles[MAX_TELE][PosY]       = 1913.7716064453;
-	Teles[MAX_TELE][PosZ]       = 17.715625762939;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 384.9172668457;
+	Teles[MAX_TELE][PosY] = 1913.7716064453;
+	Teles[MAX_TELE][PosZ] = 17.715625762939;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Consultorio del Doctor");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Consultorio del Doctor");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 287.93170166016;
-	Teles[MAX_TELE][PosY]       = 1877.1405029297;
-	Teles[MAX_TELE][PosZ]       = 17.640625;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 287.93170166016;
+	Teles[MAX_TELE][PosY] = 1877.1405029297;
+	Teles[MAX_TELE][PosZ] = 17.640625;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida del Consultorio");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida del Consultorio");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 296.59497070313;
-	Teles[MAX_TELE][PosY]       = 1807.5396728516;
-	Teles[MAX_TELE][PosZ]       = 17.647813796997;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 296.59497070313;
+	Teles[MAX_TELE][PosY] = 1807.5396728516;
+	Teles[MAX_TELE][PosZ] = 17.647813796997;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Sala de Operaciones");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Sala de Operaciones");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 309.89172363281;
-	Teles[MAX_TELE][PosY]       = 1900.4086914063;
-	Teles[MAX_TELE][PosZ]       = 17.741455078125;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 309.89172363281;
+	Teles[MAX_TELE][PosY] = 1900.4086914063;
+	Teles[MAX_TELE][PosZ] = 17.741455078125;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 304.07443237305;
-	Teles[MAX_TELE][PosY]       = 1810.9692382813;
-	Teles[MAX_TELE][PosZ]       = 17.655624389648;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 304.07443237305;
+	Teles[MAX_TELE][PosY] = 1810.9692382813;
+	Teles[MAX_TELE][PosZ] = 17.655624389648;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Sala de Juntas");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Sala de Juntas");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 283.35873413086;
-	Teles[MAX_TELE][PosY]       = 1921.982421875;
-	Teles[MAX_TELE][PosZ]       = 17.655624389648;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 283.35873413086;
+	Teles[MAX_TELE][PosY] = 1921.982421875;
+	Teles[MAX_TELE][PosZ] = 17.655624389648;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 376.17913818359;
-	Teles[MAX_TELE][PosY]       = 1910.2803955078;
-	Teles[MAX_TELE][PosZ]       = 17.715625762939;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 376.17913818359;
+	Teles[MAX_TELE][PosY] = 1910.2803955078;
+	Teles[MAX_TELE][PosZ] = 17.715625762939;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Parking");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Parking");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = -18.11075592041;
-	Teles[MAX_TELE][PosY]       = 1528.5985107422;
-	Teles[MAX_TELE][PosZ]       = 12.7953125;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = -18.11075592041;
+	Teles[MAX_TELE][PosY] = 1528.5985107422;
+	Teles[MAX_TELE][PosZ] = 12.7953125;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Hospital");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Hospital");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 376.13824462891;
-	Teles[MAX_TELE][PosY]       = 1913.7503662109;
-	Teles[MAX_TELE][PosZ]       = 17.715625762939;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 376.13824462891;
+	Teles[MAX_TELE][PosY] = 1913.7503662109;
+	Teles[MAX_TELE][PosZ] = 17.715625762939;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Parking");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Parking");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 33.724506378174;
-	Teles[MAX_TELE][PosY]       = 1528.7053222656;
-	Teles[MAX_TELE][PosZ]       = 12.7953125;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 33.724506378174;
+	Teles[MAX_TELE][PosY] = 1528.7053222656;
+	Teles[MAX_TELE][PosZ] = 12.7953125;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Hospital");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Hospital");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2034.1711425781;
-	Teles[MAX_TELE][PosY]       = -1401.6752929688;
-	Teles[MAX_TELE][PosZ]       = 17.294792175293;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 2034.1711425781;
+	Teles[MAX_TELE][PosY] = -1401.6752929688;
+	Teles[MAX_TELE][PosZ] = 17.294792175293;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Bomberos");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Bomberos");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1706.3391113281;
-	Teles[MAX_TELE][PosY]       = 1199.8503417969;
-	Teles[MAX_TELE][PosZ]       = 34.920310974121;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1706.3391113281;
+	Teles[MAX_TELE][PosY] = 1199.8503417969;
+	Teles[MAX_TELE][PosZ] = 34.920310974121;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1697.4730224609;
-	Teles[MAX_TELE][PosY]       = 1200.0819091797;
-	Teles[MAX_TELE][PosZ]       = 34.920310974121;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1697.4730224609;
+	Teles[MAX_TELE][PosY] = 1200.0819091797;
+	Teles[MAX_TELE][PosZ] = 34.920310974121;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Entrada al Garage");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Entrada al Garage");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1914.53515625;
-	Teles[MAX_TELE][PosY]       = 1193.5671386719;
-	Teles[MAX_TELE][PosZ]       = 18.354686737061;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1914.53515625;
+	Teles[MAX_TELE][PosY] = 1193.5671386719;
+	Teles[MAX_TELE][PosZ] = 18.354686737061;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Oficina de Bomberos");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Oficina de Bomberos");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1705.1761474609;
-	Teles[MAX_TELE][PosY]       = 1204.5402832031;
-	Teles[MAX_TELE][PosZ]       = 34.912826538086;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1705.1761474609;
+	Teles[MAX_TELE][PosY] = 1204.5402832031;
+	Teles[MAX_TELE][PosZ] = 34.912826538086;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Sala de Entrenamiento");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Sala de Entrenamiento");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1863.1311035156;
-	Teles[MAX_TELE][PosY]       = 1387.4490966797;
-	Teles[MAX_TELE][PosZ]       = 17.001432418823;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1863.1311035156;
+	Teles[MAX_TELE][PosY] = 1387.4490966797;
+	Teles[MAX_TELE][PosZ] = 17.001432418823;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 18;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 18;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Oficina de Bomberos");
-	Teles[MAX_TELE][Dueno]      = LSMD;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Oficina de Bomberos");
+	Teles[MAX_TELE][Dueno] = LSMD;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1467.2353515625;
-	Teles[MAX_TELE][PosY]       = -1009.9293823242;
-	Teles[MAX_TELE][PosZ]       = 26.84375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1467.2353515625;
+	Teles[MAX_TELE][PosY] = -1009.9293823242;
+	Teles[MAX_TELE][PosZ] = 26.84375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Super Mercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Super Mercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1825.8466796875;
-	Teles[MAX_TELE][PosY]       = -2526.0915527344;
-	Teles[MAX_TELE][PosZ]       = 13.60000038147;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1825.8466796875;
+	Teles[MAX_TELE][PosY] = -2526.0915527344;
+	Teles[MAX_TELE][PosZ] = 13.60000038147;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1457.0697021484;
-	Teles[MAX_TELE][PosY]       = -1009.924621582;
-	Teles[MAX_TELE][PosZ]       = 26.84375;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1457.0697021484;
+	Teles[MAX_TELE][PosY] = -1009.924621582;
+	Teles[MAX_TELE][PosZ] = 26.84375;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Super Mercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Super Mercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1825.8475341797;
-	Teles[MAX_TELE][PosY]       = -2537.4846191406;
-	Teles[MAX_TELE][PosZ]       = 13.60000038147;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1825.8475341797;
+	Teles[MAX_TELE][PosY] = -2537.4846191406;
+	Teles[MAX_TELE][PosZ] = 13.60000038147;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1430.6143798828;
-	Teles[MAX_TELE][PosY]       = -969.28149414063;
-	Teles[MAX_TELE][PosZ]       = 37.407398223877;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1430.6143798828;
+	Teles[MAX_TELE][PosY] = -969.28149414063;
+	Teles[MAX_TELE][PosZ] = 37.407398223877;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Super Mercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Super Mercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1759.7305908203;
-	Teles[MAX_TELE][PosY]       = -2526.0532226563;
-	Teles[MAX_TELE][PosZ]       = 13.60000038147;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1759.7305908203;
+	Teles[MAX_TELE][PosY] = -2526.0532226563;
+	Teles[MAX_TELE][PosZ] = 13.60000038147;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1422.5239257813;
-	Teles[MAX_TELE][PosY]       = -967.81103515625;
-	Teles[MAX_TELE][PosZ]       = 37.448886871338;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 1422.5239257813;
+	Teles[MAX_TELE][PosY] = -967.81103515625;
+	Teles[MAX_TELE][PosZ] = 37.448886871338;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 0;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Super Mercado");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Super Mercado");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1759.7341308594;
-	Teles[MAX_TELE][PosY]       = -2537.4375;
-	Teles[MAX_TELE][PosZ]       = 13.60000038147;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1759.7341308594;
+	Teles[MAX_TELE][PosY] = -2537.4375;
+	Teles[MAX_TELE][PosZ] = 13.60000038147;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1802.9294433594;
-	Teles[MAX_TELE][PosY]       = -2547.7795410156;
-	Teles[MAX_TELE][PosZ]       = 13.60000038147;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1802.9294433594;
+	Teles[MAX_TELE][PosY] = -2547.7795410156;
+	Teles[MAX_TELE][PosZ] = 13.60000038147;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tiendas Wong");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tiendas Wong");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1596.0267333984;
-	Teles[MAX_TELE][PosY]       = -2566.3146972656;
-	Teles[MAX_TELE][PosZ]       = 13.574999809265;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1596.0267333984;
+	Teles[MAX_TELE][PosY] = -2566.3146972656;
+	Teles[MAX_TELE][PosZ] = 13.574999809265;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1775.4875488281;
-	Teles[MAX_TELE][PosY]       = -2547.798828125;
-	Teles[MAX_TELE][PosZ]       = 13.60000038147;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1775.4875488281;
+	Teles[MAX_TELE][PosY] = -2547.798828125;
+	Teles[MAX_TELE][PosZ] = 13.60000038147;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Tiendas Metro");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Tiendas Metro");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1541.1444091797;
-	Teles[MAX_TELE][PosY]       = -2562.5971679688;
-	Teles[MAX_TELE][PosZ]       = 13.562812805176;
-	Teles[MAX_TELE][PosZZ]       = 270;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1541.1444091797;
+	Teles[MAX_TELE][PosY] = -2562.5971679688;
+	Teles[MAX_TELE][PosZ] = 13.562812805176;
+	Teles[MAX_TELE][PosZZ] = 270;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1795.9865722656;
-	Teles[MAX_TELE][PosY]       = -2515.7409667969;
-	Teles[MAX_TELE][PosZ]       = 13.60000038147;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1795.9865722656;
+	Teles[MAX_TELE][PosY] = -2515.7409667969;
+	Teles[MAX_TELE][PosZ] = 13.60000038147;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Licoreria Bazar");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Licoreria Bazar");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1593.8149414063;
-	Teles[MAX_TELE][PosY]       = -2587.7404785156;
-	Teles[MAX_TELE][PosZ]       = 13.546875;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1593.8149414063;
+	Teles[MAX_TELE][PosY] = -2587.7404785156;
+	Teles[MAX_TELE][PosZ] = 13.546875;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 16;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 16;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = GOBIERNO;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = GOBIERNO;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1778.7512207031;
-	Teles[MAX_TELE][PosY]       = -2438.4311523438;
-	Teles[MAX_TELE][PosZ]       = 13.5546875;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1778.7512207031;
+	Teles[MAX_TELE][PosY] = -2438.4311523438;
+	Teles[MAX_TELE][PosZ] = 13.5546875;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 13;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 13;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Callej\xa6n");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Callejon");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1732.1931152344;
-	Teles[MAX_TELE][PosY]       = -2446.1975097656;
-	Teles[MAX_TELE][PosZ]       = 13.624611854553;
-	Teles[MAX_TELE][PosZZ]       = 180;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1732.1931152344;
+	Teles[MAX_TELE][PosY] = -2446.1975097656;
+	Teles[MAX_TELE][PosZ] = 13.624611854553;
+	Teles[MAX_TELE][PosZZ] = 180;
+	Teles[MAX_TELE][Interior] = 13;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 13;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Casa Heors");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Casa Heors");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	/////////////////////////////////////////////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 1730.9169921875;
-	Teles[MAX_TELE][PosY]       = -2453.0366210938;
-	Teles[MAX_TELE][PosZ]       = 13.624611854553;
-	Teles[MAX_TELE][PosZZ]       = 0;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_DEFAULT_INTERIOR);
+	Teles[MAX_TELE][PosX] = 1730.9169921875;
+	Teles[MAX_TELE][PosY] = -2453.0366210938;
+	Teles[MAX_TELE][PosZ] = 13.624611854553;
+	Teles[MAX_TELE][PosZZ] = 0;
+	Teles[MAX_TELE][Interior] = 13;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_DEFAULT_INTERIOR, Teles[MAX_TELE][Interior]);
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE + 1;
-	Teles[MAX_TELE][Interior]    = 13;
-	Teles[MAX_TELE][World]       = WORLD_DEFAULT_INTERIOR;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Salida");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_DEFAULT_INTERIOR;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Salida");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	//////////////////////////////
 	MAX_TELE++;
-	Teles[MAX_TELE][PosX]       = 2034.4801;
-	Teles[MAX_TELE][PosY]       = -1112.5176;
-	Teles[MAX_TELE][PosZ]       = 26.0466;
-	Teles[MAX_TELE][PosZZ]       = 90;
-	Teles[MAX_TELE][PickupID]    = CreatePickup   (1239,    1,    Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ],       WORLD_NORMAL);
+	Teles[MAX_TELE][PosX] = 2034.4801;
+	Teles[MAX_TELE][PosY] = -1112.5176;
+	Teles[MAX_TELE][PosZ] = 26.0466;
+	Teles[MAX_TELE][PosZZ] = 90;
+	Teles[MAX_TELE][PickupID] = CreateTeleDynamicPickup(1239, MAX_TELE, Teles[MAX_TELE][PosX],Teles[MAX_TELE][PosY],Teles[MAX_TELE][PosZ], WORLD_NORMAL, Teles[MAX_TELE][Interior]);
+	Teles[MAX_TELE][Interior] = 0;
 	Teles[MAX_TELE][PickupIDGo] = MAX_TELE - 1;
-	Teles[MAX_TELE][Interior]    = 0;
-	Teles[MAX_TELE][World]       = WORLD_NORMAL;
-	Teles[MAX_TELE][Lock]       = false;
-	SetStyleTextDrawTeles(MAX_TELE, "Puerta Tracera");
-	Teles[MAX_TELE][Dueno]      = HEORS;
+	Teles[MAX_TELE][World] = WORLD_NORMAL;
+	Teles[MAX_TELE][Lock] = false;
+	SetText3DTele(MAX_TELE, "Puerta Tracera");
+	Teles[MAX_TELE][Dueno] = HEORS;
 	/////////////////////////////////////////////////////////////////////
 
 
@@ -52041,44 +52019,50 @@ public LoadTelesPublics()
 //      \xa2 = I Con tílde"
 //		\xa6 = O Con tílde
 }
-public SetStyleTextDrawTeles(textdrawid, text[])
+public SetText3DTele(teleid, text[])
 {
-	new TextDrawTeleText[MAX_TEXT_CHAT];
-	format(TextDrawTeleText, sizeof(TextDrawTeleText), "~B~Lugar: ~W~%s", text);
-	TelesTextDraws[textdrawid] = TextDrawCreateEx(200.0, 380.0, TextDrawTeleText);
-	TextDrawUseBox(TelesTextDraws[textdrawid], 1);
-	TextDrawBackgroundColor(TelesTextDraws[textdrawid] ,0x000000FF);
-	TextDrawBoxColor(TelesTextDraws[textdrawid], 0x00000066);
-	TextDrawTextSize(TelesTextDraws[textdrawid], 350.0, 380.0);
-	TextDrawSetShadow(TelesTextDraws[textdrawid], 1);
-	TextDrawLetterSize(TelesTextDraws[textdrawid], 0.5 , 1.2);
-	return textdrawid;
+	new TextLabelText[150];
+	format(TextLabelText, sizeof(TextLabelText), "Lugar: {"COLOR_CREMA"}%s", text);
+	Teles[teleid][TextLabel] =
+	CreateDynamic3DTextLabel(TextLabelText, 0x00A5FFFF, Teles[teleid][PosX], Teles[teleid][PosY], Teles[teleid][PosZ],
+	10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, Teles[teleid][World], Teles[teleid][Interior]);
 }
-public ActTextDrawBizz(bizzid)
+public UpdateTextLabelNegocio(bizzid)
 {
-	new TextDrawNegociosText[300];
+	new TextLabelText[400];
 	if ( strlen(NegociosData[bizzid][Dueno]) != 1 )
 	{
-		format(TextDrawNegociosText, sizeof(TextDrawNegociosText),
-		"%s~N~~N~~B~Lugar: ~W~Negocio~N~~G~Tipo: ~W~%s~N~~G~Propietario: ~W~%s~N~~G~Extorsionista: ~W~%s~N~~G~Entrada: ~W~$%i~N~~G~Nivel: ~W~%i",
+		format(TextLabelText, sizeof(TextLabelText), "%s\n\n\
+			{"COLOR_AZUL"}Lugar: {"COLOR_CREMA"}Negocio PN-%i\n\
+			{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Socio: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Entrada: {"COLOR_CREMA"}$%i",
 			NegociosData[bizzid][NameBizz],
+			bizzid,
 	        NegociosType[NegociosData[bizzid][Type]][TypeName],
 	        NegociosData[bizzid][Dueno],
 	        NegociosData[bizzid][Extorsion],
-	        NegociosData[bizzid][PriceJoin],
-	        NegociosData[bizzid][Level]
-		);
+	        NegociosData[bizzid][PriceJoin] );
 	}
 	else
 	{
-		format(TextDrawNegociosText, sizeof(TextDrawNegociosText),
-		"~B~Lugar: ~W~Negocio~N~~G~Tipo: ~W~%s~N~~G~Estado: ~W~¡En Venta!~N~~G~Precio: ~W~$%i~N~~G~Nivel: ~W~%i~N~~G~Use ~R~/Comprar Negocio",
+		format(TextLabelText, sizeof(TextLabelText), "\
+			{"COLOR_AZUL"}Lugar: {"COLOR_CREMA"}Negocio PN-%i\n\
+			{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Estado: {"COLOR_CREMA"}¡En Venta!\n\
+			{"COLOR_VERDE"}Precio: {"COLOR_CREMA"}$%i\n\
+			{"COLOR_VERDE"}Nivel: {"COLOR_CREMA"}%i\n\
+			{"COLOR_VERDE"}Use {"COLOR_ROJO"}/Comprar Negocio",
+			bizzid,
 	        NegociosType[NegociosData[bizzid][Type]][TypeName],
 			NegociosData[bizzid][Precio],
-	        NegociosData[bizzid][Level]
-		);
+	        NegociosData[bizzid][Level] );
 	}
-	TextDrawSetString(NegociosTextDraws[bizzid], TextDrawNegociosText);
+	if (IsValidDynamic3DTextLabel(NegociosData[bizzid][TextLabel])) DestroyDynamic3DTextLabel(NegociosData[bizzid][TextLabel]);
+	
+	NegociosData[bizzid][TextLabel] = CreateDynamic3DTextLabel(TextLabelText, 0xFFFFFFFF, NegociosData[bizzid][PosOutX], NegociosData[bizzid][PosOutY], NegociosData[bizzid][PosOutZ],
+	10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, -1, 0);
 }
 public DataLoadBizz(bizzid)
 {
@@ -52093,7 +52077,11 @@ public DataLoadBizz(bizzid)
 	    cache_get_value_name_float(0, "PosOutY", NegociosData[bizzid][PosOutY]);
 	    cache_get_value_name_float(0, "PosOutZ", NegociosData[bizzid][PosOutZ]);
 	    cache_get_value_name_float(0, "PosOutZZ", NegociosData[bizzid][PosOutZZ]);
-	    NegociosData[bizzid][PickupOutId]	= CreatePickup	(1239, 	1, 	NegociosData[bizzid][PosOutX], NegociosData[bizzid][PosOutY], NegociosData[bizzid][PosOutZ], -1);
+	    new pickupid = CreateDynamicPickup(1272, 1, NegociosData[bizzid][PosOutX], NegociosData[bizzid][PosOutY], NegociosData[bizzid][PosOutZ], WORLD_NORMAL, 0);
+	    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NEGOCIO;
+	    PickupIndex[pickupid][Tipoid] = bizzid;
+	    MAX_DYNAMIC_PICKUP++;
+	    NegociosData[bizzid][PickupOutId] = pickupid;
 	    cache_get_value_name_int(0, "InteriorOut", NegociosData[bizzid][InteriorOut]);
 	    cache_get_value_name_int(0, "Deposito", NegociosData[bizzid][Deposito]);
 	    cache_get_value_name_int(0, "Precio", NegociosData[bizzid][Precio]);
@@ -52109,19 +52097,11 @@ public DataLoadBizz(bizzid)
 		cache_get_value_name_int(0, "Level", NegociosData[bizzid][Level]);
 		cache_get_value_name_int(0, "Station", NegociosData[bizzid][Station]);
 
-		NegociosData[bizzid][World]     	= bizzid;
-
-		NegociosTextDraws[bizzid] = TextDrawCreateEx(180.0, 300.0, "Empty");
-		TextDrawUseBox(NegociosTextDraws[bizzid], 1);
-		TextDrawBackgroundColor(NegociosTextDraws[bizzid], 0x000000FF);
-		TextDrawBoxColor(NegociosTextDraws[bizzid], 0x00000066);
-		TextDrawTextSize(NegociosTextDraws[bizzid], 405.0, 380.0);
-		TextDrawSetShadow(NegociosTextDraws[bizzid], 1);
-		TextDrawLetterSize(NegociosTextDraws[bizzid], 0.4 , 1.1);
+		NegociosData[bizzid][World] = bizzid;
 
 		CreateDynamicMapIconULP(NegociosData[bizzid][PosOutX], NegociosData[bizzid][PosOutY], NegociosData[bizzid][PosOutZ], NegociosType[NegociosData[bizzid][Type]][IdMapIcon]);
 
-        ActTextDrawBizz(bizzid);
+        UpdateTextLabelNegocio(bizzid);
 	}
 	cache_delete(cacheid);
 	return negocioExiste;
@@ -52169,410 +52149,410 @@ public DataSaveBizz(bizzid, bool:update)
 
 	if ( update )
 	{
-		ActTextDrawBizz(bizzid);
+		UpdateTextLabelNegocio(bizzid);
 	}
 }
 public LoadDataBizzType()
 {
 	new PickupModelBizz = 1272;
 // 00 ///////////////////////////////////////////////////////////////////////// Lugar: Prolaps
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 207.1340;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -139.3590;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1003.2390;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 359.0096;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 199.0661;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -127.7109;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1003.5152;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 207.1340;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -139.3590;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1003.2390;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 359.0096;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 199.0661;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -127.7109;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1003.5152;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 180.3268;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 3;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Ropa");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 45;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 45;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 01 ///////////////////////////////////////////////////////////////////////// Lugar: Victim
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 226.6100;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -8.2260;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1002.2109;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 87.4987;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 206.1365;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -12.1991;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.2178;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 226.6100;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -8.2260;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1002.2109;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 87.4987;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 206.1365;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -12.1991;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.2178;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 0.1185;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 5;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Ropa");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 45;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 45;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 02 ///////////////////////////////////////////////////////////////////////// Lugar: SubUrban
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 203.9409;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -49.8919;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.8047;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 3.0708;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 213.3677;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -41.5770;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1002.0234;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 203.9409;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -49.8919;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.8047;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 3.0708;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 213.3677;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -41.5770;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1002.0234;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 88.5883;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 1;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Ropa");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 45;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 45;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 03 ///////////////////////////////////////////////////////////////////////// Lugar: Zip
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 161.4387;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -96.1310;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.8047;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 354.3740;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 161.3552;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -72.0944;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.8047;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 161.4387;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -96.1310;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.8047;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 354.3740;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 161.3552;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -72.0944;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.8047;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 177.2982;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 18;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Ropa");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 45;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 45;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 04 ///////////////////////////////////////////////////////////////////////// Lugar: Didier Sachs
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 204.3610;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -168.0961;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1000.5234;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 3.0833;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 215.4577;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -156.2483;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1000.5234;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 204.3610;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -168.0961;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1000.5234;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 3.0833;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 215.4577;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -156.2483;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1000.5234;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 88.3108;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 14;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Ropa");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 45;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 45;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 05 ///////////////////////////////////////////////////////////////////////// Lugar: Binco
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 207.7097;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -110.5522;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1005.1328;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 357.8142;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 217.2972;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -98.4899;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1005.2578;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 207.7097;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -110.5522;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1005.1328;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 357.8142;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 217.2972;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -98.4899;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1005.2578;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 92.2329;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 15;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Ropa");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 45;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 45;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 06 ///////////////////////////////////////////////////////////////////////// Lugar: Ring Donuts
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 377.1915;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -192.9054;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1000.6401;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 358.7130;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 379.0891;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -187.8959;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1000.6328;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 377.1915;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -192.9054;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1000.6401;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 358.7130;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 379.0891;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -187.8959;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1000.6328;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 270.1432;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 17;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Restaurante");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 50;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 50;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 07 ///////////////////////////////////////////////////////////////////////// Lugar: Jay's Diner
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 459.9540;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -88.6612;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 999.5547;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 90.9800;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 450.3769;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -84.0060;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 999.5547;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 459.9540;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -88.6612;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 999.5547;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 90.9800;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 450.3769;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -84.0060;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 999.5547;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 359.9035;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 4;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Restaurante");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 50;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 50;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 08 ///////////////////////////////////////////////////////////////////////// Lugar: Armeria 1
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 315.8257;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -143.0595;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 999.6016;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 356.5333;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 313.9653;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -133.1587;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 999.6016;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 315.8257;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -143.0595;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 999.6016;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 356.5333;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 313.9653;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -133.1587;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 999.6016;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 271.3058;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 7;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Armeria");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 18;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 18;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 09 ///////////////////////////////////////////////////////////////////////// Lugar: Armeria 2
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 285.4598;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -40.8969;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.5156;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 357.8593;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 296.4650;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -38.1313;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.5156;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 285.4598;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -40.8969;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.5156;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 357.8593;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 296.4650;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -38.1313;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.5156;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 177.8897;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 1;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Armeria");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 18;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 18;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 10 ///////////////////////////////////////////////////////////////////////// Lugar: Armeria 3
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 285.7038;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -85.9912;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.5229;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 5.4625;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 297.8895;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -80.4345;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.5156;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 285.7038;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -85.9912;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.5229;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 5.4625;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 297.8895;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -80.4345;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.5156;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 178.2963;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 4;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Armeria");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 18;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 18;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 11 ///////////////////////////////////////////////////////////////////////// Lugar: Armeria 4
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 296.8842;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -111.5674;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.5156;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 356.7233;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 287.7097;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -106.8642;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.5156;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 296.8842;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -111.5674;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.5156;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 356.7233;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 287.7097;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -106.8642;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.5156;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 355.1800;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 6;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Armeria");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 18;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 18;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 12 ///////////////////////////////////////////////////////////////////////// Lugar: Armeria 5
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 287.7097;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -106.8642;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.5156;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 355.1800;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 316.3125;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -169.6709;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 999.6010;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 287.7097;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -106.8642;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.5156;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 355.1800;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 316.3125;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -169.6709;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 999.6010;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 354.2805;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 6;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Armeria");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 18;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 18;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 13 ///////////////////////////////////////////////////////////////////////// Lugar: Club
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 493.3510;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -24.1066;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1000.6797;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 1.8939;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 499.5866;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -20.4216;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1000.6797;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 493.3510;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -24.1066;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1000.6797;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 1.8939;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 499.5866;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -20.4216;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1000.6797;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 273.3881;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 17;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Club");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 48;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 48;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 14 ///////////////////////////////////////////////////////////////////////// Lugar: The Pig Pen
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 1204.9838;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -13.4134;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1000.9219;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 355.6215;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 1215.9023;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -13.0323;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1000.9219;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 1204.9838;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -13.4134;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1000.9219;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 355.6215;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 1215.9023;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -13.0323;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1000.9219;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 178.4822;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 2;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Strip Club");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 48;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 48;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 15 ///////////////////////////////////////////////////////////////////////// Lugar: Jizzy
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= -2636.7153;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= 1403.0614;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 906.4609;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 357.6521;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= -2653.1179;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= 1410.1919;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 906.2734;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = -2636.7153;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = 1403.0614;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 906.4609;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 357.6521;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = -2653.1179;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = 1410.1919;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 906.2734;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 82.8796;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 3;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Jizzy");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 48;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 48;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 16 ///////////////////////////////////////////////////////////////////////// Lugar: 24/7 1
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= -30.9650;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -91.3013;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1003.5469;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 3.2113;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= -28.3832;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -89.6670;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1003.5469;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = -30.9650;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -91.3013;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1003.5469;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 3.2113;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = -28.3832;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -89.6670;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1003.5469;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 180.6406;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 18;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "24/7");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 17;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 17;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 17 ///////////////////////////////////////////////////////////////////////// Lugar: 24/7 2
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= -25.8594;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -140.8397;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1003.5469;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 358.6795;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= -22.5046,
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -138.4611;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1003.5469;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = -25.8594;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -140.8397;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1003.5469;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 358.6795;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = -22.5046,
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -138.4611;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1003.5469;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 181.1223;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 16;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "24/7");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 17;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 17;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 18 ///////////////////////////////////////////////////////////////////////// Lugar: Bar 1
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= -228.8344;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= 1401.1725;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 27.7656;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 273.3879;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= -225.2749;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= 1404.3914;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 27.7734;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = -228.8344;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = 1401.1725;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 27.7656;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 273.3879;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = -225.2749;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = 1404.3914;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 27.7734;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 273.8058;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 18;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Lil' Probe Inn");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 49;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 49;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 19 ///////////////////////////////////////////////////////////////////////// Lugar: Bar 2
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 501.9434;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -68.3368;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 998.7578;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 183.0326;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 497.5212;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -75.6564;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 998.7578;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 501.9434;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -68.3368;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 998.7578;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 183.0326;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 497.5212;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -75.6564;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 998.7578;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 182.9688;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 11;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Bar");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 49;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 49;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 20 ///////////////////////////////////////////////////////////////////////// Lugar: SexShop 1
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= -100.4072;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -24.2039;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1000.7188;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 356.6941;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= -107.0554;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -11.0345;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1000.7188;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = -100.4072;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -24.2039;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1000.7188;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 356.6941;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = -107.0554;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -11.0345;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1000.7188;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 2.6070;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 3;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "SexShop");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 38;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 38;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 21 ///////////////////////////////////////////////////////////////////////// Lugar: SexShop 2
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 744.4740;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= 1436.9453;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1102.7031;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 357.3116;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 745.1048;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= 1440.2638;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1102.7031;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 744.4740;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = 1436.9453;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1102.7031;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 357.3116;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 745.1048;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = 1440.2638;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1102.7031;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 90.8947;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 6;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "SexShop");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 38;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 38;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 22 ///////////////////////////////////////////////////////////////////////// Lugar: Cluckin' Bell
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 364.9758;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -11.0294;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.8516;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 2.6789;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 369.6758;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -6.3894;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.8589;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 364.9758;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -11.0294;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.8516;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 2.6789;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 369.6758;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -6.3894;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.8589;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 1.9072;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 9;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Cluckin' Bell");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 14;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 14;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 23 ///////////////////////////////////////////////////////////////////////// Lugar:Burger Shot
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 363.3516;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -74.7660;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.5078;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 305.2676;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 378.2618;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -67.8177;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.5151;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 363.3516;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -74.7660;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.5078;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 305.2676;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 378.2618;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -67.8177;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.5151;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 3.3392;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 10;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Burger Shot");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 10;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 10;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 24 ///////////////////////////////////////////////////////////////////////// Lugar: Pizza Stack
-	NegociosType[MAX_BIZZ_TYPE][PosInX] 				= 372.3392;
-	NegociosType[MAX_BIZZ_TYPE][PosInY] 				= -132.8387;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ] 				= 1001.4922;
-	NegociosType[MAX_BIZZ_TYPE][PosInZZ] 				= 0.3519;
-	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] 				= 375.5667;
-	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] 				= -119.4645;
-	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] 				= 1001.4995;
+	NegociosType[MAX_BIZZ_TYPE][PosInX] = 372.3392;
+	NegociosType[MAX_BIZZ_TYPE][PosInY] = -132.8387;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.4922;
+	NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 0.3519;
+	NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 375.5667;
+	NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -119.4645;
+	NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.4995;
 	NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]				= 354.5028;
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] 			= 5;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Pizza Stack");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] 				= CreatePickup	(PickupModelBizz, 	1, 	NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],	 	-1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 29;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 29;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 25 ///////////////////////////////////////////////////////////////////////// Lugar: Bar
@@ -52587,8 +52567,8 @@ public LoadDataBizzType()
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] = 1;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Bar");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreatePickup(PickupModelBizz, 1, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 49;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 49;
 ///////////////////////////////////////////////////////////////////////////
 	MAX_BIZZ_TYPE++;
 // 26 ///////////////////////////////////////////////////////////////////////// Lugar: Restaurtante
@@ -52603,56 +52583,56 @@ public LoadDataBizzType()
 	NegociosType[MAX_BIZZ_TYPE][InteriorId] = 8;
 	format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Burger Restaurant");
 	NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreatePickup(PickupModelBizz, 1, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
-	NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 50;
+	NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+	NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 50;
 ///////////////////////////////////////////////////////////////////////////
     MAX_BIZZ_TYPE++;
 /// 27 ////////////////////////////////////////////////////////////////////// Lugar: Barbería 1
-    NegociosType[MAX_BIZZ_TYPE][PosInX]                 = 411.57223510742;
-    NegociosType[MAX_BIZZ_TYPE][PosInY]                 = -23.165138244629;
-    NegociosType[MAX_BIZZ_TYPE][PosInZ]                 = 1001.8046875;
-    NegociosType[MAX_BIZZ_TYPE][PosInZZ]                 = 0;
-    NegociosType[MAX_BIZZ_TYPE][PosInX_PC]                 = 414.43997192383;
-    NegociosType[MAX_BIZZ_TYPE][PosInY_PC]                 = -18.894048690796;
-    NegociosType[MAX_BIZZ_TYPE][PosInZ_PC]                 = 1001.8046875;
-    NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]                = 90;
-    NegociosType[MAX_BIZZ_TYPE][InteriorId]             = 2;
+    NegociosType[MAX_BIZZ_TYPE][PosInX] = 411.57223510742;
+    NegociosType[MAX_BIZZ_TYPE][PosInY] = -23.165138244629;
+    NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.8046875;
+    NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 0;
+    NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 414.43997192383;
+    NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -18.894048690796;
+    NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.8046875;
+    NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC] = 90;
+    NegociosType[MAX_BIZZ_TYPE][InteriorId] = 2;
     format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Barbero");
     NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-    NegociosType[MAX_BIZZ_TYPE][PickupId]                 = CreatePickup    (PickupModelBizz,     1,     NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],         -1);
-    NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 7;
+    NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+    NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 7;
 ///////////////////////////////////////////////////////////////////////////
     MAX_BIZZ_TYPE++;
 // 28 /////////////////////////////////////////////////////////////////////// Lugar: Barbería 2
-    NegociosType[MAX_BIZZ_TYPE][PosInX]                 = 411.92514038086;
-    NegociosType[MAX_BIZZ_TYPE][PosInY]                 = -54.446674346924;
-    NegociosType[MAX_BIZZ_TYPE][PosInZ]                 = 1001.8984375;
-    NegociosType[MAX_BIZZ_TYPE][PosInZZ]                 = 0;
-    NegociosType[MAX_BIZZ_TYPE][PosInX_PC]                 = 415.04098510742;
-    NegociosType[MAX_BIZZ_TYPE][PosInY_PC]                 = -52.34215927124;
-    NegociosType[MAX_BIZZ_TYPE][PosInZ_PC]                 = 1001.8984375;
-    NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]                = 90;
-    NegociosType[MAX_BIZZ_TYPE][InteriorId]             = 12;
+    NegociosType[MAX_BIZZ_TYPE][PosInX] = 411.92514038086;
+    NegociosType[MAX_BIZZ_TYPE][PosInY] = -54.446674346924;
+    NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.8984375;
+    NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 0;
+    NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 415.04098510742;
+    NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -52.34215927124;
+    NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.8984375;
+    NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC] = 90;
+    NegociosType[MAX_BIZZ_TYPE][InteriorId] = 12;
     format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Barbero");
     NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-    NegociosType[MAX_BIZZ_TYPE][PickupId]                 = CreatePickup    (PickupModelBizz,     1,     NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],         -1);
-    NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 7;
+    NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+    NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 7;
 ///////////////////////////////////////////////////////////////////////////
     MAX_BIZZ_TYPE++;
 // 29 /////////////////////////////////////////////////////////////////////// Lugar: Barbería 3
-    NegociosType[MAX_BIZZ_TYPE][PosInX]                 = 418.59677124023;
-    NegociosType[MAX_BIZZ_TYPE][PosInY]                 = -84.363059997559;
-    NegociosType[MAX_BIZZ_TYPE][PosInZ]                 = 1001.8046875;
-    NegociosType[MAX_BIZZ_TYPE][PosInZZ]                 = 0;
-    NegociosType[MAX_BIZZ_TYPE][PosInX_PC]                 = 421.55499267578;
-    NegociosType[MAX_BIZZ_TYPE][PosInY_PC]                 = -77.96834564209;
-    NegociosType[MAX_BIZZ_TYPE][PosInZ_PC]                 = 1001.8046875;
-    NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC]                = 90;
-    NegociosType[MAX_BIZZ_TYPE][InteriorId]             = 3;
+    NegociosType[MAX_BIZZ_TYPE][PosInX] = 418.59677124023;
+    NegociosType[MAX_BIZZ_TYPE][PosInY] = -84.363059997559;
+    NegociosType[MAX_BIZZ_TYPE][PosInZ] = 1001.8046875;
+    NegociosType[MAX_BIZZ_TYPE][PosInZZ] = 0;
+    NegociosType[MAX_BIZZ_TYPE][PosInX_PC] = 421.55499267578;
+    NegociosType[MAX_BIZZ_TYPE][PosInY_PC] = -77.96834564209;
+    NegociosType[MAX_BIZZ_TYPE][PosInZ_PC] = 1001.8046875;
+    NegociosType[MAX_BIZZ_TYPE][PosInZZ_PC] = 90;
+    NegociosType[MAX_BIZZ_TYPE][InteriorId] = 3;
     format(NegociosType[MAX_BIZZ_TYPE][TypeName], MAX_PLAYER_NAME, "Barbero");
     NegociosType[MAX_BIZZ_TYPE][TypePickupOrCheckponit] = true;
-    NegociosType[MAX_BIZZ_TYPE][PickupId]                 = CreatePickup    (PickupModelBizz,     1,     NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ],         -1);
-    NegociosType[MAX_BIZZ_TYPE][IdMapIcon]              = 7;
+    NegociosType[MAX_BIZZ_TYPE][PickupId] = CreateNegocioDynamicPickup(PickupModelBizz, MAX_BIZZ_TYPE, NegociosType[MAX_BIZZ_TYPE][PosInX],NegociosType[MAX_BIZZ_TYPE][PosInY],NegociosType[MAX_BIZZ_TYPE][PosInZ], -1);
+    NegociosType[MAX_BIZZ_TYPE][IdMapIcon] = 7;
 ///////////////////////////////////////////////////////////////////////////
 }
 public SetFunctionsForBizz(playerid, bizzid)
@@ -52761,7 +52741,7 @@ public LoadMenuStatic()
 	AddMenuItem(Principal_Sultan, 0, "Pack Alien");
 	// XFlowYAlien_Sultan[0];
     XFlowYAlien_Sultan[0]	 = CreateMenu("X-Flow", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Sultan[0], 0, "Aler\xa6n");          	XFlowYAlien_SultanID[0][0] = 1139;
+	AddMenuItem(XFlowYAlien_Sultan[0], 0, "Aleron");          	XFlowYAlien_SultanID[0][0] = 1139;
 	AddMenuItem(XFlowYAlien_Sultan[0], 0, "Paragolpes Trasero"); 	XFlowYAlien_SultanID[0][1] = 1140;
 	AddMenuItem(XFlowYAlien_Sultan[0], 0, "Paragolpes Delantero"); 	XFlowYAlien_SultanID[0][2] = 1170;
 	AddMenuItem(XFlowYAlien_Sultan[0], 0, "Bajo Izquierdo");     	XFlowYAlien_SultanID[0][3] = 1030;
@@ -52770,7 +52750,7 @@ public LoadMenuStatic()
 	AddMenuItem(XFlowYAlien_Sultan[0], 0, "Escapes");		    	XFlowYAlien_SultanID[0][6] = 1029;
 	// XFlowYAlien_Sultan[1];
     XFlowYAlien_Sultan[1]	 = CreateMenu("Alien", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Sultan[1], 0, "Aler\xa6n");          	XFlowYAlien_SultanID[1][0] = 1138;
+	AddMenuItem(XFlowYAlien_Sultan[1], 0, "Aleron");          	XFlowYAlien_SultanID[1][0] = 1138;
 	AddMenuItem(XFlowYAlien_Sultan[1], 0, "Paragolpes Trasero"); 	XFlowYAlien_SultanID[1][1] = 1141;
 	AddMenuItem(XFlowYAlien_Sultan[1], 0, "Paragolpes Delantero"); 	XFlowYAlien_SultanID[1][2] = 1169;
 	AddMenuItem(XFlowYAlien_Sultan[1], 0, "Bajo Izquierdo");     	XFlowYAlien_SultanID[1][3] = 1026;
@@ -52784,7 +52764,7 @@ public LoadMenuStatic()
 	AddMenuItem(Principal_Elegy, 0, "Pack Alien");
 	// XFlowYAlien_Elegy[0];
     XFlowYAlien_Elegy[0]	 = CreateMenu("X-Flow", 1, 400.0, 120.0, 180.0, 0.0);
-	AddMenuItem(XFlowYAlien_Elegy[0], 0, "Aler\xa6n");          	XFlowYAlien_ElegyID[0][0] = 1146;
+	AddMenuItem(XFlowYAlien_Elegy[0], 0, "Aleron");          	XFlowYAlien_ElegyID[0][0] = 1146;
 	AddMenuItem(XFlowYAlien_Elegy[0], 0, "Paragolpes Trasero"); 	XFlowYAlien_ElegyID[0][1] = 1148;
 	AddMenuItem(XFlowYAlien_Elegy[0], 0, "Paragolpes Delantero"); 	XFlowYAlien_ElegyID[0][2] = 1172;
 	AddMenuItem(XFlowYAlien_Elegy[0], 0, "Bajo Izquierdo");     	XFlowYAlien_ElegyID[0][3] = 1039;
@@ -52793,7 +52773,7 @@ public LoadMenuStatic()
 	AddMenuItem(XFlowYAlien_Elegy[0], 0, "Escapes");		    	XFlowYAlien_ElegyID[0][6] = 1037;
 	// XFlowYAlien_Elegy[1];
     XFlowYAlien_Elegy[1]	 = CreateMenu("Alien", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Elegy[1], 0, "Aler\xa6n");          	XFlowYAlien_ElegyID[1][0] = 1147;
+	AddMenuItem(XFlowYAlien_Elegy[1], 0, "Aleron");          	XFlowYAlien_ElegyID[1][0] = 1147;
 	AddMenuItem(XFlowYAlien_Elegy[1], 0, "Paragolpes Trasero"); 	XFlowYAlien_ElegyID[1][1] = 1149;
 	AddMenuItem(XFlowYAlien_Elegy[1], 0, "Paragolpes Delantero"); 	XFlowYAlien_ElegyID[1][2] = 1171;
 	AddMenuItem(XFlowYAlien_Elegy[1], 0, "Bajo Izquierdo");     	XFlowYAlien_ElegyID[1][3] = 1040;
@@ -52807,7 +52787,7 @@ public LoadMenuStatic()
 	AddMenuItem(Principal_Flash, 0, "Pack Alien");
 	// XFlowYAlien_Flash[0];
     XFlowYAlien_Flash[0]	 = CreateMenu("X-Flow", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Flash[0], 0, "Aler\xa6n");          	XFlowYAlien_FlashID[0][0] = 1050;
+	AddMenuItem(XFlowYAlien_Flash[0], 0, "Aleron");          	XFlowYAlien_FlashID[0][0] = 1050;
 	AddMenuItem(XFlowYAlien_Flash[0], 0, "Paragolpes Trasero"); 	XFlowYAlien_FlashID[0][1] = 1151;
 	AddMenuItem(XFlowYAlien_Flash[0], 0, "Paragolpes Delantero"); 	XFlowYAlien_FlashID[0][2] = 1152;
 	AddMenuItem(XFlowYAlien_Flash[0], 0, "Bajo Izquierdo");     	XFlowYAlien_FlashID[0][3] = 1052;
@@ -52816,7 +52796,7 @@ public LoadMenuStatic()
 	AddMenuItem(XFlowYAlien_Flash[0], 0, "Escapes");		    	XFlowYAlien_FlashID[0][6] = 1045;
 	// Alien_Flash;
     XFlowYAlien_Flash[1]	 = CreateMenu("Alien", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Flash[1], 0, "Aler\xa6n");          	XFlowYAlien_FlashID[1][0] = 1049;
+	AddMenuItem(XFlowYAlien_Flash[1], 0, "Aleron");          	XFlowYAlien_FlashID[1][0] = 1049;
 	AddMenuItem(XFlowYAlien_Flash[1], 0, "Paragolpes Trasero"); 	XFlowYAlien_FlashID[1][1] = 1150;
 	AddMenuItem(XFlowYAlien_Flash[1], 0, "Paragolpes Delantero"); 	XFlowYAlien_FlashID[1][2] = 1153;
 	AddMenuItem(XFlowYAlien_Flash[1], 0, "Bajo Izquierdo");     	XFlowYAlien_FlashID[1][3] = 1051;
@@ -52843,7 +52823,7 @@ public LoadMenuStatic()
 	AddMenuItem(Principal_Jester, 0, "Pack Alien");
 	// XFlowYAlien_Jester[0];
     XFlowYAlien_Jester[0]	 = CreateMenu("X-Flow", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Jester[0], 0, "Aler\xa6n");          	XFlowYAlien_JesterID[0][0] = 1158;
+	AddMenuItem(XFlowYAlien_Jester[0], 0, "Aleron");          	XFlowYAlien_JesterID[0][0] = 1158;
 	AddMenuItem(XFlowYAlien_Jester[0], 0, "Paragolpes Trasero"); 	XFlowYAlien_JesterID[0][1] = 1161;
 	AddMenuItem(XFlowYAlien_Jester[0], 0, "Paragolpes Delantero"); 	XFlowYAlien_JesterID[0][2] = 1173;
 	AddMenuItem(XFlowYAlien_Jester[0], 0, "Bajo Izquierdo");     	XFlowYAlien_JesterID[0][3] = 1072;
@@ -52852,7 +52832,7 @@ public LoadMenuStatic()
 	AddMenuItem(XFlowYAlien_Jester[0], 0, "Escapes");		    	XFlowYAlien_JesterID[0][6] = 1066;
 	// XFlowYAlien_Jester[1];
     XFlowYAlien_Jester[1]	 = CreateMenu("Alien", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Jester[1], 0, "Aler\xa6n");          	XFlowYAlien_JesterID[1][0] = 1162;
+	AddMenuItem(XFlowYAlien_Jester[1], 0, "Aleron");          	XFlowYAlien_JesterID[1][0] = 1162;
 	AddMenuItem(XFlowYAlien_Jester[1], 0, "Paragolpes Trasero"); 	XFlowYAlien_JesterID[1][1] = 1159;
 	AddMenuItem(XFlowYAlien_Jester[1], 0, "Paragolpes Delantero"); 	XFlowYAlien_JesterID[1][2] = 1160;
 	AddMenuItem(XFlowYAlien_Jester[1], 0, "Bajo Izquierdo");     	XFlowYAlien_JesterID[1][3] = 1071;
@@ -52866,7 +52846,7 @@ public LoadMenuStatic()
 	AddMenuItem(Principal_Uranus, 0, "Pack Alien");
 	// XFlowYAlien_Uranus[0];
     XFlowYAlien_Uranus[0]	 = CreateMenu("X-Flow", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Uranus[0], 0, "Aler\xa6n");          	XFlowYAlien_UranusID[0][0] = 1163;
+	AddMenuItem(XFlowYAlien_Uranus[0], 0, "Aleron");          	XFlowYAlien_UranusID[0][0] = 1163;
 	AddMenuItem(XFlowYAlien_Uranus[0], 0, "Paragolpes Trasero"); 	XFlowYAlien_UranusID[0][1] = 1167;
 	AddMenuItem(XFlowYAlien_Uranus[0], 0, "Paragolpes Delantero"); 	XFlowYAlien_UranusID[0][2] = 1165;
 	AddMenuItem(XFlowYAlien_Uranus[0], 0, "Bajo Izquierdo");     	XFlowYAlien_UranusID[0][3] = 1093;
@@ -52875,7 +52855,7 @@ public LoadMenuStatic()
 	AddMenuItem(XFlowYAlien_Uranus[0], 0, "Escapes");		    	XFlowYAlien_UranusID[0][6] = 1089;
 	// XFlowYAlien_Uranus[1];
     XFlowYAlien_Uranus[1]	 = CreateMenu("Alien", 1, 380.0, 150.0, 190.0, 0.0);
-	AddMenuItem(XFlowYAlien_Uranus[1], 0, "Aler\xa6n");          	XFlowYAlien_UranusID[1][0] = 1164;
+	AddMenuItem(XFlowYAlien_Uranus[1], 0, "Aleron");          	XFlowYAlien_UranusID[1][0] = 1164;
 	AddMenuItem(XFlowYAlien_Uranus[1], 0, "Paragolpes Trasero"); 	XFlowYAlien_UranusID[1][1] = 1168;
 	AddMenuItem(XFlowYAlien_Uranus[1], 0, "Paragolpes Delantero"); 	XFlowYAlien_UranusID[1][2] = 1166;
 	AddMenuItem(XFlowYAlien_Uranus[1], 0, "Bajo Izquierdo");     	XFlowYAlien_UranusID[1][3] = 1094;
@@ -53016,10 +52996,10 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(XFlowYAlien_Sentinel, 0, "Escapes 3");		    	XFlowYAlien_SentinelID[2] = 1020;
 	AddMenuItem(XFlowYAlien_Sentinel, 0, "Escapes 4");		    	XFlowYAlien_SentinelID[3] = 1021;
 	AddMenuItem(XFlowYAlien_Sentinel, 0, "Escapes 5");		    	XFlowYAlien_SentinelID[4] = 1022;
-	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aler\xa6n 1");		    XFlowYAlien_SentinelID[5] = 1023;
-	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aler\xa6n 2");		    XFlowYAlien_SentinelID[6] = 1014;
-	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aler\xa6n 3");		    XFlowYAlien_SentinelID[7] = 1015;
-	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aler\xa6n 4");		    XFlowYAlien_SentinelID[8] = 1016;
+	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aleron 1");		    XFlowYAlien_SentinelID[5] = 1023;
+	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aleron 2");		    XFlowYAlien_SentinelID[6] = 1014;
+	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aleron 3");		    XFlowYAlien_SentinelID[7] = 1015;
+	AddMenuItem(XFlowYAlien_Sentinel, 0, "Aleron 4");		    XFlowYAlien_SentinelID[8] = 1016;
 	AddMenuItem(XFlowYAlien_Sentinel, 0, "Llantas Especiales");  	XFlowYAlien_SentinelID[9] = 1025;
 
 ////////////// EUROS
@@ -53029,10 +53009,10 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(XFlowYAlien_Euros, 0, "Escapes 3");		    	XFlowYAlien_EurosID[2] = 1020;
 	AddMenuItem(XFlowYAlien_Euros, 0, "Escapes 4");		    	XFlowYAlien_EurosID[3] = 1021;
 	AddMenuItem(XFlowYAlien_Euros, 0, "Escapes 5");		    	XFlowYAlien_EurosID[4] = 1022;
-	AddMenuItem(XFlowYAlien_Euros, 0, "Aler\xa6n 1");		    XFlowYAlien_EurosID[5] = 1023;
-	AddMenuItem(XFlowYAlien_Euros, 0, "Aler\xa6n 2");		    XFlowYAlien_EurosID[6] = 1014;
-	AddMenuItem(XFlowYAlien_Euros, 0, "Aler\xa6n 3");		    XFlowYAlien_EurosID[7] = 1015;
-	AddMenuItem(XFlowYAlien_Euros, 0, "Aler\xa6n 4");		    XFlowYAlien_EurosID[8] = 1016;
+	AddMenuItem(XFlowYAlien_Euros, 0, "Aleron 1");		    XFlowYAlien_EurosID[5] = 1023;
+	AddMenuItem(XFlowYAlien_Euros, 0, "Aleron 2");		    XFlowYAlien_EurosID[6] = 1014;
+	AddMenuItem(XFlowYAlien_Euros, 0, "Aleron 3");		    XFlowYAlien_EurosID[7] = 1015;
+	AddMenuItem(XFlowYAlien_Euros, 0, "Aleron 4");		    XFlowYAlien_EurosID[8] = 1016;
 	AddMenuItem(XFlowYAlien_Euros, 0, "Llantas Especiales");  	XFlowYAlien_EurosID[9] = 1025;
 	AddMenuItem(XFlowYAlien_Euros, 0, "Roof 1");  				XFlowYAlien_EurosID[10] = 1011;
 	AddMenuItem(XFlowYAlien_Euros, 0, "Roof 2");  				XFlowYAlien_EurosID[11] = 1012;
@@ -53044,7 +53024,7 @@ new Opciones_SavannaID[2][7];
     TallerPrincipal	 = CreateMenu("Taller", 1, 400.0, 120.0, 150.0, 0.0);
 	AddMenuItem(TallerPrincipal, 0, "Pintura");
 	AddMenuItem(TallerPrincipal, 0, "Nitro");
-	AddMenuItem(TallerPrincipal, 0, "Hidr\x98ulica");
+	AddMenuItem(TallerPrincipal, 0, "Hidraulica");
 	AddMenuItem(TallerPrincipal, 0, "Est\x9ereo");
 	AddMenuItem(TallerPrincipal, 0, "Llantas I");
 	AddMenuItem(TallerPrincipal, 0, "Llantas II");
@@ -53111,7 +53091,7 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(PizzaStack, 0, "The Bustert");  				AddMenuItem(PizzaStack, 1, "$14"); 	PizzaStackPrecios[0] = 14;
 	AddMenuItem(PizzaStack, 0, "The Double D-Lux");  			AddMenuItem(PizzaStack, 1, "$15"); 	PizzaStackPrecios[1] = 15;
 	AddMenuItem(PizzaStack, 0, "The Full Rack");				AddMenuItem(PizzaStack, 1, "$18"); 	PizzaStackPrecios[2] = 18;
-	AddMenuItem(PizzaStack, 0, "Pizza Jam\xa6n y Queso"); 		AddMenuItem(PizzaStack, 1, "$22"); 	PizzaStackPrecios[3] = 22;
+	AddMenuItem(PizzaStack, 0, "Pizza Jamon y Queso"); 		AddMenuItem(PizzaStack, 1, "$22"); 	PizzaStackPrecios[3] = 22;
 	AddMenuItem(PizzaStack, 0, "Pizza Comepleta + Coca Cola");	AddMenuItem(PizzaStack, 1, "$28");	PizzaStackPrecios[4] = 28;
 	AddMenuItem(PizzaStack, 0, "Plato Del Hoy");				AddMenuItem(PizzaStack, 1, "$25");	PizzaStackPrecios[5] = 25;
 	AddMenuItem(PizzaStack, 0, "Especial Pizza Familiar");		AddMenuItem(PizzaStack, 1, "$40");	PizzaStackPrecios[6] = 40;
@@ -53135,20 +53115,20 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(RingDonuts, 0, "Completa de Rings");			AddMenuItem(RingDonuts, 1, "$30");	RingDonutsPrecios[6] = 30;
 	// M24_7;
     M24_7	 = CreateMenu("24/7", 2, 300.0, 200.0, 250.0, 70.0);
-	AddMenuItem(M24_7, 0, "C\x98mara de Fotos");  		AddMenuItem(M24_7, 1, "$200"); 	M24_7_Precios[0] = 200;
+	AddMenuItem(M24_7, 0, "Camara de Fotos");  		AddMenuItem(M24_7, 1, "$200"); 	M24_7_Precios[0] = 200;
 	AddMenuItem(M24_7, 0, "Patines");	  				AddMenuItem(M24_7, 1, "$150"); 	M24_7_Precios[1] = 150;
 	AddMenuItem(M24_7, 0, "Dados");						AddMenuItem(M24_7, 1, "$60"); 	M24_7_Precios[2] = 60;
-	AddMenuItem(M24_7, 0, "M\xa6vil"); 					AddMenuItem(M24_7, 1, "$300"); 	M24_7_Precios[3] = 300;
+	AddMenuItem(M24_7, 0, "Movil"); 					AddMenuItem(M24_7, 1, "$300"); 	M24_7_Precios[3] = 300;
 	AddMenuItem(M24_7, 0, "Agenda"); 					AddMenuItem(M24_7, 1, "$100"); 	M24_7_Precios[4] = 100;
 	AddMenuItem(M24_7, 0, "Flores"); 					AddMenuItem(M24_7, 1, "$50"); 	M24_7_Precios[5] = 50;
 	AddMenuItem(M24_7, 0, "Comprar Saldo"); 			AddMenuItem(M24_7, 1, " ");
 	AddMenuItem(M24_7, 0, "Bolsa"); 				    AddMenuItem(M24_7, 1, "$150"); 	M24_7_Precios[7] = 150;
 	AddMenuItem(M24_7, 0, "Condones"); 				    AddMenuItem(M24_7, 1, "$80"); 	M24_7_Precios[8] = 80;
 	AddMenuItem(M24_7, 0, "Maleta"); 				    AddMenuItem(M24_7, 1, "$150"); 	M24_7_Precios[9] = 150;
-	AddMenuItem(M24_7, 0, "Modelos de M\xa6viles"); 	AddMenuItem(M24_7, 1, "$200");	M24_7_Precios[10] = 200;
+	AddMenuItem(M24_7, 0, "Modelos de Moviles"); 	AddMenuItem(M24_7, 1, "$200");	M24_7_Precios[10] = 200;
 
 	// Tipos de teléfonos móviles
-    TYPE_PHONES_MENU	 = CreateMenu("Modelos de M\xa6viles", 1, 300.0, 200.0, 250.0, 70.0);
+    TYPE_PHONES_MENU	 = CreateMenu("Modelos de Moviles", 1, 300.0, 200.0, 250.0, 70.0);
    	AddMenuItem(TYPE_PHONES_MENU, 0, "Normal");
 	AddMenuItem(TYPE_PHONES_MENU, 0, "Color Oro");
 	AddMenuItem(TYPE_PHONES_MENU, 0, "Azul Claro");
@@ -53185,16 +53165,16 @@ new Opciones_SavannaID[2][7];
 
 	new SumarPrecios = 4;
 	// Básicos I				- 01
-    Armas_Clases    [0] 	= "B\x98sicos I";
+    Armas_Clases    [0] 	= "Basicos I";
     {
 	    Armas_Nombre	[0][0] 	= "01-  Cuchillo"; 			Armas_ID		[0][0]  = 4;	Armas_Precios_Num	[0][0]	= 75 * SumarPrecios;	Armas_Municion[0][0]	= 1;		format(Armas_Precios[0][0], 6, "$%i", Armas_Precios_Num[0][0] * Armas_Municion[0][0]);			// 00   04 - Knife
 	    Armas_Nombre	[0][1] 	= "02-  Palo de Golf";		Armas_ID		[0][1]  = 2;	Armas_Precios_Num	[0][1]	= 75 * SumarPrecios;	Armas_Municion[0][1]	= 1;		format(Armas_Precios[0][1], 6, "$%i", Armas_Precios_Num[0][1] * Armas_Municion[0][1]);			// 01   02 - Golf Club
-	    Armas_Nombre	[0][2] 	= "03-  Bast\xa6n Normal"; 	Armas_ID		[0][2]  = 5;	Armas_Precios_Num	[0][2]	= 50 * SumarPrecios;	Armas_Municion[0][2]	= 1;		format(Armas_Precios[0][2], 6, "$%i", Armas_Precios_Num[0][2] * Armas_Municion[0][2]);			// 02	15 - Cane
+	    Armas_Nombre	[0][2] 	= "03-  Baston Normal"; 	Armas_ID		[0][2]  = 5;	Armas_Precios_Num	[0][2]	= 50 * SumarPrecios;	Armas_Municion[0][2]	= 1;		format(Armas_Precios[0][2], 6, "$%i", Armas_Precios_Num[0][2] * Armas_Municion[0][2]);			// 02	15 - Cane
 	    Armas_Nombre	[0][3] 	= "04-  Pala"; 				Armas_ID		[0][3]  = 6;	Armas_Precios_Num	[0][3]	= 75 * SumarPrecios;	Armas_Municion[0][3]	= 1;		format(Armas_Precios[0][3], 6, "$%i", Armas_Precios_Num[0][3] * Armas_Municion[0][3]);			// 03   06 - Shovel
 	    Armas_Nombre	[0][4] 	= "05-  Taco de Billar"; 	Armas_ID		[0][4]  = 7;	Armas_Precios_Num	[0][4]	= 75 * SumarPrecios;	Armas_Municion[0][4]	= 1;		format(Armas_Precios[0][4], 6, "$%i", Armas_Precios_Num[0][4] * Armas_Municion[0][4]);			// 04   07 - Pool Cue
 	}
 	// Básicos II  			- 02
-    Armas_Clases    [1] 	= "B\x98sicos II";
+    Armas_Clases    [1] 	= "Basicos II";
     {
 	    Armas_Nombre	[1][0] 	= "01-  Bate"; 					Armas_ID		[1][0]  = 5;	Armas_Precios_Num	[1][0]	= 60 * SumarPrecios;	Armas_Municion[1][0]	= 1;		format(Armas_Precios[1][0], 6, "$%i", Armas_Precios_Num[1][0] * Armas_Municion[1][0]);			// 01   05 - Baseball Bat
 	    Armas_Nombre	[1][1] 	= "02-  Manopla";				Armas_ID		[1][1]  = 1;	Armas_Precios_Num	[1][1]	= 75 * SumarPrecios;	Armas_Municion[1][1]	= 1;		format(Armas_Precios[1][1], 6, "$%i", Armas_Precios_Num[1][1] * Armas_Municion[1][1]);			// 02	01 - Brass Knuckles
@@ -53272,7 +53252,7 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(Menu_Principal_Armas, 1, Armas_Clases    [8]);
 
 	// Básico I    		- 01
-	Menues_Armas					[0] = CreateMenu("01- B\x98sico I", 2, 300.0, 200.0, 250.0, 70.0);
+	Menues_Armas					[0] = CreateMenu("01- Basico I", 2, 300.0, 200.0, 250.0, 70.0);
 	SetMenuColumnHeader(Menues_Armas[0], 0, "ID   Arma");
 	SetMenuColumnHeader(Menues_Armas[0], 1, "Precio");
 
@@ -53283,7 +53263,7 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(Menues_Armas[0], 0, Armas_Nombre		[0][4]);  	AddMenuItem(Menues_Armas[0], 1, Armas_Precios	[0][4]);
 
 	// Básico II 		- 02
-   	Menues_Armas					[1] = CreateMenu("02- B\x98sico II", 2, 300.0, 200.0, 250.0, 70.0);
+   	Menues_Armas					[1] = CreateMenu("02- Basico II", 2, 300.0, 200.0, 250.0, 70.0);
 	SetMenuColumnHeader(Menues_Armas[1], 0, "ID   Arma");
 	SetMenuColumnHeader(Menues_Armas[1], 1, "Precio");
 
@@ -55382,13 +55362,13 @@ public IntentarAccion(playerid, text[], rndNum)
 }
 public GetNearFaccion(playerid)
 {
-	if ( PlayersDataOnline[playerid][InPickup] != -1 )
+	if ( PlayersDataOnline[playerid][InPickup] )
 	{
-	    for(new i=GOBIERNO;i<=MAX_FACCION;i++)
+	    if (PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_FACCION)
 	    {
-	        if ( FaccionData[i][PickupidOutF] == PlayersDataOnline[playerid][InPickup] || FaccionData[i][PickupidInF] == PlayersDataOnline[playerid][InPickup] )
+	        if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid] == PlayersDataOnline[playerid][InPickupFaccion])
 	        {
-				return i;
+				return PlayersDataOnline[playerid][InPickupFaccion];
 			}
 	    }
 	}
@@ -56090,7 +56070,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1050.8750;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 1.2460;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 8;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 1 ///////////////////////////////////////////////////////////////////////// Typo: Un Cuarto
 	MAX_HOUSE_TYPE++;
@@ -56100,7 +56080,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1049.0234375;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 2.8829;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 6;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 2 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase I
 	MAX_HOUSE_TYPE++;
@@ -56110,7 +56090,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1013.5078;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 91.2169;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 2;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 3 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase I
 	MAX_HOUSE_TYPE++;
@@ -56120,7 +56100,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1015.4986;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 268.9842;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 1;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 4 ///////////////////////////////////////////////////////////////////////// Typo: Estudio
 	MAX_HOUSE_TYPE++;
@@ -56130,7 +56110,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 999.1484;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 270.5936;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 2;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 5 ///////////////////////////////////////////////////////////////////////// Typo: Trailer
 	MAX_HOUSE_TYPE++;
@@ -56140,7 +56120,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 999.4284;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 83.7629;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 2;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 6 ///////////////////////////////////////////////////////////////////////// Typo: Tres Cuartos
 	MAX_HOUSE_TYPE++;
@@ -56150,7 +56130,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1050.8828;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 355.3266;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 5;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 7 ///////////////////////////////////////////////////////////////////////// Typo: Dos Cuartos
 	MAX_HOUSE_TYPE++;
@@ -56160,7 +56140,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1050.6328;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 271.6231;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 10;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 8 ///////////////////////////////////////////////////////////////////////// Typo: Chalet
 	MAX_HOUSE_TYPE++;
@@ -56170,7 +56150,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1080.2578;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 358.2490;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 3;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 9 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase II
 	MAX_HOUSE_TYPE++;
@@ -56180,7 +56160,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1082.1406;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 87.6160;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 2;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 10 ///////////////////////////////////////////////////////////////////////// Typo: Un Cuarto
 	MAX_HOUSE_TYPE++;
@@ -56190,7 +56170,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1082.1406;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 2.1973;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 1;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 11 ///////////////////////////////////////////////////////////////////////// Typo: Finca
 	MAX_HOUSE_TYPE++;
@@ -56200,7 +56180,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1080.9946;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 270.7229;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 5;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 12 ///////////////////////////////////////////////////////////////////////// Typo: Cuatro Cuartos
 	MAX_HOUSE_TYPE++;
@@ -56210,7 +56190,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1080.2578;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 1.6496;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 15;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 
 	// 13 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase III
@@ -56221,7 +56201,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.3047;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 359.0408;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 2;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 14 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase II
 	MAX_HOUSE_TYPE++;
@@ -56231,7 +56211,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1080.2578;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 359.4435;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 4;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 15 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase III
 	MAX_HOUSE_TYPE++;
@@ -56241,7 +56221,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.3750;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 4.1435;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 10;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 16 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase I
 	MAX_HOUSE_TYPE++;
@@ -56251,7 +56231,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1082.6094;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 5.8735;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 4;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 
 	// 17 ///////////////////////////////////////////////////////////////////////// Typo: Un Cuarto
@@ -56262,7 +56242,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1001.4194946289;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 271.9994;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 12;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 18 ///////////////////////////////////////////////////////////////////////// Typo: Chalet
 	MAX_HOUSE_TYPE++;
@@ -56272,7 +56252,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.3672;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 91.0199;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 4;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 19 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase III
 	MAX_HOUSE_TYPE++;
@@ -56282,27 +56262,27 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.4370;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 355.7854;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 5;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 20 ///////////////////////////////////////////////////////////////////////// Typo: Mansión
 	MAX_HOUSE_TYPE++;
-	format(TypeHouse[MAX_HOUSE_TYPE][TypeName], MAX_PLAYER_NAME, "Mansi\xa6n");
+	format(TypeHouse[MAX_HOUSE_TYPE][TypeName], MAX_PLAYER_NAME, "Mansion");
 	TypeHouse[MAX_HOUSE_TYPE][PosX]    = 140.5783;
 	TypeHouse[MAX_HOUSE_TYPE][PosY]    = 1366.0577;
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1083.8594;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 0.5053;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 5;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 21 ///////////////////////////////////////////////////////////////////////// Typo: Mansión
 	MAX_HOUSE_TYPE++;
-	format(TypeHouse[MAX_HOUSE_TYPE][TypeName], MAX_PLAYER_NAME, "Mansi\xa6n");
+	format(TypeHouse[MAX_HOUSE_TYPE][TypeName], MAX_PLAYER_NAME, "Mansion");
 	TypeHouse[MAX_HOUSE_TYPE][PosX]    = 234.1057;
 	TypeHouse[MAX_HOUSE_TYPE][PosY]    = 1063.8470;
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.2120;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 355.3038;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 6;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 22 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase II
 	MAX_HOUSE_TYPE++;
@@ -56312,7 +56292,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1080.2109;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 356.4911;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 6;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 23 ///////////////////////////////////////////////////////////////////////// Typo: Finca
 	MAX_HOUSE_TYPE++;
@@ -56322,7 +56302,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.3750;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 89.1725;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 15;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 24 ///////////////////////////////////////////////////////////////////////// Typo: Tres Cuartos
 	MAX_HOUSE_TYPE++;
@@ -56332,7 +56312,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1050.4844;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 90.4850;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 1;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 25 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase II
 	MAX_HOUSE_TYPE++;
@@ -56342,7 +56322,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1049.0234;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 1.4616;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 2;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 26 ///////////////////////////////////////////////////////////////////////// Typo: Cuatro Cuartos
 	MAX_HOUSE_TYPE++;
@@ -56352,7 +56332,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.4297;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 178.7076;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 8;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 27 ///////////////////////////////////////////////////////////////////////// Typo: Finca
 	MAX_HOUSE_TYPE++;
@@ -56362,7 +56342,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1083.8662;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 1.0887;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 9;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 
 	// 28 ///////////////////////////////////////////////////////////////////////// Typo: Bungalows Clase II
 	MAX_HOUSE_TYPE++;
@@ -56372,8 +56352,7 @@ public LoadTypeHouse()
 	TypeHouse[MAX_HOUSE_TYPE][PosZ]    = 1084.2578;
 	TypeHouse[MAX_HOUSE_TYPE][PosZZ]    = 3.2391;
 	TypeHouse[MAX_HOUSE_TYPE][Interior] = 9;
-	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreatePickup   (1239,    1,    TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
-
+	TypeHouse[MAX_HOUSE_TYPE][PickupId] = CreateCasaTipoDynamicPickup(1239, MAX_HOUSE_TYPE, TypeHouse[MAX_HOUSE_TYPE][PosX], TypeHouse[MAX_HOUSE_TYPE][PosY], TypeHouse[MAX_HOUSE_TYPE][PosZ], -1);
 }
 
 public LoadHouse(houseid)
@@ -56413,7 +56392,11 @@ public LoadHouse(houseid)
 		cache_get_value_name_float(0, "PosZZ", HouseData[houseid][PosZZ]);
 		cache_get_value_name_int(0, "Interior", HouseData[houseid][Interior]);
 		cache_get_value_name_int(0, "TypeHouseId", HouseData[houseid][TypeHouseId]);
-		HouseData[houseid][PickupId] = CreatePickup	(1273, 	1, 	HouseData[houseid][PosX], HouseData[houseid][PosY], HouseData[houseid][PosZ],	 	-1);
+		new pickupid = CreateDynamicPickup(1273, 1, HouseData[houseid][PosX], HouseData[houseid][PosY], HouseData[houseid][PosZ], WORLD_NORMAL, 0);
+		PickupIndex[pickupid][Tipo] = PICKUP_TYPE_CASA;
+		PickupIndex[pickupid][Tipoid] = houseid;
+		MAX_DYNAMIC_PICKUP++;
+		HouseData[houseid][PickupId] = pickupid;
 		cache_get_value_name_int(0, "PriceRent", HouseData[houseid][PriceRent]);
 		cache_get_value_name_int(0, "Level", HouseData[houseid][Level]);
 		HouseData[houseid][World] = houseid;
@@ -56497,15 +56480,7 @@ public LoadHouse(houseid)
 		cache_get_value_name_int(0, "GavetaObjects6", HouseData[houseid][GavetaObjects][6]);
 		cache_get_value_name_int(0, "GavetaObjects7", HouseData[houseid][GavetaObjects][7]);
 
-		CasasTextDraws[houseid] = TextDrawCreateEx(180.0, 300.0, "Empty");
-		TextDrawUseBox(CasasTextDraws[houseid], 1);
-		TextDrawBackgroundColor(CasasTextDraws[houseid], 0x000000FF);
-		TextDrawBoxColor(CasasTextDraws[houseid], 0x00000066);
-		TextDrawTextSize(CasasTextDraws[houseid], 360.0, 380.0);
-		TextDrawSetShadow(CasasTextDraws[houseid], 1);
-		TextDrawLetterSize(CasasTextDraws[houseid], 0.4 , 1.1);
-
-		ActTextDrawHouse(houseid);
+		UpdateTextLabelCasa(houseid);
 	}
 	cache_delete(cacheid);
 	return casaExiste;
@@ -56631,13 +56606,13 @@ public SaveHouse(houseid, bool:update)
 
 	if ( update )
 	{
-		ActTextDrawHouse(houseid);
+		UpdateTextLabelCasa(houseid);
 	}
 }
 
-public ActTextDrawHouse(houseid)
+public UpdateTextLabelCasa(houseid)
 {
-	new TextDrawHouseText[300];
+	new TextLabelText[300];
 	if ( strlen(HouseData[houseid][Dueno]) != 2 )
 	{
 		new PriceRentText[50];
@@ -56649,24 +56624,40 @@ public ActTextDrawHouse(houseid)
 		{
 			PriceRentText = "No se renta";
 		}
-		format(TextDrawHouseText, sizeof(TextDrawHouseText),
-		"~B~Lugar: ~W~Casa~N~~G~Tipo: ~W~%s~N~~G~Garage: ~W~%s~N~~G~Propietario: ~W~%s~N~~G~Renta: ~W~%s~N~~G~Nivel: ~W~%i",
+		format(TextLabelText, sizeof(TextLabelText),
+			"Lugar: {"COLOR_CREMA"}Casa PC-%i\n\
+			{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Garage: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Renta: {"COLOR_CREMA"}%s\n",
+			houseid,
 	        TypeHouse[HouseData[houseid][TypeHouseId]][TypeName],
 	        SiOrNo[ExistGarageInHouse(houseid)],
 			HouseData[houseid][Dueno],
-			PriceRentText,
-			HouseData[houseid][Level] );
+			PriceRentText
+		);
 	}
 	else
 	{
-		format(TextDrawHouseText, sizeof(TextDrawHouseText),
-		"~B~Lugar: ~W~Casa~N~~G~Tipo: ~W~%s~N~~G~Garage: ~W~%s~N~~G~Estado: ~W~¡En Venta!~N~~G~Precio: ~W~$%i~N~~G~Nivel: ~W~%i~N~~G~Use: ~R~/Comprar Casa",
+		format(TextLabelText, sizeof(TextLabelText),
+			"Lugar: {"COLOR_CREMA"}Casa PC-%i\n\
+			{"COLOR_VERDE"}Tipo: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Garage: {"COLOR_CREMA"}%s\n\
+			{"COLOR_VERDE"}Estado: {"COLOR_CREMA"}¡En Venta!\n\
+			{"COLOR_VERDE"}Precio: {"COLOR_CREMA"}$%i\n\
+			{"COLOR_VERDE"}Nivel: {"COLOR_CREMA"}%i\n\
+			{"COLOR_VERDE"}Use: {"COLOR_ROJO"}/Comprar Casa",
+			houseid,
 	        TypeHouse[HouseData[houseid][TypeHouseId]][TypeName],
 	        SiOrNo[ExistGarageInHouse(houseid)],
 			HouseData[houseid][Price],
-			HouseData[houseid][Level] );
+			HouseData[houseid][Level]
+		);
 	}
-	TextDrawSetString(CasasTextDraws[houseid], TextDrawHouseText);
+	if ( IsValidDynamic3DTextLabel(HouseData[houseid][TextLabel])) DestroyDynamic3DTextLabel(HouseData[houseid][TextLabel]);
+	
+	HouseData[houseid][TextLabel] = CreateDynamic3DTextLabel(TextLabelText, 0x00A5FFFF, HouseData[houseid][PosX], HouseData[houseid][PosY], HouseData[houseid][PosZ],
+	10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_NORMAL, 0);
 }
 public CheckIsPlayerRentAndRemove(playerid, houseid)
 {
@@ -56947,20 +56938,53 @@ public IsPlayerInAlmacen(playerid, option)
 	return -1;
 
 }
-public LoadPickupsAlmacenes()
+public LoadPickupsAlmacenes(faccionid)
 {
-
-	for ( new i = GOBIERNO; i <= MAX_FACCION; i++ )
+	for (new a=0; a!=MAX_ALMACENES; a++)
 	{
-	    for ( new a = 0; a < MAX_ALMACENES; a++)
+	    if ( FaccionData[faccionid][AlmacenX][a] != 0 )
 	    {
-			if ( FaccionData[i][AlmacenX][a] != 0 )
-			{
-				MAX_PICKUP = CreatePickup	(1575, 	1, 	FaccionData[i][AlmacenX][a], FaccionData[i][AlmacenY][a], FaccionData[i][AlmacenZ][a],	 	FaccionData[i][AlmacenWorld][a]);
-			}
-		}
+	        new pickupid = CreateDynamicPickup(1575, 1, FaccionData[faccionid][AlmacenX][a], FaccionData[faccionid][AlmacenY][a], FaccionData[faccionid][AlmacenZ][a], FaccionData[faccionid][AlmacenWorld][a]);
+	        PickupIndex[pickupid][Tipo] = PICKUP_TYPE_FACCION_ALMACEN;
+			PickupIndex[pickupid][Tipoid] = faccionid;
+	        MAX_DYNAMIC_PICKUP++;
+	    }
 	}
 }
+
+public UpdateFaccionTextLabel(faccionid, update)
+{
+	if (faccionid == CIVIL) return 1;
+    new string[100];
+	if ( strlen(FaccionData[faccionid][Lider]) > 2 )
+	{
+	    format(string, sizeof(string), "Lugar: {"COLOR_CREMA"}%s \n{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}%s", FaccionData[faccionid][NameFaccion], FaccionData[faccionid][Lider]);
+	}
+	else
+	{
+	    format(string, sizeof(string), "Lugar: {"COLOR_CREMA"}%s \n{"COLOR_VERDE"}Propietario: {"COLOR_CREMA"}Nadie", FaccionData[faccionid][NameFaccion]);
+	}
+	if (!update)
+	{
+	    FaccionData[faccionid][TextLabelOut] =
+		CreateDynamic3DTextLabel(string, 0x00A5FFFF, FaccionData[faccionid][PickupOut_X], FaccionData[faccionid][PickupOut_Y], FaccionData[faccionid][PickupOut_Z],
+		10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_NORMAL, 0);
+
+		FaccionData[faccionid][TextLabelIn] =
+		CreateDynamic3DTextLabel(string, 0x00A5FFFF, FaccionData[faccionid][PickupIn_X], FaccionData[faccionid][PickupIn_Y], FaccionData[faccionid][PickupIn_Z],
+		10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_DEFAULT_INTERIOR, FaccionData[faccionid][InteriorFaccion]);
+	}
+	else
+	{
+	    if (IsValidDynamic3DTextLabel(FaccionData[faccionid][TextLabelOut]))
+	    UpdateDynamic3DTextLabelText(FaccionData[faccionid][TextLabelOut], 0x00A5FFFF, string);
+
+	    if (IsValidDynamic3DTextLabel(FaccionData[faccionid][TextLabelIn]))
+	    UpdateDynamic3DTextLabelText(FaccionData[faccionid][TextLabelIn], 0x00A5FFFF, string);
+	}
+	return 1;
+}
+
 public LoadDoors()
 {
 	Doors[MAX_DOORS][objectmodel]    = 971;
@@ -57949,21 +57973,20 @@ public LoadPointsExtraction()
 	FaccionesMercancias[CAMIONEROS][PosX] = -3634.9949;
 	FaccionesMercancias[CAMIONEROS][PosY] = 1884.2264;
 	FaccionesMercancias[CAMIONEROS][PosZ] = 2.1854;
-	CreatePickup	(1210, 	1, 	FaccionesMercancias[CAMIONEROS][PosX], FaccionesMercancias[CAMIONEROS][PosY], FaccionesMercancias[CAMIONEROS][PosZ],	 	-1);
+	CreateDynamicPickup(1210, 1, FaccionesMercancias[CAMIONEROS][PosX], FaccionesMercancias[CAMIONEROS][PosY], FaccionesMercancias[CAMIONEROS][PosZ], WORLD_NORMAL, 0);
+	MAX_DYNAMIC_PICKUP++;
 
 	FaccionesMercancias[CONTRABANDISTAS][PosX] = 417.6441;
 	FaccionesMercancias[CONTRABANDISTAS][PosY] = 2541.6646;
 	FaccionesMercancias[CONTRABANDISTAS][PosZ] = 10.0000;
-	CreatePickup	(1210, 	1, 	FaccionesMercancias[CONTRABANDISTAS][PosX], FaccionesMercancias[CONTRABANDISTAS][PosY], FaccionesMercancias[CONTRABANDISTAS][PosZ],	 	-1);
+	CreateDynamicPickup(1210, 1, FaccionesMercancias[CONTRABANDISTAS][PosX], FaccionesMercancias[CONTRABANDISTAS][PosY], FaccionesMercancias[CONTRABANDISTAS][PosZ]);
+	MAX_DYNAMIC_PICKUP++;
 
 	FaccionesMercancias[TRAFICANTES][PosX] = -1421.7528;
 	FaccionesMercancias[TRAFICANTES][PosY] = -964.7759;
 	FaccionesMercancias[TRAFICANTES][PosZ] = 200.7651;
-	CreatePickup	(1210, 	1, 	FaccionesMercancias[TRAFICANTES][PosX], FaccionesMercancias[TRAFICANTES][PosY], FaccionesMercancias[TRAFICANTES][PosZ],	 	-1);
-}
-public LoadPickupsMisc()
-{
-
+ 	CreateDynamicPickup(1210, 1, FaccionesMercancias[TRAFICANTES][PosX], FaccionesMercancias[TRAFICANTES][PosY], FaccionesMercancias[TRAFICANTES][PosZ], WORLD_NORMAL, 0);
+	MAX_DYNAMIC_PICKUP++;
 }
 public CleanVCP()
 {
@@ -57990,7 +58013,6 @@ public AddVCP(playerid, objectid, Float:Xv, Float:Yv, Float:Zv, Float:ZZv)
 			    VCP[i][ObjY] 	= Yv;
 			    VCP[i][ObjZ] 	= Zv;
 			    VCP[i][ObjZRot] = ZZv;
-
 			}
 		    VCP[i][objectmodel] = objectid;
 		    if ( playerid != -1 )
@@ -58010,7 +58032,12 @@ public AddVCP(playerid, objectid, Float:Xv, Float:Yv, Float:Zv, Float:ZZv)
 			}
 			if ( objectid == PINCHO)
 			{
-				VCP[i][pickupidVCP] = CreatePickup (1247, 	1, 	VCP[i][ObjX], VCP[i][ObjY], VCP[i][ObjZ] - 1,	 	-1);
+				new pickupid = CreatePickupEx(1247, 1, VCP[i][ObjX], VCP[i][ObjY], VCP[i][ObjZ] - 1, WORLD_NORMAL, 0);
+				PickupIndex[pickupid][Tipo] = PICKUP_TYPE_PINCHO;
+				PickupIndex[pickupid][Tipoid] = i;
+				MAX_DYNAMIC_PICKUP++;
+				
+				VCP[i][pickupidVCP] = pickupid;
 			}
 	    	VCP[i][objectid_vcp] = CreateDynamicObjectExULP(objectid, VCP[i][ObjX], VCP[i][ObjY], VCP[i][ObjZ], 0, 0, VCP[i][ObjZRot], -1, -1, -1, MAX_RADIO_STREAM);
 			if ( playerid != -1 )
@@ -58030,7 +58057,10 @@ public RemoveVCP(objectid)
 {
     if ( VCP[objectid][pickupidVCP] != -1 )
 	{
-		DestroyPickup(VCP[objectid][pickupidVCP]);
+	    new pickupid = VCP[objectid][pickupidVCP];
+		DestroyPickupEx(pickupid);
+		PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NINGUNO;
+		PickupIndex[pickupid][Tipoid] = 0;
 	}
 	DestroyDynamicObject(VCP[objectid][objectid_vcp]);
    	VCP[objectid][objectid_vcp] = -1;
@@ -58221,28 +58251,28 @@ public LoadTexDrawsTutorial()
 	// Ayuntamiento
 	SetTextDrawTutorial(0, "~B~Buenas! Te queremos presentar todo ~N~lo que es y somos ~B~UN ~G~Player~N~~W~Para eso, hemos preparado este corto tutorial y~N~darte una calurosa bienvenida!");
 	// Camioneros
-	SetTextDrawTutorial(1, "En el servidor encontrar\x98s lo t\xa2pico y lo no t\xa2pico ~N~de servidores ~G~RolePlay~W~ como por ejemplo:~N~~B~-Interiores para cada Facci\xa6n~N~-Sub-Interiores dentro de los mismos~N~-Todos los sistemas desde 0~N~~W~Entre muchisimas otras cosas que usted mismo ~N~podr\x98 descubrir!");
+	SetTextDrawTutorial(1, "En el servidor encontraras lo t\xa2pico y lo no t\xa2pico ~N~de servidores ~G~RolePlay~W~ como por ejemplo:~N~~B~-Interiores para cada Faccion~N~-Sub-Interiores dentro de los mismos~N~-Todos los sistemas desde 0~N~~W~Entre muchisimas otras cosas que usted mismo ~N~podra descubrir!");
 	// Taxis
-	SetTextDrawTutorial(2, "S\xa6lo pedimos que se respeten todas las reglas~N~del servidor, para eso le aconsejamos~N~que lea las reglas ~R~\"/Reglas\"~W~~N~y a la vez nos ayuda a ser un mejor servidor!");
+	SetTextDrawTutorial(2, "Solo pedimos que se respeten todas las reglas~N~del servidor, para eso le aconsejamos~N~que lea las reglas ~R~\"/Reglas\"~W~~N~y a la vez nos ayuda a ser un mejor servidor!");
 	// Taller
-	SetTextDrawTutorial(3, "Recuerde visitar el foro en: ~G~"WEBPAGE" ~W~donde ~N~ encontrar\x98 diversa informaci\xa6n ~N~para debatir");
+	SetTextDrawTutorial(3, "Recuerde visitar el foro en: ~G~"WEBPAGE" ~W~donde ~N~ encontrara diversa informacion ~N~para debatir");
 	// CNN
 	SetTextDrawTutorial(4, "Al igual el foro es un medio muy t\xa2pico ~N~de encontrar un empleo, as\xa2 ~N~que no pierda el tiempo!");
 	// Detectives
-	SetTextDrawTutorial(5, "Tambi\x9en si consta con un micro y usa el TeamSpeak 3~N~Puede conectarse a nuestro servidor~N~en la siguiente IP:~N~~G~----~N~~W~All\xa2 podr\x98s encontrar varias salas privadas ~N~para cada facci\xa6n entre otros");
+	SetTextDrawTutorial(5, "Tambi\x9en si consta con un micro y usa el TeamSpeak 3~N~Puede conectarse a nuestro servidor~N~en la siguiente IP:~N~~G~----~N~~W~All\xa2 podras encontrar varias salas privadas ~N~para cada faccion entre otros");
 	// Licencieros
-	SetTextDrawTutorial(6, "Esperamos que con este corto tutorial vaya ~N~teniendo una idea de cu\x98l es nuestro objetivo que ~N~no es m\x98s ~B~Que divertirnos!~N~~N~~N~~N~~N~~R~Ahora lo dejamos con una breve~N~explicaci\xa6n de las reglas principales");
-	SetTextDrawTutorial(7, "~R~Qu\x9e es un server de Rol~B~?~N~~N~~W~-Un servidor de Rol es una simulaci\xa6n de la vida~N~real, donde se debe tratar de  actuar y hacer las ~N~cosas lo m\x98s aproximado a la vida real.");
+	SetTextDrawTutorial(6, "Esperamos que con este corto tutorial vaya ~N~teniendo una idea de cual es nuestro objetivo que ~N~no es mas ~B~Que divertirnos!~N~~N~~N~~N~~N~~R~Ahora lo dejamos con una breve~N~explicacion de las reglas principales");
+	SetTextDrawTutorial(7, "~R~Qu\x9e es un server de Rol~B~?~N~~N~~W~-Un servidor de Rol es una simulacion de la vida~N~real, donde se debe tratar de  actuar y hacer las ~N~cosas lo mas aproximado a la vida real.");
 	SetTextDrawTutorial(8, "~R~Qu\x9e son los canales IC y OOC~B~?~N~~N~~B~IC(In Character)~W~ Es cuando hablas dentro del personaje~N~que representas el juego.~N~~N~~B~OOC(Out Of Character)~W~ Es cuando hablas fuera de~N~ tu personaje (La persona en la vida real)");
-	SetTextDrawTutorial(9, "~R~Qu\x9e es confusi\xa6n de canales~B~?~N~~N~~W~Es cuando se dicen cosas OOC en IC.~N~Es mezclar informaci\xa6n de la vida real, con la otra~N~realidad dentro del servidor.~N~~N~~B~Ejemplo: ~W~Te acercas a una persona y le preguntas IC: ~N~¿Qui\x9en es admin aqu\xa2? ¿De que facci\xa6n eres?");
+	SetTextDrawTutorial(9, "~R~Qu\x9e es confusion de canales~B~?~N~~N~~W~Es cuando se dicen cosas OOC en IC.~N~Es mezclar informacion de la vida real, con la otra~N~realidad dentro del servidor.~N~~N~~B~Ejemplo: ~W~Te acercas a una persona y le preguntas IC: ~N~¿Qui\x9en es admin aqu\xa2? ¿De que faccion eres?");
 	SetTextDrawTutorial(10, "~R~Qu\x9e es MG(MetaGaming)~B~?~N~~N~~W~Es cuando llamas a una persona por su nombre, sin~N~que \x9el te lo hubiera  dicho IC, Simplemente lo~N~llamaste por su nombre porque lo viste  encima de~N~su cabeza.~N~~G~Continua...");
-	SetTextDrawTutorial(11, "~B~Ejemplo: ~N~~W~Vez el nombre del jefe de una~N~mafia del server,~N~en alguna otra parte, y te diriges directamente a~N~hacia donde \x9el, sin conocerlo IC, vas y le pides~N~que te meta a su facci\xa6n.");
-	SetTextDrawTutorial(12, "~R~Qu\x9e es PG (PowerGaming)~B~?~N~~N~~W~Es forzar a tu personaje, para hacer cosas irrealistas.~N~~N~~B~Ejemplo: ~W~Si estas en la c\x98rcel, no puede poner~N~~P~/me rompe las rejas con sus poderes~N~~G~/Intentar derrumbar el ayuntamiento con una patada voladora.~N~~G~Continua...");
-	SetTextDrawTutorial(13, "Tampoco se puede  manipular o forzar el personaje~N~de otro jugador para hacer una~N~acci\xa6n imposible~N~y fuera de la realidad. ~N~~N~~B~Ejemplos: ~N~~P~/me mata a Javier_Peralta con su visi\xa6n laser~N~~G~/Intentar enviar a Javier_Peralta a la luna de un golpe.");
-	SetTextDrawTutorial(14, "~R~Qu\x9e es CJ(CarJaked)~B~?~N~~N~~W~-Es cuando se acerca una persona en un auto y pulsas~N~ \"Enter\" y lo sacas del auto solo porque si, sin raz\xa6n alguna.");
-	SetTextDrawTutorial(15, "~R~Qu\x9e es CK(CarKill)~B~?~N~~N~~W~Es cuando se mata a una persona atropellando o a-~N~plast\x98ndolo con un auto.");
-	SetTextDrawTutorial(16, "~R~Qu\x9e es DB(Drive-By)~B~?~N~~N~~W~Es disparar desde el asiento del conductor de una~N~moto o de un auto (Generalmente tambi\x9en esta Prohi-~N~bido, debido a cuando se dispara desde el asiento~N~del conductor, el GTA SA utiliza el AUTO-AIM \"Mi-~N~ra Autom\x98tica\")");
-	SetTextDrawTutorial(17, "~R~Qu\x9e es BJ (BunnyJump)~B~?~N~~N~~W~Es ir corriendo y saltando a al mismo tiempo para~N~avanzar mas r\x98pido y no cansarse.~N~Esto es considerado como Anti-Rol.~N~~N~~N~~N~~N~~R~FIN DEL TUTORIAL DE REGLAS");
+	SetTextDrawTutorial(11, "~B~Ejemplo: ~N~~W~Vez el nombre del jefe de una~N~mafia del server,~N~en alguna otra parte, y te diriges directamente a~N~hacia donde \x9el, sin conocerlo IC, vas y le pides~N~que te meta a su faccion.");
+	SetTextDrawTutorial(12, "~R~Qu\x9e es PG (PowerGaming)~B~?~N~~N~~W~Es forzar a tu personaje, para hacer cosas irrealistas.~N~~N~~B~Ejemplo: ~W~Si estas en la carcel, no puede poner~N~~P~/me rompe las rejas con sus poderes~N~~G~/Intentar derrumbar el ayuntamiento con una patada voladora.~N~~G~Continua...");
+	SetTextDrawTutorial(13, "Tampoco se puede  manipular o forzar el personaje~N~de otro jugador para hacer una~N~accion imposible~N~y fuera de la realidad. ~N~~N~~B~Ejemplos: ~N~~P~/me mata a Javier_Peralta con su vision laser~N~~G~/Intentar enviar a Javier_Peralta a la luna de un golpe.");
+	SetTextDrawTutorial(14, "~R~Qu\x9e es CJ(CarJaked)~B~?~N~~N~~W~-Es cuando se acerca una persona en un auto y pulsas~N~ \"Enter\" y lo sacas del auto solo porque si, sin razon alguna.");
+	SetTextDrawTutorial(15, "~R~Qu\x9e es CK(CarKill)~B~?~N~~N~~W~Es cuando se mata a una persona atropellando o a-~N~plastandolo con un auto.");
+	SetTextDrawTutorial(16, "~R~Qu\x9e es DB(Drive-By)~B~?~N~~N~~W~Es disparar desde el asiento del conductor de una~N~moto o de un auto (Generalmente tambi\x9en esta Prohi-~N~bido, debido a cuando se dispara desde el asiento~N~del conductor, el GTA SA utiliza el AUTO-AIM \"Mi-~N~ra Automatica\")");
+	SetTextDrawTutorial(17, "~R~Qu\x9e es BJ (BunnyJump)~B~?~N~~N~~W~Es ir corriendo y saltando a al mismo tiempo para~N~avanzar mas rapido y no cansarse.~N~Esto es considerado como Anti-Rol.~N~~N~~N~~N~~N~~R~FIN DEL TUTORIAL DE REGLAS");
 //				             Es ir corriendo y saltando a al mismo tiempo para   Es ir corriendo y saltando a al mismo tiempo para        Es ir corriendo y saltando a al mismo tiempo para   Es ir corriendo y saltando a al mismo tiempo para
 
 }
@@ -59361,7 +59391,7 @@ public IsVehicleWithInterior(playerid)
 	    if ( DataCars[vehicleid][Time] == CNN && GetVehicleModel(vehicleid) == 582 )
 	    {
 		    SetPlayerVirtualWorldEx(playerid, vehicleid);
-		    SetPlayerPos(playerid, TextDrawInfo[PickupidFurgoCNN][PosInfoX], TextDrawInfo[PickupidFurgoCNN][PosInfoY], TextDrawInfo[PickupidFurgoCNN][PosInfoZ]);
+		    SetPlayerPos(playerid, PickupInfo[PickupidFurgoCNN][PosInfoX], PickupInfo[PickupidFurgoCNN][PosInfoY], PickupInfo[PickupidFurgoCNN][PosInfoZ]);
 		    SetPlayerInteriorEx(playerid, 3);
 			SetPlayerFacingAngle(playerid, 359.5986);
 			SetCameraBehindPlayer(playerid);
@@ -59370,7 +59400,7 @@ public IsVehicleWithInterior(playerid)
 		else if ( (DataCars[vehicleid][Time] == SFPD || DataCars[vehicleid][Time] == LSPD) && GetVehicleModel(vehicleid) == 427 )
 		{
 		    SetPlayerVirtualWorldEx(playerid, vehicleid);
-		    SetPlayerPos(playerid, TextDrawInfo[PickupidPoliceFurgo][PosInfoX], TextDrawInfo[PickupidPoliceFurgo][PosInfoY], TextDrawInfo[PickupidPoliceFurgo][PosInfoZ]);
+		    SetPlayerPos(playerid, PickupInfo[PickupidPoliceFurgo][PosInfoX], PickupInfo[PickupidPoliceFurgo][PosInfoY], PickupInfo[PickupidPoliceFurgo][PosInfoZ]);
 		    SetPlayerInteriorEx(playerid, 3);
 			SetPlayerFacingAngle(playerid, 0);
 			SetCameraBehindPlayer(playerid);
@@ -59379,7 +59409,7 @@ public IsVehicleWithInterior(playerid)
 		else if ( (DataCars[vehicleid][Time] == SFMD || DataCars[vehicleid][Time] == LSMD ) && GetVehicleModel(vehicleid) == 416 )
 		{
 		    SetPlayerVirtualWorldEx(playerid, vehicleid);
-		    SetPlayerPos(playerid, TextDrawInfo[PickupidAmbulance][PosInfoX], TextDrawInfo[PickupidAmbulance][PosInfoY], TextDrawInfo[PickupidAmbulance][PosInfoZ]);
+		    SetPlayerPos(playerid, PickupInfo[PickupidAmbulance][PosInfoX], PickupInfo[PickupidAmbulance][PosInfoY], PickupInfo[PickupidAmbulance][PosInfoZ]);
 		    SetPlayerInteriorEx(playerid, 3);
 			SetPlayerFacingAngle(playerid, 359.5986);
 			SetCameraBehindPlayer(playerid);
@@ -59397,7 +59427,7 @@ public IsPlayerInTrain(playerid)
 	    if ( Vagonid )
 	    {
 		    SetPlayerVirtualWorldEx(playerid, vehicleid);
-		    SetPlayerPos(playerid, TextDrawInfo[PickupExitVagones[Vagonid - 1]][PosInfoX], TextDrawInfo[PickupExitVagones[Vagonid - 1]][PosInfoY], TextDrawInfo[PickupExitVagones[Vagonid - 1]][PosInfoZ]);
+		    SetPlayerPos(playerid, PickupInfo[PickupExitVagones[Vagonid - 1]][PosInfoX], PickupInfo[PickupExitVagones[Vagonid - 1]][PosInfoY], PickupInfo[PickupExitVagones[Vagonid - 1]][PosInfoZ]);
 		    SetPlayerInteriorEx(playerid, 3);
 			SetPlayerFacingAngle(playerid, 180.0);
 			SetCameraBehindPlayer(playerid);
@@ -59470,20 +59500,19 @@ public UpdateSpawnPlayer(playerid)
 		}
 	}
 }
-public IsPlayerInPincho(playerid, pickupid)
+stock IsPlayerInPincho(playerid, pickupid)
 {
-	for (new i=0; i < MAX_OBJECTS_VALLAS_CONOS_PINCHOS; i++)
+	if ( PickupIndex[pickupid][Tipo] == PICKUP_TYPE_PINCHO && IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0)
 	{
-	    if ( VCP[i][objectid_vcp] != -1 && VCP[i][pickupidVCP] == pickupid && IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0)
+	    new pinchoid = PickupIndex[pickupid][Tipoid];
+	    if (VCP[pinchoid][objectid_vcp] != -1 && VCP[pinchoid][pickupidVCP] == pickupid)
 	    {
 	        new MyVehicle = GetPlayerVehicleID(playerid);
 			new Vpanel, Vdoors, Vlights, Vtires;
 			GetVehicleDamageStatus(MyVehicle, Vpanel, Vdoors, Vlights, Vtires);
 			UpdateVehicleDamageStatus(MyVehicle, Vpanel, Vdoors, Vlights, 15);
-	        return true;
 	    }
 	}
-	return false;
 }
 public IsVehicleNotBici(playerid, vehicleid)
 {
@@ -59565,6 +59594,11 @@ public SetPlayerFaccion(playerid, cmdfaccion[])
 				{
 					if ( strval(DatosOriginales) <= GetMaxFaccionRango(strval(Datos_PicadosFaccion[2])) || strval(Datos_PicadosFaccion[2]) == 0 )
 					{
+					    if( PlayersData[strval(Datos_PicadosFaccion[1])][Rango] == 0)
+						{
+						    format(FaccionData[PlayersData[strval(Datos_PicadosFaccion[1])][Faccion]][Lider], 2, "");
+						    UpdateFaccionTextLabel(PlayersData[strval(Datos_PicadosFaccion[1])][Faccion], true);
+						}
                         PlayersData[strval(Datos_PicadosFaccion[1])][Faccion] = strval(Datos_PicadosFaccion[2]);
                         PlayersData[strval(Datos_PicadosFaccion[1])][HorasWork] = 0;
                         PlayersData[strval(Datos_PicadosFaccion[1])][SpawnFac] = 0;
@@ -59572,8 +59606,13 @@ public SetPlayerFaccion(playerid, cmdfaccion[])
 						{
 	                        PlayersData[strval(Datos_PicadosFaccion[1])][Rango]   = strval(DatosOriginales);
 							PlayersData[strval(Datos_PicadosFaccion[1])][Skin] = RangosSkins[PlayersData[strval(Datos_PicadosFaccion[1])][Faccion]][PlayersData[strval(Datos_PicadosFaccion[1])][Rango]][0];
-							SetPlayerSkinEx(strval(Datos_PicadosFaccion[1]), RangosSkins[PlayersData[strval(Datos_PicadosFaccion[1])][Faccion]][PlayersData[strval(Datos_PicadosFaccion[1])][Rango]][0]);
-
+							SetPlayerSkinEx(strval(Datos_PicadosFaccion[1]), RangosSkins[PlayersData[strval(Datos_PicadosFaccion[1])][Faccion]][PlayersData[strval(Datos_PicadosFaccion[1])][Rango]][0]);	
+							
+							if( PlayersData[strval(Datos_PicadosFaccion[1])][Rango] == 0)
+							{
+							    format(FaccionData[strval(Datos_PicadosFaccion[2])][Lider], MAX_PLAYER_NAME, "%s", PlayersDataOnline[strval(Datos_PicadosFaccion[1])][NameOnline]);
+							    UpdateFaccionTextLabel(strval(Datos_PicadosFaccion[2]), true);
+							}
 						}
 						else
 						{
@@ -59722,153 +59761,140 @@ public LoadJobs()
 	format(Jobs[PESCA][NameJob], MAX_FACCION_NAME, "Pescador");
 	format(Jobs[VENDEDOR_MOVIL][NameJob], MAX_FACCION_NAME, "Vendedor de Móviles");
 }
-public LoadTextDrawInfo()
+public LoadInfoPickups()
 {
 	// PESCA
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 612.8910;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = -2995.3770;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 7.2706;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_NORMAL);
-    Jobs[PESCA][pickupidGet] = TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo];
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Si desea ser pescador~N~Use ~R~/~G~Trabajar");
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 612.8910;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = -2995.3770;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 7.2706;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_NORMAL, 0);
+    Jobs[PESCA][pickupidGet] = PickupInfo[MAX_PICKUP_INFO][PickupId];
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Si desea ser pescador\nUse {"COLOR_ROJO"}/{"COLOR_VERDE"}Trabajar", WORLD_NORMAL, 0);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = -1503.5508;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1380.0824;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 3.4375;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_NORMAL);
-    JobsData[PESCA_PickupidVender] = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Use ~R~/~G~Vender Peces");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = -1503.5508;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1380.0824;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 3.4375;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_NORMAL, 0);
+    JobsData[PESCA_PickupidVender] = PickupInfo[MAX_PICKUP_INFO][PickupId];
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Use {"COLOR_ROJO"}/{"COLOR_VERDE"}Vender Peces", WORLD_NORMAL, 0);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 565.2724;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = -3035.1536;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 3.0419;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_NORMAL);
-    JobsData[PESCA_PickupidPescar] = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Zona de pesca~N~Use ~R~/~G~Pescar");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 565.2724;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = -3035.1536;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 3.0419;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_NORMAL, 0);
+    JobsData[PESCA_PickupidPescar] = PickupInfo[MAX_PICKUP_INFO][PickupId];
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Zona de pesca\nUse {"COLOR_ROJO"}/{"COLOR_VERDE"}Pescar", WORLD_NORMAL, 0);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 2452.4606933594;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1845.6982421875;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 16.32413482666;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	-1);
-    PickupidAmbulance = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Salir de la ambulancia");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 2452.4606933594;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1845.6982421875;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 16.32413482666;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], -1, 3);
+    PickupidAmbulance = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Salir de la ambulancia", -1, 3);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 2643.2592773438;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1887.0278320313;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 18.815624237061;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	-1);
-    PickupidFurgoCNN = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Salir de la furgona CNN");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 2643.2592773438;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1887.0278320313;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 18.815624237061;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], -1, 3);
+    PickupidFurgoCNN = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Salir de la furgona CNN", -1, 3);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 2394.7495117188;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1159.5728759766;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 34.606250762939;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	-1);
-    PickupExitVagones[0] = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Salida del Vag\xa6n 1");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 1755.9699707031;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = -2670.3698730469;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 13.637499809265;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], -1, 3);
+    PickupidPoliceFurgo = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Salir del camion Swat", -1, 3);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 2407.3837890625;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1136.6993408203;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 34.267810821533;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	-1);
-    PickupExitVagones[1] = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Salida del Vag\xa6n 2");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 2394.7495117188;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1159.5728759766;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 34.606250762939;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], -1, 3);
+    PickupExitVagones[0] = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Salida del Vagon 1", -1, 3);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 2393.4990234375;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1113.5131835938;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 34.726249694824;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	-1);
-    PickupExitVagones[2] = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Salida del Vag\xa6n 3");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 2407.3837890625;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1136.6993408203;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 34.267810821533;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], -1, 3);
+    PickupExitVagones[1] = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Salida del Vagon 2", -1, 3);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 1478.9347;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = -1672.9708;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 14.0469;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	-1);
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "~B~UN ~G~Player");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 2393.4990234375;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1113.5131835938;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 34.726249694824;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], -1, 3);
+    PickupExitVagones[2] = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Salida del Vagon 3", -1, 3);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 2365.8909;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1559.6465;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 27.9562;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_DEFAULT_INTERIOR);
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "C\x98maras Los Santos~N~Use ~R~/~G~C\x98maras");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 2365.8909;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1559.6465;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 27.9562;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_DEFAULT_INTERIOR, 11);
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Camaras Los Santos\nUse {"COLOR_ROJO"}/{"COLOR_VERDE"}Camaras", WORLD_DEFAULT_INTERIOR, 11);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 1961.4952;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 973.3851;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 21.8714;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_DEFAULT_INTERIOR);
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "C\x98maras San Fierro~N~Use ~R~/~G~C\x98maras");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 1961.4952;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 973.3851;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 21.8714;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_DEFAULT_INTERIOR, 7);
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Camaras San Fierro\nUse {"COLOR_ROJO"}/{"COLOR_VERDE"}Camaras", WORLD_DEFAULT_INTERIOR, 7);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 1316.2865;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 1385.0859;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 10.8797;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_DEFAULT_INTERIOR);
-    SuperMercadosPickupid[0] = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "SuperMercados ~Y~San ~B~Fierro~N~~B~Use ~R~/~G~SuperMercado");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 1316.2865;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 1385.0859;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 10.8797;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_DEFAULT_INTERIOR, 2);
+    SuperMercadosPickupid[0] = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "SuperMercados {"COLOR_AMARILLO"}San {"COLOR_AZUL"}Fierro\n{"COLOR_AZUL"}Use {"COLOR_ROJO"}/{"COLOR_VERDE"}SuperMercado", WORLD_DEFAULT_INTERIOR, 2);
 
 	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 1555.6737;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = -2558.0864;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 13.5628;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_DEFAULT_INTERIOR);
-    SuperMercadosPickupid[1] = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "SuperMercados ~Y~Los ~B~Santos~N~~B~Use ~R~/~G~SuperMercado");
-	
-	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = -1961.2986;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = 438.8855;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 35.1719;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	WORLD_NORMAL);
-    Jobs[VENDEDOR_MOVIL][pickupidGet] = TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo];
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Convi\x9ertase en un vendedor de m\xa6viles!~N~Use ~R~/~G~Trabajar");
-	
-	////////////////////////////////////////////////
-	MAX_TEXT_DRAW_INFO++;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX] = 1755.9699707031;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY] = -2670.3698730469;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ] = 13.637499809265;
-    TextDrawInfo[MAX_TEXT_DRAW_INFO][PickupidTextInfo] = CreatePickup	(1239, 	1,  TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoX], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoY], TextDrawInfo[MAX_TEXT_DRAW_INFO][PosInfoZ],	 	-1);
-    PickupidPoliceFurgo = MAX_TEXT_DRAW_INFO;
-	SetStyleTextDrawTextDrawInfo(MAX_TEXT_DRAW_INFO, "Salir del cami\xa6n Swat");
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = 1555.6737;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = -2558.0864;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 13.5628;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_DEFAULT_INTERIOR, 16);
+    SuperMercadosPickupid[1] = MAX_PICKUP_INFO;
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "SuperMercados {"COLOR_AMARILLO"}Los {"COLOR_AZUL"}Santos\n{"COLOR_AZUL"}Use {"COLOR_ROJO"}/{"COLOR_VERDE"}SuperMercado", WORLD_DEFAULT_INTERIOR, 16);
 
+	////////////////////////////////////////////////
+	MAX_PICKUP_INFO++;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoX] = -1961.2986;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoY] = 438.8855;
+    PickupInfo[MAX_PICKUP_INFO][PosInfoZ] = 35.1719;
+    PickupInfo[MAX_PICKUP_INFO][PickupId] = CreateInfoPickup(1239, MAX_PICKUP_INFO, PickupInfo[MAX_PICKUP_INFO][PosInfoX], PickupInfo[MAX_PICKUP_INFO][PosInfoY], PickupInfo[MAX_PICKUP_INFO][PosInfoZ], WORLD_NORMAL, 0);
+    Jobs[VENDEDOR_MOVIL][pickupidGet] = PickupInfo[MAX_PICKUP_INFO][PickupId];
+	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Conviertase en un vendedor de moviles!\nUse {"COLOR_ROJO"}/{"COLOR_VERDE"}Trabajar", WORLD_NORMAL, 0);
 }
-public SetStyleTextDrawTextDrawInfo(textdrawid, text[])
+
+stock CreateTextLabelPickupInfo(pickupidinfo, info[], worldid, interiorid)
 {
-	new TextDrawTextDrawInfoText[MAX_TEXT_CHAT];
-	format(TextDrawTextDrawInfoText, sizeof(TextDrawTextDrawInfoText), "~B~Info: ~W~%s", text);
-	TextDrawInfoTextDraws[textdrawid] = TextDrawCreateEx(200.0, 380.0, TextDrawTextDrawInfoText);
-	TextDrawUseBox(TextDrawInfoTextDraws[textdrawid], 1);
-	TextDrawBackgroundColor(TextDrawInfoTextDraws[textdrawid] ,0x000000FF);
-	TextDrawBoxColor(TextDrawInfoTextDraws[textdrawid], 0x00000066);
-	TextDrawTextSize(TextDrawInfoTextDraws[textdrawid], 350.0, 380.0);
-	TextDrawSetShadow(TextDrawInfoTextDraws[textdrawid], 1);
-	TextDrawLetterSize(TextDrawInfoTextDraws[textdrawid], 0.5 , 1.2);
-	return textdrawid;
+	new string[300];
+	format(string, sizeof(string), "Info: {"COLOR_CREMA"}%s", info);
+    CreateDynamic3DTextLabel(string, 0x00A5FFFF, PickupInfo[pickupidinfo][PosInfoX], PickupInfo[pickupidinfo][PosInfoY], PickupInfo[pickupidinfo][PosInfoZ], 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true,
+    worldid, interiorid);
 }
+
 public SetVehicleTaxi(vehicleid)
 {
 	TaxisTaximetro[MAX_TAXIS][TaxiVehicleid] = vehicleid;
@@ -61222,27 +61248,6 @@ public LoadGaragesExLock()
 	}
 }
 
-public HideTextDrawsTelesAndInfo(playerid)
-{
-	if ( PlayersDataOnline[playerid][InLocalPickup] != -1 )
-	{
-	    if ( !IsPlayerInRangeOfPoint(playerid, 2.0, LocalData[PlayersDataOnline[playerid][InLocalPickup]][PosX], LocalData[PlayersDataOnline[playerid][InLocalPickup]][PosY], LocalData[PlayersDataOnline[playerid][InLocalPickup]][PosZ]) )
-	    {
-	        PlayersDataOnline[playerid][InLocalPickup] = -1;
-			PlayersDataOnline[playerid][InPickup] = -1;
-	    }
-	}
-	if ( PlayersDataOnline[playerid][InPickupTele] || PlayersDataOnline[playerid][InPickupInfo])
-	{
-	    if ( !IsPlayerInRangeOfPoint(playerid, 2.0, PlayersDataOnline[playerid][MyPickupX_Now], PlayersDataOnline[playerid][MyPickupY_Now], PlayersDataOnline[playerid][MyPickupZ_Now]) )
-	    {
-	        TextDrawHideForPlayer(playerid, PlayersDataOnline[playerid][MyTextDrawShow]);
-			PlayersDataOnline[playerid][InPickup] 		= -1;
-			PlayersDataOnline[playerid][InPickupTele] 	= false;
-			PlayersDataOnline[playerid][InPickupInfo] 	= false;
-	    }
-	}
-}
 public OpenProject(playerid, name[])
 {
 	if ( IsValidName(name) )
@@ -61569,7 +61574,7 @@ public IsValidWeapon(playerid, weaponid)
 }
 public LoadCameras()
 {
-    CamerasM[0]	 = CreateMenu("C\x98maras de seguridad", 2, 400.0, 200.0, 150.0, 20.0);
+    CamerasM[0]	 = CreateMenu("Camaras de seguridad", 2, 400.0, 200.0, 150.0, 20.0);
 	SetMenuColumnHeader(CamerasM[0], 0, "Lugar"); 	SetMenuColumnHeader(CamerasM[0], 1, "Ciudad");
 
 ////////////////////////////
@@ -62927,7 +62932,7 @@ public ResetServer()
 	SendClientMessageToAll(COLOR_MESSAGES[2], ReasonReset);
    	SendClientMessageToAll(0x000000FF, " ");
 	SendClientMessageToAll(COLOR_MESSAGES[2], "{E6E6E6}Saludos Cordiales,");
-	SendClientMessageToAll(COLOR_MESSAGES[2], "{E6E6E6}Equipo de Un Player.");
+	SendClientMessageToAll(COLOR_MESSAGES[2], "{E6E6E6}Equipo de Old Players.");
 	GameTextForAll( "~G~Servidor Reiniciando...~N~Por favor espere...", 6000, 0);
 }
 public ConfirmDeletedAllSMS(playerid)
@@ -63756,483 +63761,501 @@ enum GaragesEnum
 	DeletedG
 }
 */
-public IsPlayerInGarageFun(playerid, &housesave, &garagesave, &locksave)
+public IsPlayerInGarageFun(playerid, &housesave, &garagesave)
 {
     housesave 	= -1;
     garagesave 	= -1;
-    locksave 	= false;
-	if ( PlayersDataOnline[playerid][InPickup] >= MIN_GARAGE_PICKUP &&
-    	 PlayersDataOnline[playerid][InPickup] <= MAX_GARAGE_PICKUP )
+    
+    if (!IsPlayerInAnyVehicle(playerid))
+    {
+        if (PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA)
+	    {
+			garagesave = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
+			housesave = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoidextra];
+		    return true;
+		}
+	    else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA_TYPE )
+	    {
+		    garagesave = PlayersData[playerid][IsPlayerInGarage];
+			housesave = PlayersData[playerid][IsPlayerInHouse];
+	        return true;
+	    }
+	    if ( garagesave != -1 )
+	    {
+	        return true;
+		}
+    }	
+	else
 	{
-		if ( PlayersData[playerid][IsPlayerInHouse] )
-		{
-	    	housesave = PlayersData[playerid][IsPlayerInHouse];
-		}
-		else
-		{
-		    housesave = PlayersDataOnline[playerid][InPickupTele];
-		}
-	    garagesave = (PlayersData[playerid][IsPlayerInGarage] + 50);
-	    return true;
+	    if (PlayersData[playerid][IsPlayerInGarage] != -1 && PlayersData[playerid][IsPlayerInHouse])
+        {
+	        garagesave = PlayersData[playerid][IsPlayerInGarage];
+			housesave = PlayersData[playerid][IsPlayerInHouse];
+		    return true;
+        }
+        else
+        {
+            for (new h = 1; h <= MAX_HOUSE; h++)
+			{
+				for ( new i = 0; i < MAX_GARAGE_FOR_HOUSE; i++ )
+				{
+			        if ( Garages[h][i][PickupidIn] )
+					{
+						if ( IsPlayerInRangeOfPoint(playerid, 3.0, Garages[h][i][XgOut], Garages[h][i][YgOut], Garages[h][i][ZgOut]))
+						{
+						    garagesave = i;
+							housesave = h;
+						    return true;
+						}
+					}
+				}
+			}
+        }
 	}
-    else if ( PlayersData[playerid][IsPlayerInGarage] >= 0 && PlayersData[playerid][IsPlayerInHouse] && PlayersDataOnline[playerid][InPickup] >= TypeGarage[0][PickupId] &&
-         	  PlayersDataOnline[playerid][InPickup] <= TypeGarage[MAX_GARAGE_TYPE][PickupIdh] )
-    {
-	    housesave = PlayersData[playerid][IsPlayerInHouse];
-        garagesave = PlayersData[playerid][IsPlayerInGarage];
-        return true;
-    }
-    garagesave = IsPlayerNearGarageLC(playerid, housesave, locksave);
-    if ( garagesave != -1 )
-    {
-        return true;
-	}
-
 	SendInfoMessage(playerid, 0, "1184", "No te encuentras en ningún garage");
-    return -1;
+    return false;
 }
 public LoadGarageType()
 {
 	new PosZP;
 	// 0
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2903.1259765625;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2437.4750976563;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.85000038147;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2903.1259765625;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2437.4750976563;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.85000038147;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2905.6140136719;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2430.2329101563;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.85000038147;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2905.6140136719;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2430.2329101563;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.85000038147;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2902.9169921875;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2430.9912109375;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.857509613037;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2902.9169921875;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2430.9912109375;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.857509613037;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 1;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 1;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 1
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2784.8108;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2629.8093;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8203;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2784.8108;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2629.8093;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8203;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2779.5432128906;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2624.3771972656;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.8203125;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2779.5432128906;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2624.3771972656;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.8203125;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2779.5859375;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2628.2490234375;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.62031269073;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2779.5859375;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2628.2490234375;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.62031269073;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  2;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  2;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 2
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2783.6885;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2587.9719;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8271;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2783.6885;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2587.9719;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8271;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2784.5083007813;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2596.9426269531;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.8203125;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2784.5083007813;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2596.9426269531;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.8203125;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2783.9020996094;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2592.9458007813;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.620312690735;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2783.9020996094;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2592.9458007813;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.620312690735;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 3;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 3;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 3
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2748.0764;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2636.8281;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 11.4423;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2748.0764;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2636.8281;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 11.4423;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2742.8395996094;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2631.3056640625;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 11.442255020142;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2742.8395996094;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2631.3056640625;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 11.442255020142;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2742.7019042969;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2635.9318847656;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 11.242255210876;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2742.7019042969;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2635.9318847656;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 11.242255210876;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 4;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 4;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 4
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2748.6401;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2612.3386;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 11.3118;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2748.6401;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2612.3386;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 11.3118;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2743.3200683594;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2617.4396972656;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 11.311784744263;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2743.3200683594;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2617.4396972656;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 11.311784744263;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2742.7180175781;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2613.1538085938;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 11.111784934998;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2742.7180175781;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2613.1538085938;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 11.111784934998;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 5;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 5;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 5
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2748.9348;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2604.1074;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 11.4423;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2748.9348;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2604.1074;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 11.4423;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2754.2883300781;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2599.0959472656;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 11.442255020142;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2754.2883300781;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2599.0959472656;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 11.442255020142;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2753.4196777344;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2603.6960449219;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 11.242255210876;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2753.4196777344;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2603.6960449219;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 11.242255210876;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 6;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 6;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 6
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2796.1863;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2636.2778;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8206;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2796.1863;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2636.2778;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8206;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2788.9365234375;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2640.2585449219;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.820586204529;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2788.9365234375;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2640.2585449219;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.820586204529;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2790.9309082031;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2637.2875976563;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.620586395264;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2790.9309082031;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2637.2875976563;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.620586395264;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  7;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  7;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 7
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2767.0764;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2637.9668;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.9840;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2767.0764;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2637.9668;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.9840;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2763.6127929688;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2635.6181640625;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.984013557434;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2763.6127929688;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2635.6181640625;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.984013557434;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2767.2465820313;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2632.2570800781;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.784013748169;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2767.2465820313;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2632.2570800781;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.784013748169;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 8;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 8;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 8
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2822.1416;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2629.0002;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8764;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2822.1416;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2629.0002;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8764;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2820.4426269531;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2638.3657226563;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.876442909241;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2820.4426269531;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2638.3657226563;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.876442909241;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2823.1149902344;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2634.6164550781;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.676443099976;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2823.1149902344;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2634.6164550781;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.676443099976;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  9;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  9;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 9
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2838.9561;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2630.1169,
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8291;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 360;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2838.9561;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2630.1169,
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8291;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 360;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2837.3527832031;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2638.9331054688;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.836480140686;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2837.3527832031;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2638.9331054688;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.836480140686;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2839.4033203125;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2635.3623046875;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.636480331421;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2839.4033203125;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2635.3623046875;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.636480331421;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  10;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  10;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 10
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2846.4050;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2618.3450;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8322;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2846.4050;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2618.3450;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8322;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2843.1896972656;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2625.0754394531;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.832187652588;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2843.1896972656;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2625.0754394531;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.832187652588;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2846.3708496094;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2624.4382324219;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.632187843323;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2846.3708496094;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2624.4382324219;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.632187843323;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  11;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  11;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 11
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2807.9485;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2599.8291;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.9433;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2807.9485;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2599.8291;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.9433;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2806.212890625;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2607.0744628906;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 13.935888290405;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2806.212890625;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2607.0744628906;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 13.935888290405;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2807.5671386719;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2602.951171875;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.73588848114;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2807.5671386719;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2602.951171875;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.73588848114;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  12;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  12;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 12
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2771.7998;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2523.4099;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.9007;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 360;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2771.7998;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2523.4099;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.9007;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 360;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2767.9108886719;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2532.8200683594;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.893434524536;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2767.9108886719;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2532.8200683594;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.893434524536;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2771.2622070313;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2530.3293457031;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.693676948547;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2771.2622070313;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2530.3293457031;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.693676948547;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  13;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  13;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 13
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2762.2847;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2582.6541;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8351;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2762.2847;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2582.6541;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8351;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2758.4755859375;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2576.1965332031;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.835094451904;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2758.4755859375;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2576.1965332031;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.835094451904;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2762.6628417969;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2576.6296386719;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.635094642639;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2762.6628417969;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2576.6296386719;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.635094642639;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  14;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  14;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 14
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2770.2546;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2567.5901;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8380;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2770.2546;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2567.5901;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8380;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2777.4428710938;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2566.0651855469;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.837955474854;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2777.4428710938;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2566.0651855469;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.837955474854;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2770.2780761719;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2563.0756835938;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.637955665588;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2770.2780761719;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2563.0756835938;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.637955665588;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  15;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  15;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 15
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2755.8137;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2562.5759;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8329;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2755.8137;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2562.5759;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8329;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2750.3881835938;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2557.6606445313;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.832948684692;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2750.3881835938;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2557.6606445313;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.832948684692;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2750.2775878906;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2562.1689453125;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.632948875427;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2750.2775878906;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2562.1689453125;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.632948875427;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   =  16;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] =  16;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 16
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2755.1431;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2512.7124;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 11.0956;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2755.1431;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2512.7124;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 11.0956;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2753.5578613281;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2503.6491699219;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 11.095604896545;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2753.5578613281;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2503.6491699219;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 11.095604896545;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2755.2993164063;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2507.4792480469;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.902544021606;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2755.2993164063;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2507.4792480469;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.902544021606;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 17;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 17;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 17
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2743.9014;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2529.9314;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8694;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2743.9014;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2529.9314;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8694;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2740.2314453125;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2524.5197753906;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.862500190735;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2740.2314453125;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2524.5197753906;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.862500190735;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2744.126953125;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2525.2817382813;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.66250038147;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2744.126953125;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2525.2817382813;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.66250038147;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 18;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 18;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 18
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2768.0227;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2446.9446;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.9000;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2768.0227;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2446.9446;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.9000;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2773.4025878906;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2442.4389648438;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.89999961853;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2773.4025878906;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2442.4389648438;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.89999961853;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2773.2446289063;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2447.0495605469;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.699999809265;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 90;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2773.2446289063;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2447.0495605469;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.699999809265;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 90;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 19;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 19;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 	MAX_GARAGE_TYPE++;
 
 	// 19
-	TypeGarage[MAX_GARAGE_TYPE][PosX]    = 2788.6536;
-	TypeGarage[MAX_GARAGE_TYPE][PosY]    = 2421.3318;
-	TypeGarage[MAX_GARAGE_TYPE][PosZ]    = 10.8548;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZ]    = 0;
+	TypeGarage[MAX_GARAGE_TYPE][PosX] = 2788.6536;
+	TypeGarage[MAX_GARAGE_TYPE][PosY] = 2421.3318;
+	TypeGarage[MAX_GARAGE_TYPE][PosZ] = 10.8548;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZ] = 0;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXh]    = 2784.8806152344;
-	TypeGarage[MAX_GARAGE_TYPE][PosYh]    = 2424.8825683594;
-	TypeGarage[MAX_GARAGE_TYPE][PosZh]    = 10.862500190735;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZh]   = 270;
+	TypeGarage[MAX_GARAGE_TYPE][PosXh] = 2784.8806152344;
+	TypeGarage[MAX_GARAGE_TYPE][PosYh] = 2424.8825683594;
+	TypeGarage[MAX_GARAGE_TYPE][PosZh] = 10.862500190735;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZh] = 270;
 
-	TypeGarage[MAX_GARAGE_TYPE][PosXc]    = 2788.6831054688;
-	TypeGarage[MAX_GARAGE_TYPE][PosYc]    = 2427.4235839844;
-	TypeGarage[MAX_GARAGE_TYPE][PosZc]    = 10.66250038147;
-	TypeGarage[MAX_GARAGE_TYPE][PosZZc]   = 180;
+	TypeGarage[MAX_GARAGE_TYPE][PosXc] = 2788.6831054688;
+	TypeGarage[MAX_GARAGE_TYPE][PosYc] = 2427.4235839844;
+	TypeGarage[MAX_GARAGE_TYPE][PosZc] = 10.66250038147;
+	TypeGarage[MAX_GARAGE_TYPE][PosZZc] = 180;
 
-	TypeGarage[MAX_GARAGE_TYPE][Interior]   = 1;
+	TypeGarage[MAX_GARAGE_TYPE][Interior] = 1;
 
-	TypeGarage[MAX_GARAGE_TYPE][PickupId]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP,	 	-1);
-	TypeGarage[MAX_GARAGE_TYPE][PickupIdh]	= CreatePickup	(1239, 	1, 	TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh],	 	-1);
-
+	TypeGarage[MAX_GARAGE_TYPE][PickupId] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosX], TypeGarage[MAX_GARAGE_TYPE][PosY], TypeGarage[MAX_GARAGE_TYPE][PosZ] - PosZP, -1);
+	TypeGarage[MAX_GARAGE_TYPE][PickupIdh] = CreateGarageTipoDynamicPickup(1239, MAX_GARAGE_TYPE, TypeGarage[MAX_GARAGE_TYPE][PosXh], TypeGarage[MAX_GARAGE_TYPE][PosYh], TypeGarage[MAX_GARAGE_TYPE][PosZh], -1);
 }
 public LinkVehicleToInteriorEx(vehicleid, interiorid)
 {
@@ -64257,7 +64280,7 @@ public IsPlayerNearGarage(vehicleid, playerid)
 								 Garages[h][i][XgOut],
 								 Garages[h][i][YgOut],
 								 Garages[h][i][ZgOut]) ||
-				 IsPlayerInRangeOfPoint(playerid, 3.0,
+				 	 IsPlayerInRangeOfPoint(playerid, 3.0,
 								 TypeGarage[Garages[h][i][TypeGarageE]][PosXc],
 								 TypeGarage[Garages[h][i][TypeGarageE]][PosYc],
 								 TypeGarage[Garages[h][i][TypeGarageE]][PosZc])
@@ -64266,7 +64289,7 @@ public IsPlayerNearGarage(vehicleid, playerid)
 								 PlayersData[playerid][IsPlayerInHouse] &&
 								 PlayersData[playerid][IsPlayerInGarage] >= 0 )
 				 {
-		            if ( !Garages[h][i][LockOut] || PlayersDataOnline[playerid][AdminOn] )
+		            if ( !Garages[h][i][LockOut] || (PlayersDataOnline[playerid][AdminOn] && PlayersData[playerid][Admin] >= 4) )
 		            {
 						if ( IsPlayerInRangeOfPoint(playerid, 3.0,
 										 TypeGarage[Garages[h][i][TypeGarageE]][PosXc],
@@ -64323,54 +64346,6 @@ public IsPlayerNearGarage(vehicleid, playerid)
 		}
 	}
 	return false;
-}
-public IsPlayerNearGarageLC(playerid, &housesave, &locksave)
-{
-	new MyWorld = GetPlayerVirtualWorld(playerid);
-	for (new h = 1; h <= MAX_HOUSE; h++)
-	{
-		for ( new i = 0; i < MAX_GARAGE_FOR_HOUSE; i++ )
-		{
-	        if ( Garages[h][i][PickupidIn] )
-			{
-				if ( IsPlayerInRangeOfPoint(playerid, 3.0,
-								 Garages[h][i][XgOut],
-								 Garages[h][i][YgOut],
-								 Garages[h][i][ZgOut]) ||
-				 IsPlayerInRangeOfPoint(playerid, 3.0,
-								 TypeGarage[Garages[h][i][TypeGarageE]][PosXc],
-								 TypeGarage[Garages[h][i][TypeGarageE]][PosYc],
-								 TypeGarage[Garages[h][i][TypeGarageE]][PosZc])
-								 &&
-								 MyWorld == Garages[h][i][WorldG] &&
-								 PlayersData[playerid][IsPlayerInHouse] &&
-								 PlayersData[playerid][IsPlayerInGarage] >= 0 )
-				 {
-					if ( IsPlayerInRangeOfPoint(playerid, 3.0,
-									 TypeGarage[Garages[h][i][TypeGarageE]][PosXc],
-									 TypeGarage[Garages[h][i][TypeGarageE]][PosYc],
-									 TypeGarage[Garages[h][i][TypeGarageE]][PosZc])
-									 &&
-									 MyWorld == Garages[h][i][WorldG] &&
-									 PlayersData[playerid][IsPlayerInHouse] &&
-									 PlayersData[playerid][IsPlayerInGarage] >= 0 )
-					{
-					    locksave = true;
-					    housesave = h;
-						return i;
-		        	}
-		        	else if ( MyWorld == 0 )
-		        	{
-		        	    locksave = true;
-  					    housesave = h;
-						return i;
-		        	}
-		        	return -1;
-				}
-			}
-		}
-	}
-	return -1;
 }
 public IsPlayerNearGarageEx(vehicleid, playerid)
 {
@@ -64435,43 +64410,50 @@ public IsPlayerNearGarageEx(vehicleid, playerid)
 }
 public IsPlayerInGarageEx(playerid)
 {
-	new MyWorld = GetPlayerVirtualWorld(playerid);
-	for (new i = 0; i <= MAX_GARAGES_EX; i++)
+	if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_EX )
 	{
-		if (GaragesEx[i][PickupIDOneP] == PlayersDataOnline[playerid][InPickup] ||
-			GaragesEx[i][PickupIDTwoP] == PlayersDataOnline[playerid][InPickup] ||
-
-			IsPlayerInRangeOfPoint(playerid, 3.0,
-						 GaragesEx[i][PosXOne],
-						 GaragesEx[i][PosYOne],
-						 GaragesEx[i][PosZOne]) && MyWorld == WORLD_DEFAULT_INTERIOR ||
-
-		 IsPlayerInRangeOfPoint(playerid, 3.0,
-						 GaragesEx[i][PosXTwo],
-						 GaragesEx[i][PosYTwo],
-						 GaragesEx[i][PosZTwo]) )
-		 {
-		    return i;
-		}
+	    return PickupIndex[ PlayersDataOnline[playerid][InPickup] ][Tipoid];
+	}
+	else if (IsPlayerInAnyVehicle(playerid))
+	{
+	    new MyWorld = GetPlayerVirtualWorld(playerid);
+	    for (new g=0; g!=MAX_GARAGES_EX; g++)
+	    {
+	        if (IsPlayerInRangeOfPoint(playerid, 3.0, GaragesEx[g][PosXTwo], GaragesEx[g][PosYTwo], GaragesEx[g][PosZTwo]) ||
+	            IsPlayerInRangeOfPoint(playerid, 3.0, GaragesEx[g][PosXOne], GaragesEx[g][PosYOne], GaragesEx[g][PosZOne]) && MyWorld == GaragesEx[g][World] )
+			{
+			    return g;
+			}
+	    }
 	}
 	return -1;
 }
 public LoadGarages()
 {
-//	printf("LoadGaragesExLock");
 	for (new h = 1; h <= MAX_HOUSE; h++)
 	{
 		for ( new i = 0; i < MAX_GARAGE_FOR_HOUSE; i++ )
 		{
 	        if ( Garages[h][i][WorldG] )
 	        {
-		        Garages[h][i][PickupidOut] = CreatePickup	(1239, 	1, 	Garages[h][i][Xg], Garages[h][i][Yg], Garages[h][i][Zg],	 	-1);
-		        if ( !MAX_GARAGE_PICKUP )
-				{
-					MIN_GARAGE_PICKUP = Garages[h][i][PickupidOut];
-				}
-	            Garages[h][i][PickupidIn]  = CreatePickup	(1239, 	1, 	Garages[h][i][XgIn], Garages[h][i][YgIn], Garages[h][i][ZgIn], h);
-	            MAX_GARAGE_PICKUP = Garages[h][i][PickupidIn];
+	            new pickupid = CreateDynamicPickup(1239, 1, Garages[h][i][Xg], Garages[h][i][Yg], Garages[h][i][Zg], WORLD_NORMAL, 0);
+	            PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_CASA;
+	            PickupIndex[pickupid][Tipoid] = i;
+	            PickupIndex[pickupid][Tipoidextra] = h;
+	            MAX_DYNAMIC_PICKUP++;
+	            
+		        Garages[h][i][PickupidOut] = pickupid;
+		        
+		        new interiorcasa = TypeHouse[ HouseData[h][TypeHouseId] ][Interior];
+		        
+		        pickupid = CreateDynamicPickup(1239, 1, Garages[h][i][XgIn], Garages[h][i][YgIn], Garages[h][i][ZgIn], h, interiorcasa);
+	            PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_CASA;
+	            PickupIndex[pickupid][Tipoid] = i;
+	            PickupIndex[pickupid][Tipoidextra] = h;
+	            MAX_DYNAMIC_PICKUP++;
+	            
+		        Garages[h][i][PickupidIn] = pickupid;
+	            
 	            MAX_GARAGES++;
 			}
 		}
@@ -65493,1005 +65475,981 @@ public ShowCallSAMD(playerid)
 }
 public LoadGaragesEx()
 {
-/*
-    GaragesEx[MAX_GARAGES_EX][PosXOne] 		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosYOne] 		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZOne] 		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZZOne] 	= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosXOneP] 	= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosYOneP] 	= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZOneP] 	= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZZOneP] 	= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosXTwo] 		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosYTwo] 		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZTwo] 		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZZTwo] 	= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosXTwoP]		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosYTwoP]		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZTwoP]		= 0.0;
-    GaragesEx[MAX_GARAGES_EX][PosZZTwoP] 	= 0.0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]	= CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], -1);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP]	= CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], -1);
-	GaragesEx[MAX_GARAGES_EX][Interior] 	= 14;
-	GaragesEx[MAX_GARAGES_EX][World] 		= WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock] 		= false;
-	GaragesEx[MAX_GARAGES_EX][Dueno] 		= SFMD;*/
-
 	// 1/////////////////////////////////////////////////////////////////////
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1296.7440185547;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2648.61328125;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 11.219346046448;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1291.6853027344;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2648.7053222656;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.846117019653;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2022.5163574219;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 92.811820983887;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 28.448444366455;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2026.7365722656;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 92.712478637695;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 28.457437515259;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 14;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SFMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1296.7440185547;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2648.61328125;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 11.219346046448;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1291.6853027344;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2648.7053222656;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.846117019653;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2022.5163574219;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 92.811820983887;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 28.448444366455;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2026.7365722656;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 92.712478637695;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 28.457437515259;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+    GaragesEx[MAX_GARAGES_EX][Interior] = 14;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+    GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SFMD;
 
 	// 2/////////////////////////////////////////////////////////////////////
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1296.7440185547;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2655.94921875;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 11.219346046448;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1291.6857910156;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2656.0095214844;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.86038684845;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2022.5163574219;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 84.187217712402;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 28.448444366455;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2026.7346191406;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 84.050964355469;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 28.341444015503;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 14;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SFMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1296.7440185547;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2655.94921875;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 11.219346046448;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1291.6857910156;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2656.0095214844;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.86038684845;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2022.5163574219;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 84.187217712402;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 28.448444366455;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2026.7346191406;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 84.050964355469;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 28.341444015503;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 14;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SFMD;
 
 	// 3/////////////////////////////////////////////////////////////////////
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1296.7440185547;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2663.3015136719;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 11.219346046448;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1291.6750488281;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2663.2922363281;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.864186286926;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2022.5163574219;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 75.530609130859;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 28.448444366455;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2026.7357177734;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 75.499862670898;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 28.341310501099;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 14;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SFMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1296.7440185547;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2663.3015136719;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 11.219346046448;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1291.6750488281;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2663.2922363281;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.864186286926;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2022.5163574219;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 75.530609130859;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 28.448444366455;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2026.7357177734;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 75.499862670898;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 28.341310501099;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 14;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SFMD;
 
 	// 4/////////////////////////////////////////////////////////////////////
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1336.7229003906;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2663.2060546875;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 11.219346046448;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1331.6806640625;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2663.2189941406;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.864210128784;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2053.5014648438;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 92.807563781738;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 28.760625839233;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2047.8316650391;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 92.613609313965;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 28.407892227173;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 14;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SFMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1336.7229003906;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2663.2060546875;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 11.219346046448;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1331.6806640625;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2663.2189941406;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.864210128784;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2053.5014648438;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 92.807563781738;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 28.760625839233;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2047.8316650391;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 92.613609313965;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 28.407892227173;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 14;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SFMD;
 
 	// 5/////////////////////////////////////////////////////////////////////
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1336.7229003906;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2655.9899902344;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 11.219346046448;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1331.689453125;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2656.0004882813;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.860371589661;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2053.5014648438;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 84.094604492188;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 28.760625839233;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2047.8311767578;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 83.947914123535;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 28.390625;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 14;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SFMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1336.7229003906;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2655.9899902344;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 11.219346046448;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1331.689453125;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2656.0004882813;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.860371589661;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2053.5014648438;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 84.094604492188;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 28.760625839233;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2047.8311767578;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 83.947914123535;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 28.390625;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 14;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SFMD;
 
 	// 6/////////////////////////////////////////////////////////////////////
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1336.7229003906;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2648.7255859375;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 11.219346046448;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1331.6868896484;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2648.6918945313;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.846092224121;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2053.2954;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 75.3610;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 28.6271;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2047.8316650391;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 75.347999572754;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 28.397680282593;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 14;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SFMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1336.7229003906;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2648.7255859375;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 11.219346046448;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1331.6868896484;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2648.6918945313;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.846092224121;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2053.2954;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 75.3610;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 28.6271;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2047.8316650391;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 75.347999572754;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 28.397680282593;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 14;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SFMD;
 
+    ///////////////////////////////////////////////////////////////////////
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 617.2243;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = -1.2861;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 1000.9219;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 622.1999;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = -1.3114;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 1000.9219;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 84.8417;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2874.0088;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 488.8052;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 4.7891;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2874.1960;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 493.4135;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 4.9141;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 180.7589;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 1;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = TALLER_SF;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 617.2243;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = -1.2861;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 1000.9219;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 622.1999;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = -1.3114;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 1000.9219;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 84.8417;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2874.0088;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 488.8052;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 4.7891;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2874.1960;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 493.4135;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 4.9141;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 180.7589;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 1;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = TALLER_SF;
 
 	// LS
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 2450.3898925781;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2374.7368164063;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 74.422454833984;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]      = 2445.6242675781;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]      = 2374.4838867188;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]      = 74.541236877441;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1637.7884521484;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1681.7750244141;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 13.535420417786;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]    = 1642.2092285156;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]    = -1681.6961669922;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]    = 13.529174804688;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 4;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = GOBIERNO;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 2450.3898925781;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2374.7368164063;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 74.422454833984;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 2445.6242675781;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2374.4838867188;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 74.541236877441;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1637.7884521484;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1681.7750244141;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 13.535420417786;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1642.2092285156;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1681.6961669922;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 13.529174804688;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 4;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = GOBIERNO;
 
 	// SF
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 2395.1430664063;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2450.8840332031;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 69.795692443848;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]      = 2390.4787597656;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]      = 2450.8610839844;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]      = 70.314086914063;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -1979.2249755859;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 433.14822387695;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 25.684232711792;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]    = -1979.4809570313;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]    = 426.94644165039;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]    = 24.621158599854;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 4;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = GOBIERNO;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 2395.1430664063;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2450.8840332031;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 69.795692443848;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 2390.4787597656;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2450.8610839844;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 70.314086914063;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -1979.2249755859;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 433.14822387695;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 25.684232711792;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -1979.4809570313;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 426.94644165039;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 24.621158599854;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 0;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 4;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = GOBIERNO;
 
 	/// ENTRADA YKZ
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 926.10797119141;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1889.2600097656;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 10.953544616699;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 926.12554931641;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1884.6147460938;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.953544616699;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2157.1401367188;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 654.69183349609;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 52.3671875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2161.625;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 654.63641357422;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 52.3671875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 6;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = YKZ;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 926.10797119141;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1889.2600097656;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 10.953544616699;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 926.12554931641;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1884.6147460938;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.953544616699;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2157.1401367188;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 654.69183349609;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 52.3671875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2161.625;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 654.63641357422;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 52.3671875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 6;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = YKZ;
 
 	/// SALIDA YKZ
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 938.30682373047;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1906.4091796875;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 10.953544616699;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 938.23901367188;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1910.8675537109;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.953544616699;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2176.0026855469;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 693.22210693359;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 53.890625;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2172.4536132813;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 692.95495605469;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 53.890625;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 6;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = YKZ;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 938.30682373047;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1906.4091796875;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 10.953544616699;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 938.23901367188;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1910.8675537109;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.953544616699;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2176.0026855469;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 693.22210693359;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 53.890625;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2172.4536132813;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 692.95495605469;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 53.890625;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 6;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = YKZ;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1034.2763671875;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1272.2180175781;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 20.464794158936;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1030.4272460938;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1272.2495117188;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 20.464794158936;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2093.2861328125;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 95.113067626953;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 35.3203125;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2089.1135253906;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 95.054679870605;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 35.3203125;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 7;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SICARIOS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1034.2763671875;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1272.2180175781;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 20.464794158936;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1030.4272460938;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1272.2495117188;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 20.464794158936;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2093.2861328125;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 95.113067626953;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 35.3203125;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2089.1135253906;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 95.054679870605;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 35.3203125;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 7;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SICARIOS;
 
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 2096.7895507813;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2373.5671386719;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 14.096832275391;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 2101.3508300781;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2373.4926757813;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 14.790173530579;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2647.4343261719;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 700.46228027344;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 27.924654006958;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2647.4978027344;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 694.88836669922;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 27.934589385986;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 0;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = SFMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 2096.7895507813;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2373.5671386719;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 14.096832275391;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 2101.3508300781;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2373.4926757813;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 14.790173530579;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2647.4343261719;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 700.46228027344;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 27.924654006958;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2647.4978027344;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 694.88836669922;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 27.934589385986;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 0;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 0;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = SFMD;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1933.8507;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 658.4608;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 19.2471;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1928.0100;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 658.3610;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 19.3469;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2004.3203;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -142.8797;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 35.5859;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2010.1976;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -142.9584;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 35.7109;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 12;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LICENCIEROS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1933.8507;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 658.4608;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 19.2471;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1928.0100;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 658.3610;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 19.3469;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2004.3203;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -142.8797;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 35.5859;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2010.1976;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -142.9584;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 35.7109;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 12;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LICENCIEROS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1933.5496;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 649.3836;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 19.2213;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1928.0114;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 649.5203;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 19.3580;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2005.0909;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -133.3742;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 35.5859;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2010.1976;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -133.5117;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 35.7109;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 12;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LICENCIEROS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1933.5496;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 649.3836;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 19.2213;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1928.0114;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 649.5203;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 19.3580;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2005.0909;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -133.3742;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 35.5859;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2010.1976;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -133.5117;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 35.7109;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 12;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LICENCIEROS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1946.6403;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 649.4222;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 19.2431;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1952.5027;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 649.4376;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 19.3695;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2027.8466;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -133.6878;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 35.1508;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2022.2086;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -133.5925;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 35.2803;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 12;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LICENCIEROS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1946.6403;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 649.4222;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 19.2431;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1952.5027;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 649.4376;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 19.3695;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2027.8466;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -133.6878;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 35.1508;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2022.2086;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -133.5925;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 35.2803;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 12;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LICENCIEROS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1947.4674;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 658.5381;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 19.2275;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1952.5027;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 658.7502;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 19.3469;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2027.6161;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -143.2141;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 35.1960;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2022.2041;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -143.0264;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 35.3163;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 12;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LICENCIEROS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1947.4674;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 658.5381;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 19.2275;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1952.5027;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 658.7502;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 19.3469;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2027.6161;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -143.2141;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 35.1960;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2022.2041;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -143.0264;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 35.3163;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 12;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LICENCIEROS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = -514.93041992188;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2548.6140136719;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 53.559684753418;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = -515.00164794922;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2544.1303710938;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 53.795310974121;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -1935.802734375;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 273.49237060547;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 40.811248779297;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -1936.1304931641;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 277.72778320313;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 41.046875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 16;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = NFS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = -514.93041992188;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2548.6140136719;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 53.559684753418;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = -515.00164794922;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2544.1303710938;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 53.795310974121;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -1935.802734375;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 273.49237060547;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 40.811248779297;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -1936.1304931641;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 277.72778320313;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 41.046875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 180;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 16;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = NFS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = -502.87152099609;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2548.5646972656;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 53.559684753418;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = -502.81423950195;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2544.1293945313;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 53.800487518311;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -1928.5319824219;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 273.85021972656;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 40.811248779297;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -1928.6348876953;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 277.72720336914;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 41.046875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 16;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = NFS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = -502.87152099609;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2548.5646972656;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 53.559684753418;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = -502.81423950195;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2544.1293945313;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 53.800487518311;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -1928.5319824219;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 273.85021972656;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 40.811248779297;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -1928.6348876953;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 277.72720336914;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 41.046875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 180;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 16;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = NFS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = -500.93087768555;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2572.7307128906;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 53.559684753418;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = -496.75540161133;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2572.8754882813;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 53.865310668945;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -1920.5523681641;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 303.55364990234;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 40.811248779297;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -1925.1882324219;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 303.41903686523;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 41.046875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 16;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = NFS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = -500.93087768555;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2572.7307128906;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 53.559684753418;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = -496.75540161133;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2572.8754882813;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 53.865310668945;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -1920.5523681641;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 303.55364990234;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 40.811248779297;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -1925.1882324219;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 303.41903686523;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 41.046875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 16;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = NFS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 687.81872558594;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1839.5895996094;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 5.3098797798157;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 692.43817138672;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1839.4022216797;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 5.6091208457947;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 2366.7507;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -657.4847;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 128.2232;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 2361.9941;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -657.5042;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 128.0922;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 12;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LCN;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 687.81872558594;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1839.5895996094;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 5.3098797798157;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 692.43817138672;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1839.4022216797;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 5.6091208457947;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 2366.7507;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -657.4847;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 128.2232;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 2361.9941;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -657.5042;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 128.0922;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 12;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LCN;
 
 	MAX_GARAGES_EX++; // Talelr LS Puerta 1
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1769.3964;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = -2014.1255;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 20.6677;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 87.5977;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1768.5817;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = -2017.8060;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 20.6677;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 4.2969;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1769.2628;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -2022.9585;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 14.1458;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 268.4160;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1768.6616;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -2019.9989;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 14.1372;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 182.8985;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 15;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = TALLER_LS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1769.3964;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = -2014.1255;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 20.6677;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 87.5977;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1768.5817;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = -2017.8060;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 20.6677;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 4.2969;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1769.2628;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -2022.9585;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 14.1458;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 268.4160;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1768.6616;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -2019.9989;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 14.1372;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 182.8985;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 15;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = TALLER_LS;
 
 	MAX_GARAGES_EX++; // Talelr LS Puerta 2
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1758.8389;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = -2032.1647;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 20.6677;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 91.2127;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1763.1155;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = -2032.0144;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 20.6677;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 92.6578;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1768.6405;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -2032.0582;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 13.6160;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 271.8627;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1764.7140;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -2031.9274;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 14.0901;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 275.3095;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 15;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = TALLER_LS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1758.8389;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = -2032.1647;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 20.6677;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 91.2127;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1763.1155;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = -2032.0144;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 20.6677;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 92.6578;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1768.6405;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -2032.0582;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 13.6160;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 271.8627;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1764.7140;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -2031.9274;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 14.0901;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 275.3095;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 15;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = TALLER_LS;
 
 	MAX_GARAGES_EX++; // Talelr LS Puerta 3
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1757.9944;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = -2049.0181;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 20.6755;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 91.8393;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1763.0488;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = -2048.9666;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 20.6755;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 95.1645;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1768.0338;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -2049.0374;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 13.7018;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270.9227;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1764.8514;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -2049.1133;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 14.0862;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 267.1626;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 15;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = TALLER_LS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1757.9944;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = -2049.0181;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 20.6755;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 91.8393;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1763.0488;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = -2048.9666;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 20.6755;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 95.1645;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1768.0338;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -2049.0374;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 13.7018;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270.9227;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1764.8514;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -2049.1133;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 14.0862;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 267.1626;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 15;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = TALLER_LS;
 
 	MAX_GARAGES_EX++; // Talelr LS Puerta 4
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1751.2491;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = -2048.4993;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 20.6677;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0.5135;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1751.1980;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = -2052.7969;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 20.6677;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 1.1636;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1751.6617;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -2057.7124;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 13.6694;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 186.9486;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1751.4055;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -2053.9897;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 14.1226;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 181.6218;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 15;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = TALLER_LS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1751.2491;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = -2048.4993;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 20.6677;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0.5135;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1751.1980;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = -2052.7969;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 20.6677;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 1.1636;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1751.6617;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -2057.7124;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 13.6694;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 186.9486;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1751.4055;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -2053.9897;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 14.1226;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 181.6218;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 15;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = TALLER_LS;
 
 	MAX_GARAGES_EX++; // NFS Concesionario Grotti 1
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1640.4020;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = -2490.1943;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 13.6146;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 180.6592;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1640.4576;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = -2485.8657;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 13.6146;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 182.2259;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 542.1654;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1290.0685;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 17.2422;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 3.7638;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 542.4535;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1293.7919;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 17.2422;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 356.8705;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 3;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = NFS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1640.4020;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = -2490.1943;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 13.6146;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 180.6592;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1640.4576;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = -2485.8657;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 13.6146;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 182.2259;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 542.1654;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1290.0685;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 17.2422;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 3.7638;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 542.4535;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1293.7919;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 17.2422;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 356.8705;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 3;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = NFS;
 
 	MAX_GARAGES_EX++; // NFS Concesionario Grotti 2
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1639.9980;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = -2499.0281;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 13.6146;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 358.3210;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1640.0181;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = -2502.4836;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 13.6146;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 356.1276;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 540.4600;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1317.9385;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 17.2422;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90.2445;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 540.2427;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1314.4807;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 17.2422;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 178.6053;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 3;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = NFS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1639.9980;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = -2499.0281;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 13.6146;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 358.3210;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1640.0181;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = -2502.4836;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 13.6146;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 356.1276;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 540.4600;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1317.9385;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 17.2422;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90.2445;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 540.2427;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1314.4807;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 17.2422;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 178.6053;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 3;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = NFS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1067.6529541016;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1740.3441162109;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 10.862812042236;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1067.6064453125;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1736.5032958984;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.872812271118;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 2644.8520507813;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -2035.0266113281;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 13.489999771118;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 2644.7341308594;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -2038.8057861328;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 13.550000190735;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 5;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = COLTS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1067.6529541016;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1740.3441162109;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 10.862812042236;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1067.6064453125;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1736.5032958984;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.872812271118;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 2644.8520507813;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -2035.0266113281;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 13.489999771118;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 2644.7341308594;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -2038.8057861328;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 13.550000190735;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 0;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 5;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = COLTS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 2650.5327148438;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 789.53802490234;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 11.072454452515;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 2655.0598144531;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 789.42309570313;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 11.072454452515;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2458.67578125;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -123.25654602051;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 25.6171875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2454.6081542969;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -123.04374694824;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 26.130441665649;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 6;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = AK;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 2650.5327148438;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 789.53802490234;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 11.072454452515;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 2655.0598144531;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 789.42309570313;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 11.072454452515;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2458.67578125;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -123.25654602051;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 25.6171875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2454.6081542969;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -123.04374694824;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 26.130441665649;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 6;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = AK;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1957.6334228516;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1860.0373535156;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 27.5;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1957.6224365234;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1856.0446777344;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 27.63437461853;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1251.4061279297;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1181.3676757813;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 23.440000534058;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1247.2415771484;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1181.4162597656;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 23.578125;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 8;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = CNN;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1957.6334228516;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1860.0373535156;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 27.5;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1957.6224365234;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1856.0446777344;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 27.63437461853;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1251.4061279297;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1181.3676757813;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 23.440000534058;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1247.2415771484;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1181.4162597656;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 23.578125;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 8;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = CNN;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 2813.6831054688;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2002.4719238281;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 16.83437538147;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 2817.0947265625;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2002.4854736328;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 16.83437538147;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1059.4097900391;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -342.16445922852;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 73.9921875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1059.6774902344;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -345.89593505859;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 73.9921875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 10;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = TRAFICANTES;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 2813.6831054688;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2002.4719238281;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 16.83437538147;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 2817.0947265625;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2002.4854736328;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 16.83437538147;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1059.4097900391;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -342.16445922852;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 73.9921875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1059.6774902344;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -345.89593505859;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 73.9921875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 0;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 10;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = TRAFICANTES;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 2324.89453125;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1415.8875732422;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 42.887783050537;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 2320.1916503906;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1415.8560791016;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 42.888137817383;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 751.17236328125;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1355.1157226563;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 13.5;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 751.25445556641;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1359.1877441406;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 13.5;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 11;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = CNN;
-	
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 2324.89453125;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1415.8875732422;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 42.887783050537;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 2320.1916503906;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1415.8560791016;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 42.888137817383;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 751.17236328125;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1355.1157226563;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 13.5;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 751.25445556641;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1359.1877441406;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 13.5;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 0;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 11;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = CNN;
+
 	///////////////////////////////////////////////////////////////////// NFS Parking Blueberry
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1561.1107;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1261.5313;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 10.5590;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270.9731;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1555.8536;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1261.6836;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 10.8337;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 271.7847;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -56.3266;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -224.0616;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 5.4297;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 273.2132;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -60.5768;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -224.0244;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 5.4297;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 268.8474;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 10;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = NFS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1561.1107;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1261.5313;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 10.5590;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270.9731;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1555.8536;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1261.6836;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 10.8337;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 271.7847;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -56.3266;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -224.0616;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 5.4297;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 273.2132;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -60.5768;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -224.0244;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 5.4297;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 268.8474;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 10;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = NFS;
 
 	///////////////////////////////////////////////////////////////////// HEORS Garage HQ
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 2448.59765625;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2277.84375;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 91.909378051758;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 2448.52734375;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2272.7429199219;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 91.759376525879;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 2787.6667480469;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1624.4322509766;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 10.759050369263;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 2787.5769042969;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1628.7841796875;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 10.92715549469;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 4;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = HEORS;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 2448.59765625;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2277.84375;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 91.909378051758;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 2448.52734375;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2272.7429199219;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 91.759376525879;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 2787.6667480469;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1624.4322509766;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 10.759050369263;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 2787.5769042969;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1628.7841796875;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 10.92715549469;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 0;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 4;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = HEORS;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = -27.256742477417;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2520.5998535156;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 16.343023300171;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = -27.153844833374;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2525.5729980469;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 16.518749237061;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2105.2783203125;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 901.8046875;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 76.7109375;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2105.2778320313;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 897.35693359375;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 76.7109375;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 5;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = VELTRAN;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = -27.256742477417;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2520.5998535156;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 16.343023300171;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = -27.153844833374;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2525.5729980469;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 16.518749237061;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2105.2783203125;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 901.8046875;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 76.7109375;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2105.2778320313;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 897.35693359375;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 76.7109375;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 0;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 5;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = VELTRAN;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = -49.709205627441;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2521.1147460938;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 16.343023300171;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = -53.899585723877;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2521.0920410156;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 16.518749237061;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2133.775390625;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 899.67431640625;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 80;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2129.2312011719;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 899.56573486328;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 80;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 5;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = VELTRAN;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = -49.709205627441;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2521.1147460938;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 16.343023300171;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = -53.899585723877;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2521.0920410156;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 16.518749237061;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2133.775390625;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 899.67431640625;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 80;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2129.2312011719;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 899.56573486328;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 80;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 5;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = VELTRAN;
 
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = -49.725120544434;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 2510.0656738281;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 16.343023300171;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = -53.899185180664;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 2510.0354003906;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 16.518749237061;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = -2133.763671875;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = 890.0751953125;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 80;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = -2129.2338867188;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = 890.00640869141;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 80;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 90;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 5;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = VELTRAN;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = -49.725120544434;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 2510.0656738281;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 16.343023300171;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = -53.899185180664;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 2510.0354003906;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 16.518749237061;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = -2133.763671875;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = 890.0751953125;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 80;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 90;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = -2129.2338867188;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = 890.00640869141;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 80;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 90;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 5;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = VELTRAN;
 
 	// LSMD Izquierda
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = -24.332330703735;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1520.1669921875;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 13.094888305664;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = -24.343612670898;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1515.1636962891;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 12.7953125;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1179.4501953125;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1338.9814453125;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 14.145274162292;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1173.2486572266;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1339.0900878906;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 13.990941047668;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 18;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LSMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = -24.332330703735;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1520.1669921875;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 13.094888305664;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = -24.343612670898;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1515.1636962891;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 12.7953125;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1179.4501953125;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1338.9814453125;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 14.145274162292;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1173.2486572266;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1339.0900878906;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 13.990941047668;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 18;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LSMD;
 
 	// LSMD Derecha
 	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 39.006175994873;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1520.7033691406;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 13.094888305664;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 39.112873077393;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1515.1691894531;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 12.7953125;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 1178.9580078125;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1308.328125;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 14.065633773804;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 1173.2722167969;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1308.2825927734;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 13.993656158447;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 270;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 18;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LSMD;
-   
-	MAX_GARAGES_EX++;
-	GaragesEx[MAX_GARAGES_EX][PosXOne]       = 1906.8438720703;
-	GaragesEx[MAX_GARAGES_EX][PosYOne]       = 1177.7894287109;
-	GaragesEx[MAX_GARAGES_EX][PosZOne]       = 18.724687576294;
-	GaragesEx[MAX_GARAGES_EX][PosZZOne]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXOneP]    = 1906.9635009766;
-	GaragesEx[MAX_GARAGES_EX][PosYOneP]    = 1171.5113525391;
-	GaragesEx[MAX_GARAGES_EX][PosZOneP]    = 18.354686737061;
-	GaragesEx[MAX_GARAGES_EX][PosZZOneP]    = 0;
-	GaragesEx[MAX_GARAGES_EX][PosXTwo]       = 2012.5134277344;
-	GaragesEx[MAX_GARAGES_EX][PosYTwo]       = -1413.5830078125;
-	GaragesEx[MAX_GARAGES_EX][PosZTwo]       = 17.275236129761;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwo]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PosXTwoP]      = 2012.5570068359;
-	GaragesEx[MAX_GARAGES_EX][PosYTwoP]      = -1408.4260253906;
-	GaragesEx[MAX_GARAGES_EX][PosZTwoP]      = 16.9921875;
-	GaragesEx[MAX_GARAGES_EX][PosZZTwoP]    = 180;
-	GaragesEx[MAX_GARAGES_EX][PickupIDOneP]   = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], WORLD_DEFAULT_INTERIOR);
-	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreatePickup(1239, 1, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL);
-	GaragesEx[MAX_GARAGES_EX][Interior]    = 18;
-	GaragesEx[MAX_GARAGES_EX][World]       = WORLD_DEFAULT_INTERIOR;
-	GaragesEx[MAX_GARAGES_EX][Lock]       = false;
-	GaragesEx[MAX_GARAGES_EX][Dueno]       = LSMD;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 39.006175994873;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1520.7033691406;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 13.094888305664;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 39.112873077393;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1515.1691894531;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 12.7953125;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 1178.9580078125;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1308.328125;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 14.065633773804;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 270;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 1173.2722167969;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1308.2825927734;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 13.993656158447;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 270;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 18;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LSMD;
 
+	MAX_GARAGES_EX++;
+	GaragesEx[MAX_GARAGES_EX][PosXOne] = 1906.8438720703;
+	GaragesEx[MAX_GARAGES_EX][PosYOne] = 1177.7894287109;
+	GaragesEx[MAX_GARAGES_EX][PosZOne] = 18.724687576294;
+	GaragesEx[MAX_GARAGES_EX][PosZZOne] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXOneP] = 1906.9635009766;
+	GaragesEx[MAX_GARAGES_EX][PosYOneP] = 1171.5113525391;
+	GaragesEx[MAX_GARAGES_EX][PosZOneP] = 18.354686737061;
+	GaragesEx[MAX_GARAGES_EX][PosZZOneP] = 0;
+	GaragesEx[MAX_GARAGES_EX][PosXTwo] = 2012.5134277344;
+	GaragesEx[MAX_GARAGES_EX][PosYTwo] = -1413.5830078125;
+	GaragesEx[MAX_GARAGES_EX][PosZTwo] = 17.275236129761;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwo] = 180;
+	GaragesEx[MAX_GARAGES_EX][PosXTwoP] = 2012.5570068359;
+	GaragesEx[MAX_GARAGES_EX][PosYTwoP] = -1408.4260253906;
+	GaragesEx[MAX_GARAGES_EX][PosZTwoP] = 16.9921875;
+	GaragesEx[MAX_GARAGES_EX][PosZZTwoP] = 180;
+	GaragesEx[MAX_GARAGES_EX][Interior] = 18;
+	GaragesEx[MAX_GARAGES_EX][World] = WORLD_DEFAULT_INTERIOR;
+	GaragesEx[MAX_GARAGES_EX][PickupIDOneP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXOneP], GaragesEx[MAX_GARAGES_EX][PosYOneP], GaragesEx[MAX_GARAGES_EX][PosZOneP], GaragesEx[MAX_GARAGES_EX][World], GaragesEx[MAX_GARAGES_EX][Interior]);
+	GaragesEx[MAX_GARAGES_EX][PickupIDTwoP] = CreateGarageExPickup(1239, MAX_GARAGES_EX, GaragesEx[MAX_GARAGES_EX][PosXTwoP], GaragesEx[MAX_GARAGES_EX][PosYTwoP], GaragesEx[MAX_GARAGES_EX][PosZTwoP], WORLD_NORMAL, 0);
+	GaragesEx[MAX_GARAGES_EX][Lock] = false;
+	GaragesEx[MAX_GARAGES_EX][Dueno] = LSMD;
 	// END GARAGESEX
 	/////////////////////////////////////////////////////////////////////
 }
@@ -67102,7 +67060,7 @@ public MsgKBJWReportsToAdmins(playerid, text[])
 {
 	for (new e = 0; e < MAX_PLAYERS; e++)
 	{
-	    if ( IsPlayerConnected(e) && PlayersDataOnline[e][State] == 3 &&( PlayersData[e][Admin] >= 1 || playerid == e ) )
+	    if ( IsPlayerConnected(e) && PlayersDataOnline[e][State] == 3 && ( PlayersData[e][Admin] >= 1 || playerid == e ) )
 	    {
 	        SendClientMessage(e, COLOR_KICK_JAIL_BAN, text);
 	    }
@@ -67135,94 +67093,92 @@ public ShowServerStats(playerid)
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}03- MAX_TELE {00F50A}(%i)", MAX_TELE);
+		"\r\n{E6E6E6}03- MAX_TEXT_DRAW {00F50A}(%i)", MAX_TEXT_DRAW);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}04- MAX_CAMERAS {00F50A}(%i)", MAX_CAMERAS);
+		"\r\n{E6E6E6}04- MAX_DYNAMIC_PICKUP {00F50A}(%i)", MAX_DYNAMIC_PICKUP);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}05- MAX_PEAJE {00F50A}(%i)", MAX_PEAJE);
+		"\r\n{E6E6E6}05- MAX_OBJECT_FIJOS {00F50A}(%i)", MAX_OBJECT_FIJOS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}06- MAX_BIZZ_TYPE {00F50A}(%i)", MAX_BIZZ_TYPE);
+		"\r\n{E6E6E6}06- MAX_TELE {00F50A}(%i)", MAX_TELE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}07- MAX_HOUSE_TYPE {00F50A}(%i)", MAX_HOUSE_TYPE);
+		"\r\n{E6E6E6}07- MAX_CAMERAS {00F50A}(%i)", MAX_CAMERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}08- MAX_GARAGE_TYPE {00F50A}(%i)", MAX_GARAGE_TYPE);
+		"\r\n{E6E6E6}08- MAX_PEAJE {00F50A}(%i)", MAX_PEAJE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}09- MAX_BIZZ {00F50A}(%i)", MAX_BIZZ);
+		"\r\n{E6E6E6}09- MAX_BIZZ_TYPE {00F50A}(%i)", MAX_BIZZ_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}10- MAX_HOUSE {00F50A}(%i)", MAX_HOUSE);
+		"\r\n{E6E6E6}10- MAX_HOUSE_TYPE {00F50A}(%i)", MAX_HOUSE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}11- MAX_GARAGES {00F50A}(%i)", MAX_GARAGES);
+		"\r\n{E6E6E6}11- MAX_GARAGE_TYPE {00F50A}(%i)", MAX_GARAGE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}12- MAX_CAJEROS {00F50A}(%i)", MAX_CAJEROS);
+		"\r\n{E6E6E6}12- MAX_BIZZ {00F50A}(%i)", MAX_BIZZ);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}13- MAX_DOORS {00F50A}(%i)", MAX_DOORS);
+		"\r\n{E6E6E6}13- MAX_HOUSE {00F50A}(%i)", MAX_HOUSE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}14- MAX_CAR {00F50A}(%i)", MAX_CAR);
+		"\r\n{E6E6E6}14- MAX_GARAGES {00F50A}(%i)", MAX_GARAGES);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}15- MAX_CAR_DUENO {00F50A}(%i)", MAX_CAR_DUENO);
+		"\r\n{E6E6E6}15- MAX_CAJEROS {00F50A}(%i)", MAX_CAJEROS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}16- MAX_CAR_FACCION {00F50A}(%i)", MAX_CAR_FACCION - MAX_CAR_DUENO);
+		"\r\n{E6E6E6}16- MAX_DOORS {00F50A}(%i)", MAX_DOORS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}17- MAX_CAR_PUBLIC {00F50A}(%i)", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
+		"\r\n{E6E6E6}17- MAX_CAR {00F50A}(%i)", MAX_CAR);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}18- MAX_GARAGES_EX {00F50A}(%i)", MAX_GARAGES_EX);
+		"\r\n{E6E6E6}18- MAX_CAR_DUENO {00F50A}(%i)", MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}19- MAX_GASOLINERAS {00F50A}(%i)", MAX_GASOLINERAS);
+		"\r\n{E6E6E6}19- MAX_CAR_FACCION {00F50A}(%i)", MAX_CAR_FACCION - MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}20- MAX_PICKUP {00F50A}(%i)", MAX_PICKUP);
+		"\r\n{E6E6E6}20- MAX_CAR_PUBLIC {00F50A}(%i)", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}21- MAX_TEXT_DRAW {00F50A}(%i)", MAX_TEXT_DRAW);
+		"\r\n{E6E6E6}21- MAX_GARAGES_EX {00F50A}(%i)", MAX_GARAGES_EX);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}22- MAX_OBJECT_FIJOS {00F50A}(%i)", MAX_OBJECT_FIJOS);
+		"\r\n{E6E6E6}22- MAX_GASOLINERAS {00F50A}(%i)", MAX_GASOLINERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 		
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}21- MAX_LOCAL {00F50A}(%i)", MAX_LOCAL);
+		"\r\n{E6E6E6}23- MAX_LOCAL {00F50A}(%i)", MAX_LOCAL);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}22- MAX_LOCAL_ID {00F50A}(%i)", MAX_LOCAL_ID+1);
+		"\r\n{E6E6E6}24- MAX_LOCAL_ID {00F50A}(%i)", MAX_LOCAL_ID+1);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
-		
-		
 
 		ShowPlayerDialogEx(playerid,999,DIALOG_STYLE_LIST,"{00A5FF}Estadísticas del servidor - "WEBPAGE" || RolePlay", ListDialog, "Ok", "");
 	}
@@ -67237,91 +67193,91 @@ public ShowServerStats(playerid)
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n03- MAX_TELE\t\t\t%i", MAX_TELE);
+		"\r\n03- MAX_TEXT_DRAW\t\t%i", MAX_TEXT_DRAW);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n04- MAX_CAMERAS\t\t\t%i", MAX_CAMERAS);
+		"\r\n04- MAX_DYNAMIC_PICKUP\t\t%i", MAX_DYNAMIC_PICKUP);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n05- MAX_PEAJE\t\t\t%i", MAX_PEAJE);
+		"\r\n05- MAX_OBJECT_FIJOS\t\t%i", MAX_OBJECT_FIJOS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n06- MAX_BIZZ_TYPE\t\t%i", MAX_BIZZ_TYPE);
+		"\r\n06- MAX_TELE\t\t\t%i", MAX_TELE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n07- MAX_HOUSE_TYPE\t\t%i", MAX_HOUSE_TYPE);
+		"\r\n07- MAX_CAMERAS\t\t\t%i", MAX_CAMERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n08- MAX_GARAGE_TYPE\t\t%i", MAX_GARAGE_TYPE);
+		"\r\n08- MAX_PEAJE\t\t\t%i", MAX_PEAJE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n09- MAX_BIZZ\t\t\t%i", MAX_BIZZ);
+		"\r\n09- MAX_BIZZ_TYPE\t\t%i", MAX_BIZZ_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n10- MAX_HOUSE\t\t\t%i", MAX_HOUSE);
+		"\r\n10- MAX_HOUSE_TYPE\t\t%i", MAX_HOUSE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n11- MAX_GARAGES\t\t\t%i", MAX_GARAGES);
+		"\r\n11- MAX_GARAGE_TYPE\t\t%i", MAX_GARAGE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n12- MAX_CAJEROS\t\t\t%i", MAX_CAJEROS);
+		"\r\n12- MAX_BIZZ\t\t\t%i", MAX_BIZZ);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n13- MAX_DOORS\t\t\t%i", MAX_DOORS);
+		"\r\n13- MAX_HOUSE\t\t\t%i", MAX_HOUSE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n14- MAX_CAR\t\t\t%i", MAX_CAR);
+		"\r\n14- MAX_GARAGES\t\t\t%i", MAX_GARAGES);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n15- MAX_CAR_DUENO\t\t%i", MAX_CAR_DUENO);
+		"\r\n15- MAX_CAJEROS\t\t\t%i", MAX_CAJEROS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n16- MAX_CAR_FACCION\t\t%i", MAX_CAR_FACCION - MAX_CAR_DUENO);
+		"\r\n16- MAX_DOORS\t\t\t%i", MAX_DOORS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n17- MAX_CAR_PUBLIC\t\t%i", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
+		"\r\n17- MAX_CAR\t\t\t%i", MAX_CAR);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n18- MAX_GARAGES_EX\t\t%i", MAX_GARAGES_EX);
+		"\r\n18- MAX_CAR_DUENO\t\t%i", MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n19- MAX_GASOLINERAS\t\t%i", MAX_GASOLINERAS);
+		"\r\n19- MAX_CAR_FACCION\t\t%i", MAX_CAR_FACCION - MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n20- MAX_PICKUP\t\t\t%i", MAX_PICKUP);
+		"\r\n20- MAX_CAR_PUBLIC\t\t%i", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n21- MAX_TEXT_DRAW\t\t%i", MAX_TEXT_DRAW);
+		"\r\n21- MAX_GARAGES_EX\t\t%i", MAX_GARAGES_EX);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n22- MAX_OBJECT_FIJOS\t\t%i", MAX_OBJECT_FIJOS);
+		"\r\n22- MAX_GASOLINERAS\t\t%i", MAX_GASOLINERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n22- MAX_LOCAL\t\t%i", MAX_LOCAL);
+		"\r\n23- MAX_LOCAL\t\t\t%i", MAX_LOCAL);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
         format(TempConvert, sizeof(TempConvert),
-		"\r\n22- MAX_LOCAL_ID\t\t%i", MAX_LOCAL_ID);
+		"\r\n24- MAX_LOCAL_ID\t\t%i", MAX_LOCAL_ID);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 
@@ -67498,8 +67454,7 @@ public TogglePlayerControllableEx(playerid, toogle)
 {
 	if ( toogle )
 	{
-		if ( !PlayersDataOnline[playerid][IsAtado] &&
-		!PlayersDataOnline[playerid][IsEsposas] )
+		if ( !PlayersDataOnline[playerid][IsAtado] && !PlayersDataOnline[playerid][IsEsposas] )
 		{
 			TogglePlayerControllable(playerid, toogle);
 		}
@@ -68628,15 +68583,6 @@ public LoadLastOptionsServer()
 	TextDrawLetterSize(ModeDMTextDraw[1], 0.2 , 0.9);
 	TextDrawFont(ModeDMTextDraw[1], 2);
 
-	// TextDraw Garages
-	GarageTextDraw = TextDrawCreateEx(200.0, 380.0, "~B~Lugar: ~W~Garage");
-	TextDrawUseBox(GarageTextDraw, 1);
-	TextDrawBackgroundColor(GarageTextDraw ,0x000000FF);
-	TextDrawBoxColor(GarageTextDraw, 0x00000066);
-	TextDrawTextSize(GarageTextDraw, 350.0, 380.0);
-	TextDrawSetShadow(GarageTextDraw, 1);
-	TextDrawLetterSize(GarageTextDraw, 0.5 , 1.2);
-
 	format(DataCars[0][MatriculaString], 32, "Ninguno");
 
 	// WideScreen Tutorial
@@ -68749,7 +68695,7 @@ public RecoveryEmailPlayer(playerid, response_code, data[])
 		{
 		    new MsgEmailSend[400];
 		    format(MsgEmailSend, sizeof(MsgEmailSend), "{F0F0F0}El proceso se ha realizado con éxito!\n\nSe ha enviado un E-mail con su contraseña actual a la siguiente dirección:\n{F5FF00}%s\n\n{F0F0F0}Revise la bandeja de Spam si no encuentra el E-mail.", PlayersData[playerid][Email]);
-		    strcat(MsgEmailSend, "\n\n{F0F0F0}Cualquier duda no olvide dirígirse al centro de soporte en:\n{F5FF00}"WEBPAGE"/Soporte\n\n\n\n{00A5FF}Saludos Cordiales\n{00A5FF}Equipo de Un Player.", sizeof(MsgEmailSend));
+		    strcat(MsgEmailSend, "\n\n{F0F0F0}Cualquier duda no olvide dirígirse al centro de soporte en:\n{F5FF00}"WEBPAGE"/Soporte\n\n\n\n{00A5FF}Saludos Cordiales\n{00A5FF}Equipo de Old Players.", sizeof(MsgEmailSend));
 	        ShowPlayerDialogEx(playerid, 999, DIALOG_STYLE_MSGBOX, "{00A5FF}Información - Recuperación de contraseña", MsgEmailSend, "Ok", "");
 
 	        PlayersData[playerid][EmailTime] = gettime() + 7200;
@@ -68859,7 +68805,8 @@ public IsValidStringServerOther(playerid, string[])
 	 {
 	    if ( string[i] == '³' ||
 	     	 string[i] == '\n' ||
-			 string[i] == '\r' )
+			 string[i] == '\r' ||
+			 string[i] == ''')
 		{
 			SendInfoMessage(playerid, 0, "1380", "Ha introducido un carácter inválido.");
 		    return false;
@@ -73495,3 +73442,185 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 	}
     return 1;
 }
+
+stock ConvertToRGBColor(string[])
+{
+    new LenGet = strlen(string);
+    new stringtemp[100];
+    format(stringtemp,100,"%s",string);
+	new go = true, i = 0;
+	do
+	{
+	    if ( stringtemp[i] == '~' && stringtemp[i+2] == '~')
+	    {
+			if ( stringtemp[i+1] == 'r' || stringtemp[i+1] == 'R' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "{"COLOR_ROJO"}", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			if ( stringtemp[i+1] == 'g' || stringtemp[i+1] == 'G' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "{"COLOR_VERDE"}", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			if ( stringtemp[i+1] == 'b' || stringtemp[i+1] == 'B' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "{"COLOR_AZUL"}", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			if ( stringtemp[i+1] == 'y' || stringtemp[i+1] == 'Y' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "{"COLOR_AMARILLO"}", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			if ( stringtemp[i+1] == 'w' || stringtemp[i+1] == 'W' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "{"COLOR_CREMA"}", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			if ( stringtemp[i+1] == 'p' || stringtemp[i+1] == 'P' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "{CC97F2}", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			if ( stringtemp[i+1] == 'l' || stringtemp[i+1] == 'L' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "{303030}", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			if ( stringtemp[i+1] == 'n' || stringtemp[i+1] == 'N' )
+			{
+			    strdel(string, i, i+3);
+			    strdel(stringtemp, i, i+3);
+			    strins(stringtemp, "\n", i, sizeof(stringtemp));
+			    i = 0;
+			}
+			LenGet = strlen(stringtemp);
+	    }
+	    i++;
+	    if (i == LenGet) go = false;
+	}
+	while(go);
+	return stringtemp;
+}
+
+public CreatePickupEx(modelid, type, Float:x, Float:y, Float:z, worldid, interiorid)
+{
+	MAX_DYNAMIC_PICKUP++;
+	return CreateDynamicPickup(modelid, type, x, y, z, worldid, interiorid);
+}
+
+public DestroyPickupEx(pickupid)
+{
+    DestroyDynamicPickup(pickupid);
+	MAX_DYNAMIC_PICKUP--;
+}
+
+public CreateFaccionDynamicPickup(modelid, faccionid, Float:x, Float:y, Float:z, worldid, interiorid, playerid, Float:streamdistance)
+{
+    new pickupid = CreateDynamicPickup(modelid, 1, x, y, z, worldid, interiorid, playerid, streamdistance);
+	PickupIndex[pickupid][Tipo] = PICKUP_TYPE_FACCION;
+	PickupIndex[pickupid][Tipoid] = faccionid;
+	MAX_DYNAMIC_PICKUP++;
+    return pickupid;
+}
+
+public CreateTeleDynamicPickup(modelid, teleid, Float:x, Float:y, Float:z, worldid, interiorid)
+{
+    new pickupid = CreateDynamicPickup(modelid, 1, x, y, z, worldid, interiorid);
+	PickupIndex[pickupid][Tipo] = PICKUP_TYPE_TELE;
+	PickupIndex[pickupid][Tipoid] = teleid;
+	MAX_DYNAMIC_PICKUP++;
+    return pickupid;
+}
+
+public CreateNegocioDynamicPickup(modelid, negociotipo, Float:x, Float:y, Float:z, worldid)
+{
+    new pickupid = CreateDynamicPickup(19607, 1, x, y ,z - 1, worldid, NegociosType[negociotipo][InteriorId]);
+    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NEGOCIO_TYPE;
+	PickupIndex[pickupid][Tipoid] = negociotipo;
+	MAX_DYNAMIC_PICKUP++;
+	return pickupid;
+}
+
+public CreateCasaTipoDynamicPickup(modelid, casatipo, Float:x, Float:y, Float:z, worldid)
+{
+	new pickupid = CreateDynamicPickup(19606, 1, x, y, z - 1, worldid, TypeHouse[casatipo][Interior]);
+    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_CASA_TYPE;
+	PickupIndex[pickupid][Tipoid] = casatipo;
+	MAX_DYNAMIC_PICKUP++;
+	return pickupid;
+}
+
+public CreateGarageTipoDynamicPickup(modelid, garagetipo, Float:x, Float:y, Float:z, worldid)
+{
+	new pickupid = CreateDynamicPickup(modelid, 1, x, y, z, worldid, TypeGarage[garagetipo][Interior]);
+    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_CASA_TYPE;
+	PickupIndex[pickupid][Tipoid] = garagetipo;
+	MAX_DYNAMIC_PICKUP++;
+	return pickupid;
+}
+
+public CreateInfoPickup(modelid, pickupinfoid, Float:x, Float:y, Float:z, worldid, interiorid)
+{
+    new pickupid = CreatePickupEx(modelid, 1, x, y, z, worldid, interiorid);
+    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_INFO;
+    PickupIndex[pickupid][Tipoid] = pickupinfoid;
+	return pickupid;
+}
+
+public CreateGarageExPickup(modelid, garageid, Float:x, Float:y, Float:z, worldid, interiorid)
+{
+    CreateDynamic3DTextLabel("Lugar: {"COLOR_CREMA"}Garage", 0x00A5FFFF, x, y, z, 10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, worldid, interiorid);
+    /////////////////////////
+	new pickupid = CreatePickupEx(modelid, 1, x, y, z, worldid, interiorid);
+    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_EX;
+    PickupIndex[pickupid][Tipoid] = garageid;
+	return pickupid;
+}
+
+stock ClearPlayerPickups(playerid)
+{
+    PlayersDataOnline[playerid][InPickup] = 0;
+	PlayersDataOnline[playerid][InPickupFaccion] = 0;
+	PlayersDataOnline[playerid][InPickupTele] = -1;
+	PlayersDataOnline[playerid][InPickupNegocio] = 0;
+	PlayersDataOnline[playerid][InPickupCasa] = 0;
+	PlayersDataOnline[playerid][InPickupLocal] = -1;
+}
+
+public IsPlayerInPickup(playerid)
+{
+    if (IsPlayerInRangeOfPoint(playerid, 2.0, PlayersDataOnline[playerid][MyPickupX_Now], PlayersDataOnline[playerid][MyPickupY_Now], PlayersDataOnline[playerid][MyPickupZ_Now]))
+    {
+        return 1;
+    }
+    else
+    {
+		ClearPlayerPickups(playerid);
+		return 0;
+	}
+}
+
+
+
+
+
+
+
+
+

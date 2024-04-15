@@ -5,17 +5,18 @@
 
 forward GetNextLocalID();
 forward IsLocalForSale(localID);
-forward IsMyLocal(playerid, localID);
 forward SaveLocal(localID, update);
 forward LoadLocales();
 forward IsPlayerInLocalKeys(playerid, localID);
 forward AddPlayerInLocalKeys(playerid, localID);
+forward GetPlayerCloseLocal(playerid);
 forward RemoveLocalKey(localID, keyid);
 forward ShowLocalKeys(playerid, localid);
 forward PlayerHaveLocalKeys(playerid, localid);
 forward AddArticleLRefrigerador(playerid, localid, bolsaid);
 forward RemoveArticleLRefrigerador(playerid, localid, refrigeradorid);
 forward ClearLocalData(localid);
+//forward StopMusicOnLocal(localid);
 
 enum LocalDataEnum
 {
@@ -49,7 +50,8 @@ enum LocalDataEnum
 	RefrigeradorData[60],
 	LGavetaSeguro,
     LGavetaObjects[MAX_GUANTERA_GAVETA_SLOTS],
-    LGavetaData[60]
+    LGavetaData[60],
+    StationID
 };
 
 enum LocalTipoData
@@ -150,7 +152,7 @@ public SaveLocal(localID, update)
     strcat(query, "`Tipo`='%i',`Seguro`='%i',`PrecioEntrada`='%i',`LlavesAmigos`='%e',");
     strcat(query, "`ArmarioSeguro`='%i',`ArmarioArmas`='%s',`ArmarioChaleco`='%f',`ArmarioDrogas`='%i',");
     strcat(query, "`ArmarioGanzuas`='%i',`ArmarioMateriales`='%i',`ArmarioBombas`='%i',`RefriSeguro`='%i',");
-    strcat(query, "`Refrigerador`='%s',`GavetaSeguro`='%i',`GavetaObjetos`='%s',`Deposito`='%i'");
+    strcat(query, "`Refrigerador`='%s',`GavetaSeguro`='%i',`GavetaObjetos`='%s',`Deposito`='%i',`StationID`='%i'");
     strcat(query, " WHERE ID=%i;");
     mysql_format(dataBase, query, sizeof(query), query,
 		LocalData[localID][PosX],LocalData[localID][PosY], LocalData[localID][PosZ], LocalData[localID][PosZZ],
@@ -158,7 +160,7 @@ public SaveLocal(localID, update)
 		LocalData[localID][Tipo], LocalData[localID][Seguro], LocalData[localID][PrecioEntrada], LocalData[localID][LlavesAmigos],
 		LocalData[localID][LArmarioSeguro], LocalData[localID][LArmarioArmas], LocalData[localID][LArmarioChaleco], LocalData[localID][LArmarioDrogas],
 		LocalData[localID][LArmarioGanzuas], LocalData[localID][LArmarioMateriales], LocalData[localID][LArmarioBombas], LocalData[localID][LRefrigeradorSeguro],
-		LocalData[localID][RefrigeradorData], LocalData[localID][LGavetaSeguro], LocalData[localID][LGavetaData], LocalData[localID][Deposito],
+		LocalData[localID][RefrigeradorData], LocalData[localID][LGavetaSeguro], LocalData[localID][LGavetaData], LocalData[localID][Deposito], LocalData[localID][StationID],
 		localID);
 	mysql_query(dataBase, query, false);
 
@@ -286,6 +288,7 @@ public LoadLocales()
 			cache_get_value_name_int(0, "GavetaSeguro", LocalData[i][LGavetaSeguro]);
 			cache_get_value_name(0, "GavetaObjetos", LocalData[i][LGavetaData], 60);
 			cache_get_value_name_int(0, "Deposito", LocalData[i][Deposito]);
+			cache_get_value_name_int(0, "StationID", LocalData[i][StationID]);
 			//LlavesAmigos - LlavesAmigos
 			for(new keyid=0; keyid != MAX_LOCAL_KEYS; keyid++)
 			{
@@ -396,6 +399,15 @@ public AddPlayerInLocalKeys(playerid, localID)
 		}
 	}
 	return FreeLocalKey;
+}
+
+public GetPlayerCloseLocal(playerid)
+{
+	if (PlayersDataOnline[playerid][InPickup] && PlayersDataOnline[playerid][InPickupLocal] != -1)
+	{
+	    return PlayersDataOnline[playerid][InPickupLocal];
+	}
+	else return -1;
 }
 
 public RemoveLocalKey(localID, keyid)
@@ -555,11 +567,32 @@ public ClearLocalData(localid)
 	LocalData[localid][LGavetaSeguro] = true;
 	for(new g=0; g!=MAX_GUANTERA_GAVETA_SLOTS; g++)
 	LocalData[localid][LGavetaObjects][g] = 0;
+	LocalData[localid][StationID] = -1;
+}
+/*
+public StopMusicOnLocal(localid)
+{
+	for ( new i=0, j=GetPlayerPoolSize(); i <= j; i++)
+	{
+		if ( IsPlayerConnected(i) && PlayersData[i][InLocal] == localid )
+		{
+			StopAudioPlayer(i, true);
+		}
+	}
 }
 
-
-
-
+public ChangeMusicOnLocal(localid)
+{
+	for ( new i=0, j=GetPlayerPoolSize(); i <= j; i++)
+	{
+		if ( IsPlayerConnected(i) && PlayersData[i][InLocal] == localid )
+		{
+			StopAudioPlayer(i, 1);
+			PlayAudioPlayerHouse(i);
+		}
+	}
+}
+*/
 
 
 

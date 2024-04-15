@@ -254,27 +254,27 @@ forward SaveDataFaccion(faccionid);
 forward GetSpawnInfo(playerid);
 forward GetPlayerStats(playerid, playeridshow);
 forward SetSpawnInfoEx(playerid);
-forward SendInfoMessage(playerid, type, optional[], message[]);
-forward SendSyntaxError(playerid, command[], example[]);
-forward SendAccessError(playerid, command[]);
-forward SendAdviseMessage(playerid, advise[]);
-forward Acciones(playerid, type, text[]);
-forward SendChatStream(playerid, text[]);
-forward SendChatStreamNormal(playerid, text[], type[]);
-forward SendChatStreamIdioma(playerid, text[], idiomaid);
-forward SendChatStreamAnonymous(text[], WorldStream, Float:X, Float:Y, Float:Z);
-forward SendChatStreamAnonymousPlayerid(playerid, text[], WorldStream, Float:X, Float:Y, Float:Z);
-forward SendChatStreamGritar(playerid, text[]);
-forward IsPlayerNearEx(myplayerid, playerid, iderror1[], iderror2[], iderror3[], stringerror1[], stringerror2[], stringerror3[]);
+forward SendInfoMessage(playerid, type, const optional[], const message[]);
+forward SendSyntaxError(playerid, const command[], const example[]);
+forward SendAccessError(playerid, const command[]);
+forward SendAdviseMessage(playerid, const advise[]);
+forward Acciones(playerid, type, const text[]);
+forward SendChatStream(playerid, const text[]);
+forward SendChatStreamNormal(playerid, const text[], const type[]);
+forward SendChatStreamIdioma(playerid, const text[], idiomaid);
+forward SendChatStreamAnonymous(const text[], WorldStream, Float:X, Float:Y, Float:Z);
+forward SendChatStreamAnonymousPlayerid(playerid, const text[], WorldStream, Float:X, Float:Y, Float:Z);
+forward SendChatStreamGritar(playerid, const text[]);
+forward IsPlayerNearEx(myplayerid, playerid, const iderror1[], const iderror2[], const iderror3[], const stringerror1[], const stringerror2[], const stringerror3[]);
 forward IsPlayerLogued(playerid);
 forward IsPlayerLoguedEx(playerid, playeridCheck);
 forward IsPlayerNear(myplayerid, playerid);
 forward GetMaxFaccionRango(faccionid);
 forward GetMaxFaccionRangoSkin(faccionid, rangoid);
-forward SendMessageFamily(playerid, text[]);
-forward SendMessageDM(playerid, text[]);
-forward SendMessageRadio(playerid, frecuencia, text[]);
-forward Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, String[]);
+forward SendMessageFamily(playerid, const text[]);
+forward SendMessageDM(playerid, const text[]);
+forward SendMessageRadio(playerid, frecuencia, const text[]);
+forward Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, const String[]);
 forward MostrarHora(Accion ,playerid);
 forward SetPlayerJail(playerid);
 forward SetTimerGlobal();
@@ -283,8 +283,8 @@ forward SetPlayerSelectedSkin(playerid);
 forward SetPlayerRowSkin(playerid, response);
 forward IsPlayerInNearVehicle(playerid);
 forward IsPlayerInNearVehicleEx(playerid);
-forward LoadDataVehicle(vehicleid, dir[], type);
-forward SaveDataVehicle(vehicleid, dir[]);
+forward LoadDataVehicle(vehicleid, const dir[], type);
+forward SaveDataVehicle(vehicleid, const dir[]);
 forward AparcarVehicle(playerid, vehicleid);
 forward LockVehicle(playerid);
 forward LockMaletero(playerid);
@@ -302,7 +302,7 @@ forward IsMaleteroOpen(playerid);
 forward RemovePlayerWeapond(playerid, weaponsid);
 forward LoadStaticObjects();
 forward LoadTelesPublics();
-forward SetText3DTele(teleid, text[]);
+forward SetText3DTele(teleid, const text[]);
 forward LoadDataBizzType();
 forward SetFunctionsForBizz(playerid, bizzid);
 forward LoadCajeros();
@@ -316,9 +316,9 @@ forward SetMoneyExtorsion(bizzid, money);
 forward PlayStreamSound(Float:x, Float:y, Float:z, Float:Ratio, soundid);
 forward PlayPlayerStreamSound(playerid, soundid);
 forward LoadAllAnims();
-forward ApplyPlayerAnimCustom(playerid, animlib[], animid[], loop);
+forward ApplyPlayerAnimCustom(playerid, const animlib[], const animid[], loop);
 forward LoadTypeObjectsBolsillos();
-forward IsNotFullBolsillo(playeridError, playerid, error[]);
+forward IsNotFullBolsillo(playeridError, playerid, const error[]);
 forward IsObjectInBolsillo(playerid, objectid);
 forward RemoveObjectBolsillo(playerid, objectid);
 forward AddObjectBolsillo(playerid, objectid);
@@ -335,7 +335,7 @@ forward ShowIdiomasToPlayer(playerid, playeridshow);
 forward ShowTextDrawFijosVelocimentros(playerid);
 forward HideTextDrawFijosVelocimentros(playerid);
 forward CreateTextDrawFijosVelocimetros();
-forward IntentarAccion(playerid, text[], rndNum);
+forward IntentarAccion(playerid, const text[], rndNum);
 forward UpdateTextDrawVehicle(playerid, vehicleid);
 forward LoadGasolineras();
 forward SaveGasolineras();
@@ -348,7 +348,7 @@ forward RemoveDuenoOfHouse(houseid);
 forward RemoveDuenoOfBizz(bizzid);
 forward VerificarCochesVencidos();
 forward LoadTypeJails();
-forward GetPosSpace(text[], option);
+forward GetPosSpace(const text[], option);
 forward LoadTypeHouse();
 forward LoadGarageType();
 forward LoadGarages();
@@ -358,7 +358,7 @@ forward SaveHouse(houseid, bool:update);
 forward UpdateTextLabelCasa(houseid);
 forward CheckIsPlayerRentAndRemove(playerid, houseid);
 forward IsMyHouse(playerid, houseid);
-forward UnBanUser(playerid_admin, playeridname[], option);
+forward UnBanUser(playerid_admin, const playeridname[], option);
 forward IsTunnigContinue(playerid);
 forward IsPlayerInTaller(playerid);
 forward IsPlayerInTallerEx(playerid);
@@ -367,8 +367,8 @@ forward IsPlayerInAlmacen(playerid, option);
 forward IsPlayerNearAlmacen(playerid);
 forward UpdateFaccionTextLabel(faccionid, update);
 forward LoadPickupsAlmacenes(faccionid);
-forward SendAlertCallRequest(faccionid, text[]);
-forward SendAlertCallRequestSAMD(type, text[], faccionid);
+forward SendAlertCallRequest(faccionid, const text[]);
+forward SendAlertCallRequestSAMD(type, const text[], faccionid);
 forward LoadDoors();
 forward GetMyNearDoor(playerid, key, option);
 forward LoadPointsExtraction();
@@ -378,7 +378,7 @@ forward RemoveVCP(objectid);
 forward IsNearVCP(playerid);
 forward SetPlayerTutorial(playerid, tutorialid);
 forward LoadTexDrawsTutorial();
-forward SetTextDrawTutorial(textdrawid, text[]);
+forward SetTextDrawTutorial(textdrawid, const text[]);
 forward EncenderVehicle(playerid);
 forward ApagarVehicle(playerid);
 forward LoadPeajes();
@@ -405,7 +405,7 @@ forward ShowAgregarBloqueado(playerid);
 forward ShowEliminarBloqueado(playerid);
 forward AddContactToBlock(playerid, agendaid);
 forward RemoveContactToBlock(playerid, agendaid);
-forward AddNumberToAgenda(playerid, name[], number);
+forward AddNumberToAgenda(playerid, const name[], number);
 forward RemoveNumberToAgenda(playerid, agendaid);
 forward IsNotPhoneInBlackList(playerid, number);
 forward SetPlayerCall(playerid, numberphone);
@@ -417,11 +417,11 @@ forward RemoveRallaName(playerid);
 forward SendMessageToCallCNN(playerid);
 forward UpdateSpawnPlayer(playerid);
 forward IsVehicleNotBici(playerid, vehicleid);
-forward IsValidName(name[]);
-forward LoadDataPlayerEx(playername[]);
-forward SetPlayerFaccion(playerid, cmdfaccion[]);
-forward SetPlayerFaccionEx(playerid, command[]);
-forward IsPlayerConnectedEx(playername[]);
+forward IsValidName(const name[]);
+forward LoadDataPlayerEx(const playername[]);
+forward SetPlayerFaccion(playerid, const cmdfaccion[]);
+forward SetPlayerFaccionEx(playerid, const command[]);
+forward IsPlayerConnectedEx(const playername[]);
 forward LoadJobs();
 forward LoadInfoPickups();
 forward IsCheatMoney(playerid, lastmoney);
@@ -478,8 +478,8 @@ forward RemoveAllTagsMapping(playerid);
 forward RemoveObjectMapping(playerid, objectid);
 forward ShowDescriptionObjectMapping(playerid, objectid);
 forward UpdateText3DMapping(objectid);
-forward OpenProject(playerid, name[]);
-forward SaveProject(playerid, name[], pass);
+forward OpenProject(playerid, const name[]);
+forward SaveProject(playerid, const name[], pass);
 forward ShowStatsMapping(playerid);
 forward SetPlayerHealthEx(playerid, Float:Health);
 forward SetPlayerArmourEx(playerid, Float:Armour);
@@ -495,7 +495,7 @@ forward IntermitenteDerecho(playerid);
 forward IntermitenteEstacionamiento(playerid);
 forward IntermitenteEncendido(playerid);
 forward RemoveCall(callid, departament);
-forward AddCall(number, name[], reason[], departament);
+forward AddCall(number, const name[], const reason[], departament);
 forward IsFoundCall(number, departament);
 forward IsFoundCallSAMD(number, type, samdid);
 forward ShowCallPolice(playerid);
@@ -515,14 +515,14 @@ forward IsOpenCloset(playerid, houseid);
 forward IsOpenRefrigerador(playerid, houseid);
 forward LoadPlayerSMS(playerid);
 forward SavePlayerSMS(playerid);
-forward AddSMS(playerid, number, text[]);
+forward AddSMS(playerid, number, const text[]);
 forward RemoveSMS(playerid, smsid);
 forward ShowSMSToPlayer(playerid);
 forward ShowSMSOptionsToPlayer(playerid, smsid);
 forward ShowReadSMS(playerid, smsid);
 forward ShowReplySMS(playerid, smsid);
 forward ShowRemoveSMS(playerid, smsid);
-forward SendSMS(playerid, number, text[]);
+forward SendSMS(playerid, number, const text[]);
 forward CleanSMS(playerid);
 forward SendMessageDeathMatch(playerid);
 forward SendMessageToPlayerDeathMatch(playerid, killerid, weaponid);
@@ -618,11 +618,11 @@ forward ShowIncendios(playerid);
 forward HideTextDrawsTelesAndInfo(playerid);
 forward CheckFire(playerid);
 forward RandomFire();
-forward MsgCheatsReportsToAdmins(text[]);
-forward MsgCheatsReportsToAdminsEx(text[], level);
-forward MsgAdminUseCommands(level, playerid, commands[]);
-forward MsgKBJWReportsToAdmins(playerid, text[]);
-forward MsgHelperChat(text[]);
+forward MsgCheatsReportsToAdmins(const text[]);
+forward MsgCheatsReportsToAdminsEx(const text[], level);
+forward MsgAdminUseCommands(level, playerid, const commands[]);
+forward MsgKBJWReportsToAdmins(playerid, const text[]);
+forward MsgHelperChat(const text[]);
 forward ShowConnectedSAMD(playerid);
 forward ShowConnectedRequest(playerid);
 forward RemoveCallSAMD(callid, samdid);
@@ -633,7 +633,7 @@ forward IsPlayerNearGarageEx(vehicleid, playerid);
 forward UpdateLockDoorForPlayer(pickupid, lock, pickup2);
 forward ShowDialogBarra(playerid, listview);
 forward IsBizzBarra(playerid);
-forward ConvertMap(map[], option);
+forward ConvertMap(const map[], option);
 forward GetTrainByVehicleID(vehicleid);
 forward GetVagonByVehicleID(vehicleid);
 forward IsPlayerInTrain(playerid);
@@ -660,7 +660,7 @@ forward IsWorldOfGarage(world);
 forward RemoveAllHouseFriend(houseid);
 forward GivePlayerMoneyEx(playerid, money);
 forward ShowServerStats(playerid);
-forward Text:TextDrawCreateEx(Float:Xt, Float:Yt, text[]);
+forward Text:TextDrawCreateEx(Float:Xt, Float:Yt, const text[]);
 forward ExistPlate(plate);
 forward ChangeVehicle(playerid, vehicleid, modelid, worldid, interiorid);
 forward ShowChangePlate(playerid);
@@ -669,11 +669,11 @@ forward TogglePlayerControllableEx(playerid, toogle);
 forward RemoveObjectToCartera(playerid, carteraid);
 forward AddObjectToCartera(playerid, objectid, carteraC, carteraT, carteraI);
 forward IsPlayerHaveCondones(playerid);
-forward IsNotFullCartera(playeridError, playerid, error[]);
+forward IsNotFullCartera(playeridError, playerid, const error[]);
 forward CreateAccountBank(playerid);
 forward LoadAccountBanking(playerid);
 forward SaveAccountBanking(playerid);
-forward strvalEx(string[]);
+forward strvalEx(const string[]);
 forward IsPlayerAccountBankConnected(accountcheck);
 forward PayCheckToPlayer(playerid, carteraid);
 forward RemoveCheque(playerid, chequeid);
@@ -696,17 +696,17 @@ forward SetCameraLogin(playerid, nextcamera, avanze);
 forward LoadCamerasLogin();
 forward IsAlarmaBug(vehicleid);
 forward SetCameraPresent(playerid, point, Float:Porcent, Float:CameraX, Float:CameraY, Float:CameraZ, min, max);
-forward RecoveryEmailPlayer(playerid, response_code, data[]);
-forward IsValidEmail(playerid, email[]);
+forward RecoveryEmailPlayer(playerid, response_code, const data[]);
+forward IsValidEmail(playerid, const email[]);
 forward ShowPlayerLogin(playerid, option);
 forward ShowPlayerRegister(playerid, option);
 forward ShowPlayerVerifiquedEmail(playerid, option);
 forward SendRequestPasswordRecovery(playerid);
-forward ShowPlayerDialogEx(playerid, dialogid, style, caption[], info[], button1[], button2[]);
+forward ShowPlayerDialogEx(playerid, dialogid, style, const caption[], const info[], const button1[], const button2[]);
 forward ShowPlayerEmailChange(playerid, option);
-forward ValidingEmail(playerid, response_code, data[]);
-forward IsValidStringServer(playerid, string[]);
-forward IsValidStringServerOther(playerid, string[]);
+forward ValidingEmail(playerid, response_code, const data[]);
+forward IsValidStringServer(playerid, const string[]);
+forward IsValidStringServerOther(playerid, const string[]);
 forward MoveDoorDynamicOne(doorid, Float:Progress);
 forward MoveDoorDynamicTwo(doorid, Float:Progress);
 forward MovePeajeDynamicOne(peajeid, Float:Progress);
@@ -785,7 +785,7 @@ forward GetNextCheckPoint(pistaid, checkpointid, option);
 forward ShowPistaPlayerPublics(playerid);
 forward GetMaxPlayerCurrentPista(pistaid);
 forward GetValidCheckPoint(pistaid, checkpointid, option);
-forward SendMessageToRaceChat(raceid, text[], option);
+forward SendMessageToRaceChat(raceid, const text[], option);
 forward IsVehiceInRace(vehicleid);
 forward SetPlayerNextCheckPointRace(playerid);
 forward GetMaxPistaRace(raceid);
@@ -807,7 +807,7 @@ forward SetCameraPresentRace(playerid, raceid, point, Float:Porcent, Float:Camer
 forward DetectSpam(playerid, text[]);
 forward ShowHomeAgendaOptions(playerid, agendaid);
 forward ShowBuscarAgenda(playerid);
-forward ShowBuscarResultAgenda(playerid, text[]);
+forward ShowBuscarResultAgenda(playerid, const text[]);
 forward ShowSendSMSAgenda(playerid, agendaid);
 forward UpdatePlayerDescrription(playerid);
 forward AddPlayerDescription(playerid, option);
@@ -825,7 +825,7 @@ forward PlayAudioPlayerHouse(playerid);
 forward StopAudioPlayer(playerid, &handle);
 forward ShowStations(playerid, selected, option);
 forward OnPlayerIsConnectedToAudio(playerid);
-forward ChangePasswordUser(playerid_admin, playeridname[], newpassword[]);
+forward ChangePasswordUser(playerid_admin, const playeridname[], const newpassword[]);
 forward BuyPhone24_7(playerid);
 forward CheckNumberAvalible(number);
 forward BuyPhoneNow(playerid, number);
@@ -836,16 +836,15 @@ forward IsPlayerInGarageEx(playerid);
 forward LoadRobosInfo();
 forward AddRobo(roboid, bizzid);
 forward CancelRobo(roboid);
-forward SendMessageRobosFaccion(faccionid, text[]);
+forward SendMessageRobosFaccion(faccionid, const text[]);
 forward	GetMaxPlayersByFaccion(faccionid);
 forward	SendAvisoRobo(roboid);
 forward	RobarConteo(roboid);
 forward	IsBizzOnRobo(playerid, bizzid);
 forward ShowAlarmas(playerid);
-forward SendMessageRadioGeneral(playerid, text[]);
-forward SendMessageRadioGeneralSAMD(playerid, text[]);
+forward SendMessageRadioGeneral(playerid, const text[]);
+forward SendMessageRadioGeneralSAMD(playerid, const text[]);
 forward IsGarageToHouse(playerid, pickupid);
-forward IsDoorInsideBizz(pickupid);
 forward IsValidSeatTaxi(seatid);
 forward SetPlayerTaxi(playerid, taxiid, seat);
 forward CheckValidPlayerToTaxi(playerid, taxiid);
@@ -4865,9 +4864,9 @@ public OnGameModeInit()
 	}
 	print("\n\n\n\n\n\n\n___________________ INICIANDO GAMEMODE ___________________");
 	MySQLConnect();
-	
+
 	SetGameModeText(GAMEMODE_VERSION);
-	
+
 
 	// LOGO
 	Url_WebShadow = TextDrawCreateEx(32.1, 428.1, URL_WEB_SHADOW);
@@ -4953,7 +4952,7 @@ public OnGameModeInit()
 	{
 		DataCars[i][StationID]     		= -1;
 		DataCars[i][VolumenVehicle]     = DEFAULT_AUDIO_VOLUMEN;
-		
+
 		if (!LoadDataVehicle(i, DIR_VEHICLES, true))
 		{
 		    MAX_CAR_DUENO = i - 1;
@@ -5069,7 +5068,7 @@ public OnGameModeInit()
 	FaccionData[GOBIERNO][World] = WORLD_DEFAULT_INTERIOR;
 	FaccionData[GOBIERNO][Family] = false;
 	FaccionData[GOBIERNO][Radio] = true;
-	
+
 	FaccionesRangos[GOBIERNO][0]  = "Presidente"; 		RangosSkins[GOBIERNO][0][0] 	= 147; 	RangosSkins[GOBIERNO][0][1] 	= 216;  RangosSkins[GOBIERNO][0][2] 	= 228; 	FaccionData[GOBIERNO][Paga][0] = 1200;
 	FaccionesRangos[GOBIERNO][1]  = "Vicepresidente"; 	RangosSkins[GOBIERNO][1][0] 	= 17;  	RangosSkins[GOBIERNO][1][1] 	= 216;  RangosSkins[GOBIERNO][1][2] 	= 228;	FaccionData[GOBIERNO][Paga][1] = 950;
 	FaccionesRangos[GOBIERNO][2]  = "Gobernador"; 	    RangosSkins[GOBIERNO][2][0] 	= 57;  	RangosSkins[GOBIERNO][2][1] 	= 216;  RangosSkins[GOBIERNO][2][2] 	= 228;	FaccionData[GOBIERNO][Paga][2] = 850;
@@ -5940,9 +5939,9 @@ public OnGameModeInit()
 	SKIN_CIVILES[117]    = 999;
 
 	LoadLastOptionsServer();
-	
+
 	LoadLocales();
-	
+
 	ShowServerStats(-1);
 	print("___________________ GAMEMODE CARGADO CORRECTAMENTE! ___________________");
 	print("\n______________ NO SE CARGARÓN FILESCRIPTS/FILTERSCRIPTS ________________");
@@ -5967,7 +5966,7 @@ public MySQLConnect()
 	return 1;
 }
 
-public OnQueryError(errorid, const error[], const callback[], const query[], MySQL:handle)
+public OnQueryError(errorid, const const error[], const const callback[], const const query[], MySQL:handle)
 {
 	switch(errorid)
 	{
@@ -6093,14 +6092,14 @@ public OnPlayerDisconnect(playerid, reason)
 	    if(reason == 1) 	 format(string, sizeof(string), "El usuario %s ha desconectado. Razon: Voluntariamente", PlayersDataOnline[playerid][NameOnline]);
 		else if(reason == 0) format(string, sizeof(string), "El usuario %s ha desconectado. Razon: Perdida de Conexion/CRASH", PlayersDataOnline[playerid][NameOnline]);
 		else if(reason == 2) format(string, sizeof(string), "El usuario %s ha desconectado. Razon: Un administrador le ha echado", PlayersDataOnline[playerid][NameOnline]);
-		
+
 		if(PlayersDataOnline[playerid][IsEspectando])
 		{
 			UpdateSpectatedPlayers(playerid, true, false, false);
 		}
 	    SaveDatosPlayerDisconnect(playerid);
-	    
-	    for(new i = 0; i <= GetPlayerPoolSize(); i++)
+
+	    for(new i = 0, maxid = GetPlayerPoolSize(); i <= maxid; i++)
 	    {
 	        if(IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && i != playerid && IsPlayerInRangeOfPoint(i, 20.0, Pos[0], Pos[1], Pos[2]))
 	        {
@@ -6365,7 +6364,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				  	if (strcmp("/Ayuda", cmdtext, true, 6) == 0 && strlen(cmdtext) == 6)
 			    	{
 					    SendClientMessage(playerid, COLOR_TITULO_DE_AYUDA, TITULO_AYUDA);
-	      				SendInfoMessage(playerid, 1, "/Copyright - /Reglas - /Duda - /Stats - /Cuenta - /Hora - /Hablar - /Caminar - /Reportar [ID] [Razón]", "Principales: ");
+	      				SendInfoMessage(playerid, 1, "/Copyright - /Reglas - /Duda - /Stats - /Cuenta - /Hora - /Hablar - /Caminar -  /Reportar o /Re", "Principales: ");
 					    SendInfoMessage(playerid, 1, "/Ayuda {Básicos, Canales, Facción, Rangos, Banco, Crear, Coche, Móvil, Casa, Negocio, Local, Estados, Dar, Coger, Dejar, Usar, Otros}", "Info Extra: ");
 					    SendInfoMessage(playerid, 1, "/Ayuda {Idiomas, Trabajo, Radio, Tirar, Móvil, Luces, Canales, Aceptar, Llaves, DeathMatch, Carreras, Animaciones 1 - 3}", "Info Extra: ");
 						SendInfoMessage(playerid, 1, "Para más información visite nuestros foros en "WEBPAGE". Use /Duda o puede whispear a un admin con /W [ID] [Duda] (Ver /Staff)", " ");
@@ -6819,7 +6818,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		                SendInfoMessage(playerid, 1, "/Comprar Local - /Vender Local - /Cambiar Precio Entrada [Precio] - /Consultar Local - /Retirar Local - /Cambiar Nombre [Nuevo Nombre]", "Local: ");
 		                SendInfoMessage(playerid, 1, "/Llaves Local - /Llaves PuertaEx - /Dar Llaves Amigo [ID] - /Llaves Amigos - /Llaves Garage", "Local: ");
 		                SendInfoMessage(playerid, 1, "/Llaves Armario - /Armario - /Llaves Gaveta - /Gaveta - /Llaves Refrigerador - /Refrigerador - /Cocinar [ID_Refrigerador]", "Local: ");
-		                SendInfoMessage(playerid, 1, "/Ayuda Coger - /Ayuda Dejar - /Música - /Timbre", "Local: ");
+		                SendInfoMessage(playerid, 1, "/Ayuda Coger - /Ayuda Dejar - /Música - /Timbre - /Info Local", "Local: ");
 		                return 1;
 		            }
 					// COMANDO: /Ayuda Owned
@@ -6905,17 +6904,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						return 1;
 					}
 	                //      /Ayudante [ID]
-	                else if (strfind(cmdtext, "/Ayudante ", true) == 0)
+	                else if (strfind(cmdtext, "/Ayudante", true) == 0)
 	                {
 	                    if (PlayersData[playerid][Admin] < 9) return SendAccessError(playerid, "Ayudante");
-	                    
+
 	                    new getid;
 	                    if (!sscanf(cmdtext[10], "u", getid))
 	                    {
 	                        if(!IsPlayerLoguedEx(playerid, getid)) return 1;
 
 	                    	new string[150], stringA[150], stringB[150];
-	                    	
+
 	                    	if (!PlayersData[getid][Ayudante])
 		                    {
 					            format(stringA, sizeof(stringA), "Le diste ayudante a %s[%i].", PlayersDataOnline[getid][NameOnline], getid);
@@ -7138,32 +7137,33 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						if ( PlayersData[playerid][Faccion] == CAMIONEROS && PlayersData[playerid][Rango] <= 3 ||
 							 PlayersData[playerid][Faccion] == CONTRABANDISTAS && PlayersData[playerid][Rango] <= 3 )
 					    {
-							if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-					             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+							if ( PlayersDataOnline[playerid][InPickupNegocio] )
 					        {
-					            if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Type] >= 6 && PlayersData[playerid][Faccion] == CAMIONEROS )
+					            new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+					            
+					            if ( NegociosData[bizzid][Type] >= 6 && PlayersData[playerid][Faccion] == CAMIONEROS )
 					            {
-							        if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] == 0 )
+							        if ( NegociosData[bizzid][PricePiece] == 0 )
 							        {
 							        	SendInfoMessage(playerid, 2, "0", "Este negocio no está aceptando materiales");
 									}
 									else
 									{
 									    new MsgVerPrecio[MAX_TEXT_CHAT];
-									    format(MsgVerPrecio, sizeof(MsgVerPrecio), "Este negocio paga el material a $%i. Actualmente tiene [%i/5000]", NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece], NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales]);
+									    format(MsgVerPrecio, sizeof(MsgVerPrecio), "Este negocio paga el material a $%i. Actualmente tiene [%i/5000]", NegociosData[bizzid][PricePiece], NegociosData[bizzid][Materiales]);
 										SendInfoMessage(playerid, 2, "0", MsgVerPrecio);
 									}
 								}
-								else if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Type] <= 5 && PlayersData[playerid][Faccion] == CONTRABANDISTAS )
+								else if ( NegociosData[bizzid][Type] <= 5 && PlayersData[playerid][Faccion] == CONTRABANDISTAS )
 								{
-							        if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] == 0 )
+							        if ( NegociosData[bizzid][PricePiece] == 0 )
 							        {
 							        	SendInfoMessage(playerid, 2, "0", "Esta tienda no está aceptando materiales");
 									}
 									else
 									{
 									    new MsgVerPrecio[MAX_TEXT_CHAT];
-									    format(MsgVerPrecio, sizeof(MsgVerPrecio), "Esta tienda paga el material a $%i. Actualmente tiene [%i/5000]", NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece], NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales]);
+									    format(MsgVerPrecio, sizeof(MsgVerPrecio), "Esta tienda paga el material a $%i. Actualmente tiene [%i/5000]", NegociosData[bizzid][PricePiece], NegociosData[bizzid][Materiales]);
 										SendInfoMessage(playerid, 2, "0", MsgVerPrecio);
 									}
 								}
@@ -7431,10 +7431,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    	{
 						if ( PlayersData[playerid][Faccion] == CONTRABANDISTAS && PlayersData[playerid][Rango] <= 3 )
 					    {
-							if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-					             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+							if ( PlayersDataOnline[playerid][InPickupNegocio] )
 					        {
-								new MyNearCar = IsPlayerInNearVehicle(playerid);
+								new
+									MyNearCar = IsPlayerInNearVehicle(playerid),
+									bizzid = PlayersDataOnline[playerid][InPickupNegocio];
 								if ( MyNearCar )
 								{
 								    // DataCars[MyNearCar][Time]
@@ -7442,20 +7443,20 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						            {
 										if ( coches_Todos_Maleteros[MyNearCar][10][0] != 0 )
 										{
-								            if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Type] <= 5 )
+								            if ( NegociosData[bizzid][Type] <= 5 )
 								            {
-									            if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] != 0  )
+									            if ( NegociosData[bizzid][PricePiece] != 0  )
 									            {
-									                if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0] <= 5000 )
+									                if ( NegociosData[bizzid][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0] <= 5000 )
 									                {
-										                if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] >= coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] )
+										                if ( NegociosData[bizzid][Deposito] >= coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece] )
 										                {
-												            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales] = NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0];
-												            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] = NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] -(coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece]);
-															FaccionData[CONTRABANDISTAS][Deposito] = FaccionData[CONTRABANDISTAS][Deposito] + (coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece]);
+												            NegociosData[bizzid][Materiales] = NegociosData[bizzid][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0];
+												            NegociosData[bizzid][Deposito] = NegociosData[bizzid][Deposito] -(coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece]);
+															FaccionData[CONTRABANDISTAS][Deposito] = FaccionData[CONTRABANDISTAS][Deposito] + (coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece]);
 
 												            new MsgAbastecerNegocio[MAX_TEXT_CHAT];
-												            format(MsgAbastecerNegocio, sizeof(MsgAbastecerNegocio), "Has abastecido este negocio con %i materiales, se le ha enviado $%i a la cuenta de la empresa", coches_Todos_Maleteros[MyNearCar][10][0], coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece]);
+												            format(MsgAbastecerNegocio, sizeof(MsgAbastecerNegocio), "Has abastecido este negocio con %i materiales, se le ha enviado $%i a la cuenta de la empresa", coches_Todos_Maleteros[MyNearCar][10][0], coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece]);
 					                	                    SendInfoMessage(playerid, 3, "0", MsgAbastecerNegocio);
 					                	                    coches_Todos_Maleteros[MyNearCar][10][0] = 0;
 											            }
@@ -7505,30 +7506,31 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    	{
 						if ( PlayersData[playerid][Faccion] == CAMIONEROS && PlayersData[playerid][Rango] <= 3 )
 					    {
-							if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-					             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+							if ( PlayersDataOnline[playerid][InPickupNegocio] )
 					        {
-								new MyNearCar = IsPlayerInNearVehicle(playerid);
+								new
+									MyNearCar = IsPlayerInNearVehicle(playerid),
+									bizzid = PlayersDataOnline[playerid][InPickupNegocio];
 								if ( MyNearCar )
 								{
 						            if ( GetVehicleModel(MyNearCar) == 514 || GetVehicleModel(MyNearCar) == 515 || GetVehicleModel(MyNearCar) == 403 || GetVehicleModel(MyNearCar) == 456 || GetVehicleModel(MyNearCar) == 578)
 						            {
 										if ( coches_Todos_Maleteros[MyNearCar][10][0] != 0 )
 										{
-								            if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Type] >= 6 )
+								            if ( NegociosData[bizzid][Type] >= 6 )
 								            {
-									            if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] != 0  )
+									            if ( NegociosData[bizzid][PricePiece] != 0  )
 									            {
-									                if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0] <= 5000 )
+									                if ( NegociosData[bizzid][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0] <= 5000 )
 									                {
-										                if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] >= coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] )
+										                if ( NegociosData[bizzid][Deposito] >= coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece] )
 										                {
-												            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales] = NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0];
-												            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] = NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] -(coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece]);
-															FaccionData[CAMIONEROS][Deposito] = FaccionData[CAMIONEROS][Deposito] + (coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece]);
+												            NegociosData[bizzid][Materiales] = NegociosData[bizzid][Materiales] + coches_Todos_Maleteros[MyNearCar][10][0];
+												            NegociosData[bizzid][Deposito] = NegociosData[bizzid][Deposito] -(coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece]);
+															FaccionData[CAMIONEROS][Deposito] = FaccionData[CAMIONEROS][Deposito] + (coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece]);
 
 												            new MsgAbastecerNegocio[MAX_TEXT_CHAT];
-												            format(MsgAbastecerNegocio, sizeof(MsgAbastecerNegocio), "Has abastecido este negocio con %i materiales, se le ha enviado $%i a la cuenta de la empresa", coches_Todos_Maleteros[MyNearCar][10][0], coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece]);
+												            format(MsgAbastecerNegocio, sizeof(MsgAbastecerNegocio), "Has abastecido este negocio con %i materiales, se le ha enviado $%i a la cuenta de la empresa", coches_Todos_Maleteros[MyNearCar][10][0], coches_Todos_Maleteros[MyNearCar][10][0] * NegociosData[bizzid][PricePiece]);
 					                	                    SendInfoMessage(playerid, 3, "0", MsgAbastecerNegocio);
 					                	                    coches_Todos_Maleteros[MyNearCar][10][0] = 0;
 											            }
@@ -8738,7 +8740,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				                            SaveLocal(localID, true);
 
 						                    format(string,sizeof(string),
-           									"%s Has creado un local tipo \"%s\" [%i] con ID %i, Precio: $%i, Nivel: %i.", LOGO_STAFF, LocalTipoString[type-1], type, localID+1, price, level);
+           									"Has creado un local tipo \"%s\" [%i] con ID %i, Precio: $%i, Nivel: %i.", LocalTipoString[type-1], type, localID+1, price, level);
 						                    SendAdviseMessage(playerid, string);
 						                    return 1;
 					                    }
@@ -9827,7 +9829,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}
 				  	}
 					// COMANDO: /Poner Equipo [ID]
-					else if (strfind(cmdtext, "/Poner Equipo ", true) == 0)
+					else if (strfind(cmdtext, "/Poner Equipo", true) == 0)
 					{
 						if ( PlayersData[playerid][Faccion] == SFPD ||
 							 PlayersData[playerid][Faccion] == LSPD ||
@@ -9842,21 +9844,21 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							        if ( equipoid >= 0 && equipoid <= 5 )
 							        {
 										if (PlayersData[playerid][Faccion] == GOBIERNO && equipoid > 2) return SendInfoMessage(playerid, 0, "1033", "Usted no está autizado a coger ese equipo");
-										
+
 										if ( PlayersData[playerid][TimeEquipo] > gettime() && equipoid != 0)
 										{
 										    new MsgPersonalizado[MAX_TEXT_CHAT];
 											format(MsgPersonalizado, sizeof(MsgPersonalizado), "Debe esperar %i minutos con %i segundos para volver a usar otro equipo", (PlayersData[playerid][TimeEquipo] - gettime()) / 60, ((PlayersData[playerid][TimeEquipo] - gettime()) % 60));
-											SendInfoMessage(playerid, 0, "843", MsgPersonalizado);
-										}		
-										new Autorizado = false;		
+											return SendInfoMessage(playerid, 0, "843", MsgPersonalizado);
+										}
+										new Autorizado = false;
 	        							switch (equipoid)
 								        {
 								            case 0:
 								            {
 								                ResetPlayerWeaponsEx(playerid);
 	          									PlayersDataOnline[playerid][ChalecoOn] = 0;
-	          									
+
 									          	new HaveTaser = GetObjectByType(playerid, TYPE_TASER);
 												if ( HaveTaser != -1 )
 												{
@@ -10629,29 +10631,30 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /Timbre
 			  	else if (strcmp("/Timbre", cmdtext, true, 7) == 0 && strlen(cmdtext) == 7)
 	  			{
-					if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-					     PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
+					if ( PlayersDataOnline[playerid][InPickupCasa] )
 					{
-	                    if ( gettime() - HouseData[PlayersDataOnline[playerid][MyPickupWorld]][RingHouseTime] >= 20 )
+					    new houseid = PlayersDataOnline[playerid][InPickupCasa];
+					    
+	                    if ( gettime() - HouseData[houseid][RingHouseTime] >= 20 )
 	                    {
 							for (new i = 0; i < MAX_PLAYERS; i++)
 							{
-							    if (i != playerid && IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && PlayersData[i][IsPlayerInHouse] == PlayersDataOnline[playerid][MyPickupWorld])
+							    if (i != playerid && IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && PlayersData[i][IsPlayerInHouse] == houseid)
 							    {
 							        SendClientMessage(i, COLOR_DE_WISPEO, "** TIMBRE: RING RING!!!");
 							    }
 						    }
 					        Acciones(playerid, 8, "tocó el timbre de la casa");
-					        HouseData[PlayersDataOnline[playerid][MyPickupWorld]][RingHouseTime] = gettime();
+					        HouseData[houseid][RingHouseTime] = gettime();
 						}
 						else
 						{
 						    new MsgRingHouse[MAX_TEXT_CHAT];
-						    format(MsgRingHouse, sizeof(MsgRingHouse), "El timbre de está casa ha sido tocado recientemente, tiene que esperar %i segundos para volver a usarlo", 20 - (gettime() - HouseData[PlayersDataOnline[playerid][MyPickupWorld]][RingHouseTime]));
+						    format(MsgRingHouse, sizeof(MsgRingHouse), "El timbre de está casa ha sido tocado recientemente, tiene que esperar %i segundos para volver a usarlo", 20 - (gettime() - HouseData[houseid][RingHouseTime]));
 						    SendInfoMessage(playerid, 0, "886", MsgRingHouse);
 						}
 					}
-					else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+					else if ( PlayersDataOnline[playerid][InPickupLocal] != -1 )
 					{
 						if ( gettime() - LocalData[PlayersDataOnline[playerid][InPickupLocal]][TimbreTime] >= 20 )
 	                    {
@@ -10974,9 +10977,24 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "1466", "Ésta no es su casa");
 						}
 			        }
+			        else if ( PlayersData[playerid][InLocal] != -1 )
+			        {
+			            new localid = PlayersData[playerid][InLocal];
+			            
+						if ( PlayersData[playerid][Local] == localid ||
+							 PlayerHaveLocalKeys(playerid, localid) ||
+							 PlayersData[playerid][Admin] >= 7 && PlayersDataOnline[playerid][AdminOn])
+			            {
+				            ShowStations(playerid, LocalData[localid][StationID], 2);
+						}
+						else
+						{
+							SendInfoMessage(playerid, 0, "1466", "Ésta no es su casa");
+						}
+			        }
 			        else
 			        {
-						SendInfoMessage(playerid, 0, "1467", "No te encuentras en ninguna casa");
+						SendInfoMessage(playerid, 0, "1467", "No te encuentras en ninguna casa o local");
 					}
 				}
 				// COMANDO: /Estéreo
@@ -10992,25 +11010,46 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendInfoMessage(playerid, 0, "1535", "Suba a un vehículo en el asiento de conductor y luego use /Estéreo");
 					}
 				}
-				// COMANDO: /Duda
-			  	else if (strcmp("/Duda", cmdtext, true, 5) == 0 && strlen(cmdtext) == 5)
-	  			{
-				    if ( CanalDudas )
-				    {
-						if ( AreHelpersOnline() )
-						{
-							ShowDudasDialog(playerid);
-						}
-						else
-						{
-							SendInfoMessage(playerid, 0, "1483", "No hay ayudantes en este momento para resolver dudas, intentelo más tarde.");
-						}
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "1484", "El canal /Duda se encuentra cerrado.");
-					}
-				}
+	            // COMANDO: /Duda
+	            else if (strfind(cmdtext, "/Duda", true) == 0)
+	            {
+	            	if(CanalDudas)
+	                {
+	                	if ( AreHelpersOnline() )
+	                    {
+	                        if(strfind(cmdtext, "/Duda ", true) == 0)
+	                        {
+	                            if (strlen(cmdtext[6]) < 2 || strlen(cmdtext[6]) > 90) return SendInfoMessage(playerid,0,"","Su duda debe tener un minimo de 2 caracteres y maximo de 90.");
+	                            new string[150];
+
+	                            format(string, sizeof(string), "Enviaste una duda a la administración: %s", cmdtext[6]);
+	                            SendInfoMessage(playerid, 2, "0", string);
+
+	                            format(string, sizeof(string), "[Dudas] %s[%i]: %s", PlayersDataOnline[playerid][NameOnlineFix], playerid, cmdtext[6]);
+	                            for (new i = 0; i < MAX_PLAYERS; i++)
+	                            {
+	                                if ( IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && (PlayersData[i][Admin] || PlayersData[i][Ayudante]) )
+	                                {
+	                                    SendClientMessage(i, COLOR_DUDAS, string);
+	                                }
+	                            }
+	                        }
+	                        else if(strcmp("/Duda", cmdtext, true) == 0)
+	                        {
+	                            ShowDudasDialog(playerid);
+	                        }
+	                        else SendInfoMessage(playerid, 0, "", "Tal vez quieras decir: /Duda o /Duda [Duda].");
+	                    }
+	                    else
+	                    {
+	                        SendInfoMessage(playerid, 0, "1483", "No hay ayudantes en este momento para resolver dudas, intentelo más tarde.");
+	                    }
+	                }
+	                else
+	                {
+	                    SendInfoMessage(playerid, 0, "963", "El /estado dudas no esta abierto.");
+	                }
+                }
 				// COMANDO: /Terminar Robo
 			    else if (strcmp("/Terminar Robo", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14)
 			    {
@@ -11041,14 +11080,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			  	        {
                             if ( RobosInfo[fac][RoboState] )
                             {
-						        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-						             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId]
-									 && PlayersDataOnline[playerid][MyPickupWorld] == RobosInfo[fac][BizzIDR] )
+						        if ( PlayersDataOnline[playerid][InPickupNegocio] == RobosInfo[fac][BizzIDR] )
 						        {
-	                                new MSGRobo[MAX_TEXT_CHAT];
+	                                new MSGRobo[150];
 	                               	if ( NegociosData[RobosInfo[fac][BizzIDR]][Deposito]      > 0 )
 	                               	{
-	//                                	FaccionData[RobosInfo[fac][FaccionIDR]][Deposito] 		+= NegociosData[RobosInfo[fac][BizzIDR]][Deposito];
 										GivePlayerMoneyEx(playerid, NegociosData[RobosInfo[fac][BizzIDR]][Deposito]);
 		                                format(MSGRobo, sizeof(MSGRobo), "[Robo]: Robado $%i del deposito del negocio!", NegociosData[RobosInfo[fac][BizzIDR]][Deposito]);
 										SendMessageRobosFaccion(RobosInfo[fac][FaccionIDR], MSGRobo);
@@ -11056,7 +11092,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	                               	}
 	                                if ( NegociosData[RobosInfo[fac][BizzIDR]][DepositoExtorsion] > 0 )
 	                                {
-	//                                	FaccionData[RobosInfo[fac][FaccionIDR]][Deposito]		+= NegociosData[RobosInfo[fac][BizzIDR]][DepositoExtorsion];
 		                                format(MSGRobo, sizeof(MSGRobo), "[Robo]: Robado $%i de la extorsión del negocio!", NegociosData[RobosInfo[fac][BizzIDR]][DepositoExtorsion]);
 										GivePlayerMoneyEx(playerid, NegociosData[RobosInfo[fac][BizzIDR]][DepositoExtorsion]);
 										SendMessageRobosFaccion(RobosInfo[fac][FaccionIDR], MSGRobo);
@@ -11064,7 +11099,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	                               	}
 									if ( NegociosData[RobosInfo[fac][BizzIDR]][Materiales] > 0 )
 									{
-	//									FaccionData[RobosInfo[fac][FaccionIDR]][Almacen][0] 	+= NegociosData[RobosInfo[fac][BizzIDR]][Materiales];
 	                                    PlayersData[playerid][Materiales]                       += NegociosData[RobosInfo[fac][BizzIDR]][Materiales];
 										format(MSGRobo, sizeof(MSGRobo), "[Robo]: Robado %i de materiales del negocio!", NegociosData[RobosInfo[fac][BizzIDR]][Materiales]);
 										SendMessageRobosFaccion(RobosInfo[fac][FaccionIDR], MSGRobo);
@@ -12600,23 +12634,23 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				// COMANDO: /Alquilar
 			  	else if (strcmp("/Alquilar", cmdtext, true, 9) == 0 && strlen(cmdtext) == 9)
 			    {
-			        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				         PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
+			        if ( PlayersDataOnline[playerid][InPickupCasa] )
 			        {
+			            new houseid = PlayersDataOnline[playerid][InPickupCasa];
 				        if ( PlayersData[playerid][House] == -1 )
 				        {
 						    if ( PlayersData[playerid][Alquiler] == -1 )
 						    {
-								if (strlen(HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Dueno]) != 2 && HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent] != 0)
+								if (strlen(HouseData[houseid][Dueno]) != 2 && HouseData[houseid][PriceRent] != 0)
 								{
-									if ( PlayersData[playerid][Dinero] >= HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent] )
+									if ( PlayersData[playerid][Dinero] >= HouseData[houseid][PriceRent] )
 									{
 										new MsgRenta[MAX_TEXT_CHAT];
-										format(MsgRenta, sizeof(MsgRenta), "Te has rentado en esta casa por $%i", HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent] );
+										format(MsgRenta, sizeof(MsgRenta), "Te has rentado en esta casa por $%i", HouseData[houseid][PriceRent] );
 										SendInfoMessage(playerid, 3, "0", MsgRenta);
-										PlayersData[playerid][Alquiler] = PlayersDataOnline[playerid][MyPickupWorld];
-										GivePlayerMoneyEx(playerid, -HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent]);
-										HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] = HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] + HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent];
+										PlayersData[playerid][Alquiler] = houseid;
+										GivePlayerMoneyEx(playerid, - HouseData[houseid][PriceRent]);
+										HouseData[houseid][Deposito] = HouseData[houseid][Deposito] + HouseData[houseid][PriceRent];
 									}
 									else
 									{
@@ -12628,7 +12662,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 									SendInfoMessage(playerid, 0, "607", "Ésta casa no esta en renta!");
 								}
 							}
-							else if( PlayersData[playerid][Alquiler] == PlayersDataOnline[playerid][MyPickupWorld] )
+							else if( PlayersData[playerid][Alquiler] == houseid )
 							{
 								SendInfoMessage(playerid, 3, "0", "Has salido de este alquiler existosamente!");
 								PlayersData[playerid][Alquiler] = -1;
@@ -12654,21 +12688,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Nacer Amigo
 				  	if (strcmp("/Nacer Amigo", cmdtext, true, 12) == 0 && strlen(cmdtext) == 12)
 			    	{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] ||
-							 PlayersDataOnline[playerid][InPickup] >= TypeHouse[0][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= TypeHouse[MAX_HOUSE_TYPE][PickupId])
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
 				        {
-							new houseid;
-							if ( PlayersDataOnline[playerid][InPickup] >= TypeHouse[0][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= TypeHouse[MAX_HOUSE_TYPE][PickupId] && PlayersData[playerid][IsPlayerInHouse])
-							{
-						    	houseid = PlayersData[playerid][IsPlayerInHouse];
-							}
-							else
-							{
-							    houseid = PlayersDataOnline[playerid][MyPickupWorld];
-							}
+							new houseid = PlayersDataOnline[playerid][InPickupCasa];
 
 							if ( IsPlayerInHouseFriend(playerid, houseid) != -1)
 				            {
@@ -12734,7 +12756,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							PlayersData[playeridRemove][Drogas]        = 0;
 							PlayersData[playeridRemove][Materiales]    = 0;
 							PlayersData[playeridRemove][Bombas]        = 0;
-							
+
 							new HaveTaser = GetObjectByType(playeridRemove, TYPE_TASER);
 							if ( HaveTaser != -1 )
 							{
@@ -12808,53 +12830,40 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				else if (strfind(cmdtext, "/Llaves ", true) == 0)
 				{
 					// COMANDO: /Llaves PuertaEx
-				  	if (strcmp("/Llaves PuertaEx", cmdtext, true, 16) == 0 && strlen(cmdtext) == 16 ||
-					    strcmp("/Llaves PuertaEx", cmdtext, true, 16) == 0 && strlen(cmdtext) == 16 )
+				  	if (strcmp("/Llaves PuertaEx", cmdtext, true, 16) == 0 && strlen(cmdtext) == 16 )
 			    	{
-				        if ( PlayersDataOnline[playerid][InPickup] >= Teles[0][PickupID] &&
-	   	  					 PlayersDataOnline[playerid][InPickup] <= Teles[MAX_TELE][PickupID] )
-				        {
-				            for(new i=0;i<=MAX_TELE;i++)
+				        if ( PlayersDataOnline[playerid][InPickupTele] == -1 ) return SendInfoMessage(playerid, 0, "812", "No te encuentras al lado de ninguna puerta");
+				        
+			            new teleid = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
+			            
+			            if ( Teles[teleid][Dueno] == CIVIL || Teles[teleid][Dueno] == PlayersData[playerid][Faccion] )
+			            {
+			                if ( Teles[teleid][Lock] )
 				            {
-				                if ( Teles[i][PickupID] == PlayersDataOnline[playerid][InPickup] )
-				                {
-				                    if ( Teles[i][Dueno] == CIVIL || Teles[i][Dueno] == PlayersData[playerid][Faccion] )
-				                    {
-					                	if ( Teles[i][Lock] )
-							            {
-						                	Teles[i][Lock] = false;
-						                	Teles[Teles[i][PickupIDGo]][Lock] = false;
-	                   						GameTextForPlayer(playerid, "~W~Puerta ~G~Abierta!", 1000, 6);
-						                }
-						                else
-						                {
-						                	Teles[i][Lock] = true;
-											Teles[Teles[i][PickupIDGo]][Lock] = true;
-			           						GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
-						                }
-				                  		PlayPlayerStreamSound(playerid, 1027);
-				                  		UpdateLockDoorForPlayer(PlayersDataOnline[playerid][InPickup], Teles[i][Lock], Teles[i][PickupIDGo]);
-					                }
-					                else
-					                {
-										SendInfoMessage(playerid, 0, "811", "No tienes las llaves de esta puerta!");
-									}
-									break;
-				                }
+			                	Teles[teleid][Lock] = false;
+			                	Teles[Teles[teleid][PickupIDGo]][Lock] = false;
+           						GameTextForPlayer(playerid, "~W~Puerta ~G~Abierta!", 1000, 6);
 			                }
-		                }
-		                else
+			                else
+			                {
+			                	Teles[teleid][Lock] = true;
+								Teles[Teles[teleid][PickupIDGo]][Lock] = true;
+           						GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
+			                }
+	                  		PlayPlayerStreamSound(playerid, 1027);
+	                  		UpdateLockDoorForPlayer(PlayersDataOnline[playerid][InPickup], Teles[teleid][Lock], Teles[teleid][PickupIDGo]);
+			            }
+			            else
 		                {
-							SendInfoMessage(playerid, 0, "812", "No te encuentras al lado de ninguna puerta");
+							SendInfoMessage(playerid, 0, "811", "No tienes las llaves de esta puerta!");
 						}
 			    	}
 					// COMANDO: /Llaves Amigos
 				  	else if (strcmp("/Llaves Amigos", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-					         PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
+				        if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_CASA)
 				        {
-							new HouseId = PlayersDataOnline[playerid][MyPickupWorld];
+							new HouseId = PlayersDataOnline[playerid][InPickupCasa];
 							if ( IsMyHouse(playerid, HouseId) || PlayersData[playerid][Admin] >= 8)
 				            {
 								ShowHouseFriends(playerid, HouseId);
@@ -12864,7 +12873,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								SendInfoMessage(playerid, 0, "1207", "Ésta no es su casa");
 							}
 				        }
-				        else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+				        else if (PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_LOCAL)
 				        {
 				            new localid = PlayersDataOnline[playerid][InPickupLocal];
 				            if (PlayersData[playerid][Local] == localid || PlayersData[playerid][Admin] >= 8)
@@ -12981,12 +12990,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        else if (PlayersData[playerid][InLocal] != -1)
 				        {
 				            new localid = PlayersData[playerid][InLocal];
-				            //LocalData[localid][]
 				            if (PlayerHaveLocalKeys(playerid, localid))
 				            {
 				            	LocalData[localid][LGavetaSeguro] = !LocalData[localid][LGavetaSeguro];
 				            	PlayPlayerStreamSound(playerid, 1002);
-				            	
+
 				            	if (LocalData[localid][LGavetaSeguro])
 				            	GameTextForPlayer(playerid, "~W~Gaveta ~R~Cerrada!", 1000, 6);
 				            	else
@@ -13035,10 +13043,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				        {
 				            new localid = PlayersData[playerid][InLocal];
 				            if (PlayerHaveLocalKeys(playerid, localid))
-							{   
+							{
 							    LocalData[localid][LArmarioSeguro] = !LocalData[localid][LArmarioSeguro];
 							    PlayPlayerStreamSound(playerid, 1027);
-							    
+
 							    if (LocalData[localid][LArmarioSeguro])
 							    GameTextForPlayer(playerid, "~W~Armario ~R~Cerrado!", 1000, 6);
 							    else
@@ -13161,11 +13169,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						            {
 						                Garages[HouseID][GarageID][LockIn] = false;
 		           						GameTextForPlayer(playerid, "~W~Puerta ~G~Abierta!", 1000, 6);
+										PlayersDataOnline[playerid][MyPickupLock] = false;
 					                }
 					                else
 					                {
 										Garages[HouseID][GarageID][LockIn] = true;
 		           						GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
+										PlayersDataOnline[playerid][MyPickupLock] = true;
 					                }
 								}
 								PlayPlayerStreamSound(playerid, 1027);
@@ -13179,20 +13189,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	 				// COMANDO: /Llaves Casa
 				  	else if (strcmp("/Llaves Casa", cmdtext, true, 12) == 0 && strlen(cmdtext) == 12)
 			    	{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] ||
-							 PlayersDataOnline[playerid][InPickup] >= TypeHouse[0][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= TypeHouse[MAX_HOUSE_TYPE][PickupId])
+				        if ( PlayersDataOnline[playerid][InPickupCasa] ||
+							 PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_CASA_TYPE )
 				        {
 							new houseid;
-							if ( PlayersDataOnline[playerid][InPickup] >= TypeHouse[0][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= TypeHouse[MAX_HOUSE_TYPE][PickupId] && PlayersData[playerid][IsPlayerInHouse])
+							if ( PlayersData[playerid][IsPlayerInHouse] )
 							{
 						    	houseid = PlayersData[playerid][IsPlayerInHouse];
 							}
 							else
 							{
-							    houseid = PlayersDataOnline[playerid][MyPickupWorld];
+							    houseid = PlayersDataOnline[playerid][InPickupCasa];
 							}
 
 							if ( PlayersData[playerid][House] == houseid ||
@@ -13225,15 +13232,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Llaves Negocio
 				  	else if (strcmp("/Llaves Negocio", cmdtext, true, 15) == 0 && strlen(cmdtext) == 15)
 			    	{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] ||
-							 IsDoorInsideBizz(PlayersDataOnline[playerid][InPickup]) && PlayersData[playerid][IsPlayerInBizz])
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] || PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_NEGOCIO_TYPE )
 				        {
 					        new Saveit;
-							if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				                 PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+							if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				            {
-								Saveit = PlayersDataOnline[playerid][MyPickupWorld];
+								Saveit = PlayersDataOnline[playerid][InPickupNegocio];
 				            }
 				            else
 				            {
@@ -13254,7 +13258,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 		           						GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
 					                }
 					                PlayPlayerStreamSound(playerid, 1027);
-									UpdateLockDoorForPlayer(NegociosData[Saveit][PickupOutId],NegociosData[Saveit][Lock], NegociosType[NegociosData[Saveit][Type]][PickupId]);
+									UpdateLockDoorForPlayer(NegociosData[Saveit][PickupOutId], NegociosData[Saveit][Lock], NegociosType[NegociosData[Saveit][Type]][PickupId]);
 								}
 				            }
 				        }
@@ -13270,11 +13274,11 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_LOCAL)
 					        {
 					            new localID = -1;
-					            
+
 								if (PlayersDataOnline[playerid][InPickupLocal] != -1) localID = PlayersDataOnline[playerid][InPickupLocal];
-								
+
 								else if (PlayersData[playerid][InLocal] != -1) localID = PlayersData[playerid][InLocal];
-								
+
 								if (localID != -1)
 								{
 						            if (!PlayerHaveLocalKeys(playerid, localID)) return SendInfoMessage(playerid, 0, "", "No tienes llaves de este local.");
@@ -13367,20 +13371,20 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Cambiar Nombre [Nuevo Nombre]
 					else if (strfind(cmdtext, "/Cambiar Nombre ", true) == 0)
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-				            if ( PlayersData[playerid][Admin] >= 8 || IsMyBizz(playerid, PlayersDataOnline[playerid][MyPickupWorld], true)  )
+				            new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+				            
+				            if ( PlayersData[playerid][Admin] >= 8 || IsMyBizz(playerid, bizzid, true)  )
 				            {
-								if ( !IsBizzOnRobo(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+								if ( !IsBizzOnRobo(playerid, bizzid) )
 								{
 						    	    if (strlen(cmdtext[16]) >= 2 && strlen(cmdtext[16]) <= 80 )
 						    	    {
 						    	        if ( IsValidStringServerOther(playerid, cmdtext) )
 						    	        {
-						    	        
-				                            format(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][NameBizz], 	MAX_BIIZ_NAME, "%s", ConvertToRGBColor(cmdtext));
-				                            UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
+				                            format(NegociosData[bizzid][NameBizz], 	MAX_BIIZ_NAME, "%s", ConvertToRGBColor(cmdtext[16]));
+				                            UpdateTextLabelNegocio(bizzid);
 				                            SendInfoMessage(playerid, 2, "0", "Has modificado el nombre de tu negocio");
 			                            }
 									}
@@ -13429,15 +13433,16 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Cambiar Precio Alquiler [Nuevo_Precio]
 					else if (strfind(cmdtext, "/Cambiar Precio Alquiler ", true) == 0)
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
 				        {
-							if ( IsMyHouse(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+				            new houseid = PlayersDataOnline[playerid][InPickupCasa];
+				            
+							if ( IsMyHouse(playerid, houseid) )
 				            {
 				                if ( strval(cmdtext[25]) >= 0 &&  strval(cmdtext[25]) <= 20000)
 				                {
-		                            HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent] = strval(cmdtext[25]);
-		                            UpdateTextLabelCasa(PlayersDataOnline[playerid][MyPickupWorld]);
+		                            HouseData[houseid][PriceRent] = strval(cmdtext[25]);
+		                            UpdateTextLabelCasa(houseid);
 		                            SendInfoMessage(playerid, 2, "0", "Has modificado el precio de alquiler de su casa");
 									if ( !strval(cmdtext[25]) )
 						            {
@@ -13470,17 +13475,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Cambiar Precio Entrada [Nuevo_Precio]
 					else if (strfind(cmdtext, "/Cambiar Precio Entrada ", true) == 0)
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-				            if ( IsMyBizz(playerid, PlayersDataOnline[playerid][MyPickupWorld], true)  )
+				            new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+				            if ( IsMyBizz(playerid, bizzid, true)  )
 				            {
-								if ( !IsBizzOnRobo(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+								if ( !IsBizzOnRobo(playerid, bizzid) )
 								{
 					                if ( strval(cmdtext[24]) >= 0 &&  strval(cmdtext[24]) <= 20000)
 					                {
-			                            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PriceJoin] = strval(cmdtext[24]);
-			                            UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
+			                            NegociosData[bizzid][PriceJoin] = strval(cmdtext[24]);
+			                            UpdateTextLabelNegocio(bizzid);
 			                            SendInfoMessage(playerid, 2, "0", "Has modificado el precio de entrada del negocio");
 		                            }
 		                            else
@@ -13490,7 +13495,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								}
 				            }
 						}
-						else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+						else if ( PlayersDataOnline[playerid][InPickupLocal] != -1)
 						{
 						    new localid = PlayersDataOnline[playerid][InPickupLocal];
 						    if (PlayersData[playerid][Local] != localid) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
@@ -13506,15 +13511,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Cambiar Precio Entrada [Nuevo_Precio]
 					else if (strfind(cmdtext, "/Cambiar Precio Materiales ", true) == 0)
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-				            if ( IsMyBizz(playerid, PlayersDataOnline[playerid][MyPickupWorld], true)  )
+				            new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+				            if ( IsMyBizz(playerid, bizzid, true)  )
 				            {
 				                if ( strval(cmdtext[27]) >= 0 && strval(cmdtext[27]) <= 1000)
 				                {
-		                            NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece] = strval(cmdtext[27]);
-		                            UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
+		                            NegociosData[bizzid][PricePiece] = strval(cmdtext[27]);
+		                            UpdateTextLabelNegocio(bizzid);
 		                            SendInfoMessage(playerid, 2, "0", "Has modificado el precio de los materiales");
 	                            }
 	                            else
@@ -13606,7 +13611,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    	else
 			    	{
 						SendInfoMessage(playerid, 0, "315", "Quizás quiso decir: /Cambiar {Frecuencia, Nombre [Nuevo Nombre], Precio Entrada [Nuevo Precio]}");
-						SendInfoMessage(playerid, 0, "315", "Quizás quiso decir: /Cambiar {Precio Materiales [Nuevo Precio], Ciudad [ID]}");
+						SendInfoMessage(playerid, 0, "315", "Quizás quiso decir: /Cambiar {Precio Materiales [Nuevo Precio], Ciudad [ID], Precio Alquiler}");
 					}
 				}
 				// COMANDO: /Info
@@ -13615,24 +13620,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Info Negocio
 				  	if (strcmp("/Info Negocio", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
 			    	{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-				            if ( PlayersData[playerid][Admin] >= 7 || IsMyBizz(playerid, PlayersDataOnline[playerid][MyPickupWorld], true) )
+				            new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+				            
+				            if ( PlayersData[playerid][Admin] >= 7 || IsMyBizz(playerid, bizzid, true) )
 				            {
-				                new MsgInfoNegocio[5][MAX_TEXT_CHAT];
-				                format(MsgInfoNegocio[0], MAX_TEXT_CHAT, "(( ID del Negocio: %i ))Nombre del Negocio: %s | Materiales: [%i/5000]",
-					                PlayersDataOnline[playerid][MyPickupWorld],
-									NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][NameBizz],
-									NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Materiales]);
-				                format(MsgInfoNegocio[1], MAX_TEXT_CHAT, "Precio Entrada: $%i",
-									NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PriceJoin]);
-				                format(MsgInfoNegocio[2], MAX_TEXT_CHAT, "Precio que paga por Materiales(0  = Deshabilitado): $%i",
-									NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][PricePiece]);
-				                format(MsgInfoNegocio[3], MAX_TEXT_CHAT, "Deposito: $%i",
-									NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito]);
-				                format(MsgInfoNegocio[4], MAX_TEXT_CHAT, "Dinero extorsionado: $%i",
-									NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][DepositoExtorsion]);
+				                new MsgInfoNegocio[6][150];
+				                format(MsgInfoNegocio[0], 150, "(( ID del Negocio: %i ))Nombre del Negocio: %s | Materiales: [%i/5000]", bizzid, NegociosData[bizzid][NameBizz], NegociosData[bizzid][Materiales]);
+				                format(MsgInfoNegocio[1], 150, "Precio Entrada: $%i", NegociosData[bizzid][PriceJoin]);
+				                format(MsgInfoNegocio[2], 150, "Precio que paga por Materiales(0  = Deshabilitado): $%i", NegociosData[bizzid][PricePiece]);
+				                format(MsgInfoNegocio[3], 150, "Deposito: $%i", NegociosData[bizzid][Deposito]);
+				                format(MsgInfoNegocio[4], 150, "Dinero extorsionado: $%i", NegociosData[bizzid][DepositoExtorsion]);
+				                format(MsgInfoNegocio[5], 150, "Precio del negocio: $%i", NegociosData[bizzid][Precio]);
 
 				    			SendInfoMessage(playerid, 1, " ", "|___________________  Negocio ___________________|");
 				    			SendInfoMessage(playerid, 1, MsgInfoNegocio[0], "Negocio: ");
@@ -13640,6 +13640,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    			SendInfoMessage(playerid, 1, MsgInfoNegocio[2], "Negocio: ");
 				    			SendInfoMessage(playerid, 1, MsgInfoNegocio[3], "Negocio: ");
 				    			SendInfoMessage(playerid, 1, MsgInfoNegocio[4], "Negocio: ");
+				    			SendInfoMessage(playerid, 1, MsgInfoNegocio[5], "Negocio: ");
 				    			SendInfoMessage(playerid, 1, " ", "|_____________________ Fin ____________________|");
 				            }
 				        }
@@ -13670,21 +13671,16 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Info Casa
 				  	else if (strcmp("/Info Casa", cmdtext, true, 10) == 0 && strlen(cmdtext) == 10)
 			    	{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-					         PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
 				        {
-							if ( IsMyHouse(playerid, PlayersDataOnline[playerid][MyPickupWorld]) || PlayersData[playerid][Admin] >= 7)
+				            new houseid = PlayersDataOnline[playerid][InPickupCasa];
+							if ( IsMyHouse(playerid, houseid) || PlayersData[playerid][Admin] >= 7)
 				            {
 				                new MsgInfoCasa[4][MAX_TEXT_CHAT];
-				                format(MsgInfoCasa[0], MAX_TEXT_CHAT, "(( ID de la Casa: %i Tipo: %i))",
-					                PlayersDataOnline[playerid][MyPickupWorld],
-									HouseData[PlayersDataOnline[playerid][MyPickupWorld]][TypeHouseId]);
-				                format(MsgInfoCasa[1], MAX_TEXT_CHAT, "Precio Alquiler: $%i (0  = Deshabilitado)",
-									HouseData[PlayersDataOnline[playerid][MyPickupWorld]][PriceRent]);
-				                format(MsgInfoCasa[2], MAX_TEXT_CHAT, "Dinero del Alquiler: $%i",
-									HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito]);
-				                format(MsgInfoCasa[3], MAX_TEXT_CHAT, "Precio de la Casa: $%i",
-									HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Price]);
+				                format(MsgInfoCasa[0], MAX_TEXT_CHAT, "(( ID de la Casa: %i Tipo: %i))", houseid, HouseData[houseid][TypeHouseId]);
+				                format(MsgInfoCasa[1], MAX_TEXT_CHAT, "Precio Alquiler: $%i (0  = Deshabilitado)", HouseData[houseid][PriceRent]);
+				                format(MsgInfoCasa[2], MAX_TEXT_CHAT, "Dinero del Alquiler: $%i", HouseData[houseid][Deposito]);
+				                format(MsgInfoCasa[3], MAX_TEXT_CHAT, "Precio de la Casa: $%i", HouseData[houseid][Price]);
 
 				    			SendInfoMessage(playerid, 1, " ", "|___________________  Casa ___________________|");
 				    			SendInfoMessage(playerid, 1, MsgInfoCasa[0], "Casa: ");
@@ -13699,9 +13695,39 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SendInfoMessage(playerid, 0, "1158", "No te encuentras en ningúna casa");
 						}
 					}
+					// COMANDO: /Info Local
+				  	else if (strcmp("/Info Local", cmdtext, true) == 0)
+			    	{
+				        if ( PlayersDataOnline[playerid][InPickupLocal] != -1)
+				        {
+				            new localid = PlayersDataOnline[playerid][InPickupLocal];
+							if (PlayersDataOnline[playerid][InPickupLocal] != PlayersData[playerid][Local]) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
+				            {
+				                new MsgInfoLocal[4][150];
+				                format(MsgInfoLocal[0], 150, "(( ID del Local: %i Tipo: %s [%i]))", localid, LocalTipoString[LocalData[localid][Tipo]-1], LocalData[localid][Tipo]);
+				                format(MsgInfoLocal[1], 150, "Precio Entrada: $%i", LocalData[localid][PrecioEntrada]);
+				                format(MsgInfoLocal[2], 150, "Deposito: $%i", LocalData[localid][Deposito]);
+				                format(MsgInfoLocal[3], 150, "Precio del Local: $%i", LocalData[localid][Precio]);
+
+                                SendInfoMessage(playerid, 1, " ", "|___________________  Local ___________________|");
+				    			SendInfoMessage(playerid, 1, MsgInfoLocal[0], "Local: ");
+				    			SendInfoMessage(playerid, 1, MsgInfoLocal[1], "Local: ");
+				    			SendInfoMessage(playerid, 1, MsgInfoLocal[2], "Local: ");
+				    			SendInfoMessage(playerid, 1, MsgInfoLocal[3], "Local: ");
+				    			SendInfoMessage(playerid, 1, " ", "|_____________________ Fin ____________________|");
+				            }
+				        }
+				        else
+				        {
+							SendInfoMessage(playerid, 0, "", "No te encuentras en ningún local");
+						}
+					}
 			    	else
 			    	{
-						SendInfoMessage(playerid, 0, "765", "Quizás quiso decir: /Info {Negocio, Casa}");
+			    	    if (PlayersData[playerid][Admin] >= 8)
+						SendInfoMessage(playerid, 0, "", "Quizás quiso decir: /Info Garage");
+						
+						SendInfoMessage(playerid, 0, "", "Quizás quiso decir: /Info {Negocio, Casa, Local}");
 					}
 				}
 				// COMANDO: /Bolsa [ID]
@@ -13890,24 +13916,23 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    	}
 					// COMANDO: /Retirar Extorsión
 				  	else if (strcmp("/Retirar Extorsión", cmdtext, true, 18) == 0 && strlen(cmdtext) == 18 ||
-	                    strcmp("/Retirar Extorsion", cmdtext, true, 18) == 0 && strlen(cmdtext) == 18
-					  )
+	                    	 strcmp("/Retirar Extorsion", cmdtext, true, 18) == 0 && strlen(cmdtext) == 18 )
 					{
-						if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-						     PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+						if ( PlayersDataOnline[playerid][InPickupNegocio] )
 						{
-	                        if ( IsMyExtorsion(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+						    new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+	                        if ( IsMyExtorsion(playerid, bizzid) )
 	                        {
-	                            if ( !IsBizzOnRobo(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+	                            if ( !IsBizzOnRobo(playerid, bizzid) )
 	                            {
-									if ( NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][DepositoExtorsion] > 0 )
+									if ( NegociosData[bizzid][DepositoExtorsion] > 0 )
 									{
-							            GivePlayerMoneyEx(playerid, NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][DepositoExtorsion]);
+							            GivePlayerMoneyEx(playerid, NegociosData[bizzid][DepositoExtorsion]);
 
 										new MsgExtorsionRatirar[MAX_TEXT_CHAT];
-										format(MsgExtorsionRatirar, sizeof(MsgExtorsionRatirar), "Ha retirado $%i extorsionados de este negocio", NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][DepositoExtorsion]);
+										format(MsgExtorsionRatirar, sizeof(MsgExtorsionRatirar), "Ha retirado $%i extorsionados de este negocio", NegociosData[bizzid][DepositoExtorsion]);
 										SendInfoMessage(playerid, 2, "0", MsgExtorsionRatirar);
-										NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][DepositoExtorsion] = 0;
+										NegociosData[bizzid][DepositoExtorsion] = 0;
 									}
 									else
 									{
@@ -13933,19 +13958,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Retirar Casa
 					else if ( strcmp("/Retirar Casa", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13 )
 					{
-						if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-						     PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
+						if ( PlayersDataOnline[playerid][InPickupCasa] )
 						{
-	                        if ( IsMyHouse(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+						    new houseid = PlayersDataOnline[playerid][InPickupCasa];
+	                        if ( IsMyHouse(playerid, houseid) )
 	                        {
-								if ( HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] > 0 )
+								if ( HouseData[houseid][Deposito] > 0 )
 								{
-						            GivePlayerMoneyEx(playerid, HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito]);
+						            GivePlayerMoneyEx(playerid, HouseData[houseid][Deposito]);
 
 									new MsgCasaRatirar[MAX_TEXT_CHAT];
-									format(MsgCasaRatirar, sizeof(MsgCasaRatirar), "Ha retirado $%i de ganancias de el alquiler", HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito]);
+									format(MsgCasaRatirar, sizeof(MsgCasaRatirar), "Ha retirado $%i de ganancias de el alquiler", HouseData[houseid][Deposito]);
 									SendInfoMessage(playerid, 2, "0", MsgCasaRatirar);
-									HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito] = 0;
+									HouseData[houseid][Deposito] = 0;
 								}
 								else
 								{
@@ -13965,13 +13990,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Retirar Negocio
 					else if (strfind(cmdtext, "/Retirar Negocio ", true) == 0)
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-							new BizzId = PlayersDataOnline[playerid][MyPickupWorld];
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( IsMyBizz(playerid, BizzId, true)  )
 				            {
-								if ( !IsBizzOnRobo(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+								if ( !IsBizzOnRobo(playerid, BizzId) )
 								{
 							        if (NegociosData[BizzId][Deposito] >= strval(cmdtext[17]) )
 							        {
@@ -14149,10 +14173,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Depositar Negocio
 					else if (strfind(cmdtext, "/Depositar Negocio ", true) == 0)
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-							new BizzId = PlayersDataOnline[playerid][MyPickupWorld];
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( IsMyBizz(playerid, BizzId, true)  )
 				            {
 						        if (PlayersData[playerid][Dinero] >= strval(cmdtext[19]) )
@@ -14261,10 +14284,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Consutlar Negocio
 				  	else if (strcmp("/Consultar Negocio", cmdtext, true, 18) == 0 && strlen(cmdtext) == 18)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-							new BizzId = PlayersDataOnline[playerid][MyPickupWorld];
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( IsMyBizz(playerid, BizzId, true)  )
 				            {
 						        new MsgConsultarNegocio[MAX_TEXT_CHAT];
@@ -14282,13 +14304,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Consultar Extorsión
 				  	else if ( strcmp("/Consultar Casa", cmdtext, true, 15) == 0 && strlen(cmdtext) == 15 )
 					{
-						if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-						     PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
+						if ( PlayersDataOnline[playerid][InPickupCasa] )
 						{
-	                        if ( IsMyHouse(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+						    new houseid = PlayersDataOnline[playerid][InPickupCasa];
+	                        if ( IsMyHouse(playerid, houseid) )
 	                        {
 						        new MsgCasaConsultar[MAX_TEXT_CHAT];
-						        format(MsgCasaConsultar, sizeof(MsgCasaConsultar), "Tiene $%i ganancias de alquiler en la casa", HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Deposito]);
+						        format(MsgCasaConsultar, sizeof(MsgCasaConsultar), "Tiene $%i ganancias de alquiler en la casa", HouseData[houseid][Deposito]);
 				    			SendInfoMessage(playerid, 1, " ", "|___________________ Casa ___________________|");
 				    			SendInfoMessage(playerid, 1, MsgCasaConsultar, "Casa: ");
 				    			SendInfoMessage(playerid, 1, " ", "|_____________________ Fin ____________________|");
@@ -14305,16 +14327,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					}
 					// COMANDO: /Consultar Extorsión
 				  	else if (strcmp("/Consultar Extorsión", cmdtext, true, 20) == 0 && strlen(cmdtext) == 20 ||
-	                    	 strcmp("/Consultar Extorsion", cmdtext, true, 20) == 0 && strlen(cmdtext) == 20
-					  )
+	                    	 strcmp("/Consultar Extorsion", cmdtext, true, 20) == 0 && strlen(cmdtext) == 20 )
 					{
-						if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-						     PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
-						{
-	                        if ( strfind(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Extorsion], PlayersDataOnline[playerid][NameOnline], false) == 0 && strlen(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Extorsion]) == strlen(PlayersDataOnline[playerid][NameOnline]) )
+					    if ( PlayersDataOnline[playerid][InPickupNegocio] )
+				        {
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
+	                        if ( strfind(NegociosData[BizzId][Extorsion], PlayersDataOnline[playerid][NameOnline], false) == 0 && strlen(NegociosData[BizzId][Extorsion]) == strlen(PlayersDataOnline[playerid][NameOnline]) )
 	                        {
 						        new MsgExtorsionConsultar[MAX_TEXT_CHAT];
-						        format(MsgExtorsionConsultar, sizeof(MsgExtorsionConsultar), "Tiene acumulado $%i de extorsión en este negocio", NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][DepositoExtorsion]);
+						        format(MsgExtorsionConsultar, sizeof(MsgExtorsionConsultar), "Tiene acumulado $%i de extorsión en este negocio", NegociosData[BizzId][DepositoExtorsion]);
 				    			SendInfoMessage(playerid, 1, " ", "|___________________ Extorsión ___________________|");
 				    			SendInfoMessage(playerid, 1, MsgExtorsionConsultar, "Extorsión: ");
 				    			SendInfoMessage(playerid, 1, " ", "|_____________________ Fin ____________________|");
@@ -14679,10 +14700,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    }
 				  	else if (strcmp("/Comprar Casa", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
-				        {
-							new HouseId = PlayersDataOnline[playerid][MyPickupWorld];
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
+						{
+						    new HouseId = PlayersDataOnline[playerid][InPickupCasa];
 				            if ( strlen(HouseData[HouseId][Dueno]) == 2 )
 				            {
 							    if ( PlayersData[playerid][House] == -1 && PlayersData[playerid][Alquiler] == -1 )
@@ -14726,10 +14746,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Comprar Negocio
 				  	else if (strcmp("/Comprar Negocio", cmdtext, true, 16) == 0 && strlen(cmdtext) == 16)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-							new BizzId = PlayersDataOnline[playerid][MyPickupWorld];
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( strlen(NegociosData[BizzId][Dueno]) == 1 )
 				            {
 				                if ( GetPlayerScore(playerid) >= NegociosData[BizzId][Level] )
@@ -14894,9 +14913,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    }
 				    else if (strcmp("/Comprar Local", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14 )
 				    {
-				        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+				        new localID = GetPlayerCloseLocal(playerid);
+				        if (localID != -1)
 				        {
-				            new localID = PlayersDataOnline[playerid][InPickupLocal];
 				            if (!IsLocalForSale(localID)) return SendInfoMessage(playerid, 0, "", "Este local no esta a la venta.");
 				            if (PlayersData[playerid][Local] != -1) return SendInfoMessage(playerid, 0, "", "Tu no puedes tener mas locales.");
 				            if (GetPlayerScoreEx(playerid) < LocalData[localID][Nivel]) return SendInfoMessage(playerid, 0, "", "No tienes suficiente nivel para comprar este local.");
@@ -15267,10 +15286,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Quitar Extorsión [ID]
 			  		else if (strfind(cmdtext, "/Quitar Extorsión ", true) == 0 || strfind(cmdtext, "/Quitar Extorsion ", true) == 0)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-				            if ( IsMyBizz(playerid, PlayersDataOnline[playerid][MyPickupWorld], true)  )
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
+				            if ( IsMyBizz(playerid, BizzId, true)  )
 				            {
 							    if ( IsPlayerNearEx(playerid, strval(cmdtext[18]),
 									 "343",
@@ -15280,16 +15299,16 @@ public OnPlayerCommandText(playerid, cmdtext[])
 									 "El jugador que le deseas quitarle el poder de extorsión de su negocio no se ha logueado",
 									 "El jugador que le deseas quitarle el poder de extorsión de su negocio no se encuentra cerca de tí") )
 							    {
-		                            if ( IsMyExtorsion(strval(cmdtext[18]), PlayersDataOnline[playerid][MyPickupWorld]) )
+		                            if ( IsMyExtorsion(strval(cmdtext[18]), BizzId) )
 		                            {
-									    format(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Extorsion], MAX_PLAYER_NAME, "No");
+									    format(NegociosData[BizzId][Extorsion], MAX_PLAYER_NAME, "No");
 										new MsgToMe[MAX_TEXT_CHAT];
 										new MsgToExtorsionista[MAX_TEXT_CHAT];
 										format(MsgToMe, sizeof(MsgToMe), "Has dado el poder de extorsión de este negocio a %s", PlayersDataOnline[strval(cmdtext[18])][NameOnlineFix]);
 										format(MsgToExtorsionista, sizeof(MsgToExtorsionista), "%s te ha dado el poder de extorsionarle este negocio", PlayersDataOnline[playerid][NameOnlineFix]);
 										SendInfoMessage(playerid, 3, "0", MsgToMe);
 										SendInfoMessage(strval(cmdtext[18]), 3, "0", MsgToExtorsionista);
-										UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
+										UpdateTextLabelNegocio(BizzId);
 									}
 									else
 									{
@@ -15664,10 +15683,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							}
 				  	        if ( RobosInfo[fac][TimeLast] <= gettime() )
 				  	        {
-						        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-						             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+						        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 						        {
-									if ( !NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Lock] )
+						            new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
+									if ( !NegociosData[BizzId][Lock] )
 									{
 									    if ( !RobosInfo[fac][BizzIDR] )
 									    {
@@ -15684,7 +15703,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 										    if ( GetMaxPlayersByFaccion(RobosInfo[fac][City]) >= 4 )
 										    {
 											    RobosInfo[fac][TimeLast] = gettime() + TIME_R_READY;
-											    AddRobo(fac, PlayersDataOnline[playerid][MyPickupWorld]);
+											    AddRobo(fac, BizzId);
 										    }
 										    else
 										    {
@@ -16557,7 +16576,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 										new MsgMeDarMovil[MAX_TEXT_CHAT];
 										format(MsgMeDarMovil, sizeof(MsgMeDarMovil), "le ha dado un móvil a %s", PlayersDataOnline[strval(cmdtext[11])][NameOnlineFix]);
 							        	Acciones(playerid, 8, MsgMeDarMovil);
-							        	
+
 							        	new query[200];
 							        	mysql_format(dataBase, query, 200, "UPDATE `%s` SET `Phone`='%i' WHERE `Nombre`='%e';", DIR_USERS, PlayersData[strval(cmdtext[11])][Phone], PlayersDataOnline[strval(cmdtext[11])][NameOnline]);
 							        	mysql_query(dataBase, query, false);
@@ -16583,12 +16602,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Dar Extorsión [ID]
 			  		else if (strfind(cmdtext, "/Dar Extorsión ", true) == 0 || strfind(cmdtext, "/Dar Extorsion ", true) == 0)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-				            if ( IsMyBizz(playerid, PlayersDataOnline[playerid][MyPickupWorld], true)  )
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
+				            if ( IsMyBizz(playerid, BizzId, true)  )
 				            {
-	                            if ( strlen(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Extorsion]) == 2 )
+	                            if ( strlen(NegociosData[BizzId][Extorsion]) == 2 )
 	                            {
 								    if ( IsPlayerNearEx(playerid, strval(cmdtext[15]),
 										 "1084",
@@ -16598,14 +16617,14 @@ public OnPlayerCommandText(playerid, cmdtext[])
 										 "El jugador que le deseas darle el poder de extorsión de su negocio no se ha logueado",
 										 "El jugador que le deseas darle el poder de extorsión de su negocio no se encuentra cerca de tí") )
 								    {
-									    format(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Extorsion], MAX_PLAYER_NAME, "%s", PlayersDataOnline[strval(cmdtext[15])][NameOnline]);
+									    format(NegociosData[BizzId][Extorsion], MAX_PLAYER_NAME, "%s", PlayersDataOnline[strval(cmdtext[15])][NameOnline]);
 										new MsgToMe[MAX_TEXT_CHAT];
 										new MsgToExtorsionista[MAX_TEXT_CHAT];
 										format(MsgToMe, sizeof(MsgToMe), "Has dado el poder de extorsión de este negocio a %s", PlayersDataOnline[strval(cmdtext[15])][NameOnlineFix]);
 										format(MsgToExtorsionista, sizeof(MsgToExtorsionista), "%s te ha dado el poder de extorsionarle este negocio", PlayersDataOnline[playerid][NameOnlineFix]);
 										SendInfoMessage(playerid, 3, "0", MsgToMe);
 										SendInfoMessage(strval(cmdtext[15]), 3, "0", MsgToExtorsionista);
-										UpdateTextLabelNegocio(PlayersDataOnline[playerid][MyPickupWorld]);
+										UpdateTextLabelNegocio(BizzId);
 								    }
 								}
 								else
@@ -16623,10 +16642,10 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			  		else if (strfind(cmdtext, "/Dar Llaves Amigo ", true) == 0)
 				    {
 				        new getid;
-				        if (sscanf(cmdtext[18], "u", getid)) return SendSyntaxError(playerid, "Dar Llaves Amigo", "Dar Llaves Amigo Santiago.");
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] && PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId])
-				        {
-							new HouseId = PlayersDataOnline[playerid][MyPickupWorld];
+				        if (sscanf(cmdtext[18], "u", getid)) return SendSyntaxError(playerid, "Dar Llaves Amigo", "Dar Llaves Amigo 12.");
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
+						{
+						    new HouseId = PlayersDataOnline[playerid][InPickupCasa];
 							if ( IsMyHouse(playerid, HouseId) )
 				            {
 							    if ( IsPlayerNearEx(playerid, getid,
@@ -16637,13 +16656,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 									 "El jugador que le deseas dar las llaves de la casa no se ha logueado",
 									 "El jugador que le deseas dar las llaves de la casa no se encuentra cerca de tí") )
 							    {
-									if ( IsPlayerInHouseFriend(getid, PlayersDataOnline[playerid][MyPickupWorld]) == -1 )
+									if ( IsPlayerInHouseFriend(getid, HouseId) == -1 )
 									{
-										AddPlayerHouseFriend(getid, PlayersDataOnline[playerid][MyPickupWorld]);
+										AddPlayerHouseFriend(getid, HouseId);
 
-										new MsgLlavesCasaToMe[MAX_TEXT_CHAT];
-										new MsgLlavesCasaToYou[MAX_TEXT_CHAT];
-										new MsgLlavesCasaMe[MAX_TEXT_CHAT];
+										new MsgLlavesCasaToMe[150];
+										new MsgLlavesCasaToYou[150];
+										new MsgLlavesCasaMe[150];
 										format(MsgLlavesCasaMe, sizeof(MsgLlavesCasaMe), "le da una copia de llaves de su casa a %s", PlayersDataOnline[getid][NameOnlineFix]);
 										format(MsgLlavesCasaToMe, sizeof(MsgLlavesCasaToMe), "Le diste una copia de las llaves de tu casa a %s", PlayersDataOnline[getid][NameOnlineFix]);
 										format(MsgLlavesCasaToYou, sizeof(MsgLlavesCasaToYou), "%s te dió una copia de las llaves de su casa", PlayersDataOnline[playerid][NameOnlineFix]);
@@ -16663,7 +16682,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								SendInfoMessage(playerid, 0, "1209", "Ésta no es su casa");
 							}
 				        }
-				        else if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+				        else if ( PlayersDataOnline[playerid][InPickupLocal] != -1 )
 				        {
 							new localID = PlayersDataOnline[playerid][InPickupLocal];
 							if (PlayersData[playerid][Local] != localID) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
@@ -17022,30 +17041,60 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendInfoMessage(playerid, 0, "272", "Quizás quiso decir: /Dar {Cartera [ID] [ID_Cartera]}");
 					}
 			    }
-				// COMANDO: /Reportar [ID] [Razón]
-				else if (strfind(cmdtext, "/Reportar ", true) == 0)
+				// COMANDO: /Re [ID] [Razón]
+				else if (strcmp("/Re", cmdtext, true) == 0) return SendSyntaxError(playerid, "Re", "Re 12 o /Re 12 PG");
+				else if (strfind(cmdtext, "/Re ", true) == 0)
 				{
-					if (strval(cmdtext[10]) != playerid)
+				    new Myplayerid = playerid, razon[80], returncmd[150];
+				    
+			        if (sscanf(cmdtext[4], "us[80]", playerid, razon) == 0)
 					{
-						if (IsPlayerConnected(strval(cmdtext[10])) )
-						{
-							new MsgReportarInputText[MAX_TEXT_CHAT];
-							PlayersDataOnline[playerid][MyLastIdReport] = strval(cmdtext[10]);
-							format(MsgReportarInputText, sizeof(MsgReportarInputText), "{00A5FF}Reportar a %s", PlayersDataOnline[strval(cmdtext[10])][NameOnlineFix]);
+				        if (Myplayerid == playerid) return SendInfoMessage(playerid, 0, "", "Has introducído tu misma ID.");
+					    format(returncmd, sizeof(returncmd), "/Reportar %i %s", playerid, razon);
+					    return CallLocalFunction("OnPlayerCommandText", "is", Myplayerid, returncmd);
+					}
+					else if (sscanf(cmdtext[4], "u", playerid) == 0)
+					{
+				        if (Myplayerid == playerid) return SendInfoMessage(playerid, 0, "", "Has introducído tu misma ID.");
+					    format(returncmd, sizeof(returncmd), "/Reportar %i", playerid);
+					    return CallLocalFunction("OnPlayerCommandText", "is", Myplayerid, returncmd);
+					}
+			        else return SendSyntaxError(playerid, "Re", "Re 12 o /Re 12 PG");
+				}
+				// COMANDO: /Reportar [ID] [Razón]
+				else if (strfind(cmdtext, "/Reportar", true) == 0)
+				{
+				    if (strfind(cmdtext, "/Reportar ", true) == 0)
+				    {
+						new Myplayerid = playerid, razon[80];
+						
+				        if (sscanf(cmdtext[10], "us[80]", playerid, razon) == 0)
+				        {
+				            if (Myplayerid == playerid) return SendInfoMessage(playerid, 0, "", "Has introducído tu misma ID.");
+				            if (IsPlayerLoguedEx(Myplayerid, playerid) == 0) return 1;
+				            if (strlen(razon) < 2 || strlen(razon) > 80) return SendInfoMessage(Myplayerid, 0, "", "La razon debe tener un minimo de 2 y maximo de 80 caracteres");
+				            
+				            new Mystring[150];
+							new Astring[150];
+						    format(Mystring, sizeof(Mystring), "Reporte: Has reportado a %s[%i]. Razón: %s", PlayersDataOnline[playerid][NameOnline], playerid, razon);
+							format(Astring, sizeof(Astring), "%s %s[%i] reporta a %s[%i]. Razón: %s", LOGO_STAFF, PlayersDataOnline[Myplayerid][NameOnline], Myplayerid, PlayersDataOnline[playerid][NameOnline], playerid, razon);
+							
+						    SendClientMessage(Myplayerid, COLOR_CHEATS_REPORTES, Mystring);
+						    MsgCheatsReportsToAdmins(Astring);
+				        }
+						else if (sscanf(cmdtext[10], "u", playerid) == 0)
+				        {
+				            if (Myplayerid == playerid) return SendInfoMessage(playerid, 0, "", "Has introducído tu misma ID.");
+				            if (IsPlayerLoguedEx(Myplayerid, playerid) == 0) return 1;
+				            new MsgReportarInputText[150];
+							PlayersDataOnline[Myplayerid][MyLastIdReport] = playerid;
+							format(MsgReportarInputText, sizeof(MsgReportarInputText), "{00A5FF}Reportar a %s", PlayersDataOnline[playerid][NameOnlineFix]);
 						    ShowPlayerDialogEx(playerid, 11, DIALOG_STYLE_INPUT, MsgReportarInputText, "{F0F0F0}Describa brevemente la razón de su reporte", "Reportar", "Cancelar");
 	   						return 1;
-						}
-						else
-						{
-							SendInfoMessage(playerid, 0, "283", "El jugador que desea reportar no se encuentra connectado");
-							return 1;
-						}
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "284", "La ID que has introducído es la suya.");
-	                    return 1;
-					}
+				        }
+				        else return SendSyntaxError(Myplayerid, "Reportar", "Reportar 2 o /Reportar 2 PG");
+				    }
+				    else return SendInfoMessage(playerid, 0, "", "Quizas quiso decir: /Reportar [ID] o /Reportar [ID] [Razon]");
 				}
 				// COMANDO: /Aceptar
 				else if (strfind(cmdtext, "/Aceptar", true) == 0)
@@ -17884,10 +17933,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Vender Casa
 				  	else if (strcmp("/Vender Casa", cmdtext, true, 12) == 0 && strlen(cmdtext) == 12)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-					         PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
-				        {
-							new HouseId = PlayersDataOnline[playerid][MyPickupWorld];
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
+						{
+						    new HouseId = PlayersDataOnline[playerid][InPickupCasa];
 							if ( IsMyHouse(playerid, HouseId) )
 				            {
 								PlayersDataOnline[playerid][MyPickupLock] = true;
@@ -17918,13 +17966,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Vender Negocio
 				  	else if (strcmp("/Vender Negocio", cmdtext, true, 15) == 0 && strlen(cmdtext) == 15)
 				    {
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-							new BizzId = PlayersDataOnline[playerid][MyPickupWorld];
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( IsMyBizz(playerid, BizzId, true)  )
 				            {
-				                if ( !IsBizzOnRobo(playerid, PlayersDataOnline[playerid][MyPickupWorld]) )
+				                if ( !IsBizzOnRobo(playerid, BizzId) )
 				                {
 									PlayersDataOnline[playerid][MyPickupLock] = true;
 									NegociosData[BizzId][Lock] = true;
@@ -18021,18 +18068,18 @@ public OnPlayerCommandText(playerid, cmdtext[])
 	                else if (strcmp("/Vender Local", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
 				    {
 				        if (PlayersData[playerid][Local] == -1) return SendInfoMessage(playerid, 0, "", "Tú no tienes local.");
-				        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+				        new localID = GetPlayerCloseLocal(playerid);
+			        	if (localID != -1)
 				        {
-							new localID = PlayersDataOnline[playerid][InPickupLocal];
                             if (PlayersData[playerid][Local] != localID) return SendInfoMessage(playerid, 0, "", "Este no es tu local.");
-							
+
 							LocalData[localID][Seguro] = true;
 							PlayersDataOnline[playerid][MyPickupLock] = true;
                          	format(LocalData[localID][Owner], MAX_PLAYER_NAME, "No");
                          	for (new i=0; i != MAX_LOCAL_KEYS; i++){
                          	RemoveLocalKey(localID, i);}
 				            SaveLocal(localID, true);
-				            
+
 				            PlayersData[playerid][Local] = -1;
 				            GivePlayerMoneyEx(playerid, LocalData[localID][Precio]);
 				            GameTextForPlayer(playerid, "~B~Ha ~R~vendido su local!", 2000, 0);
@@ -18050,7 +18097,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    {
 			        new RefrigeradorID;
 					if (sscanf(cmdtext[9], "i", RefrigeradorID)) return SendSyntaxError(playerid, "Cocinar", "Cocinar 1");
-					
+
 			        if( PlayersData[playerid][IsPlayerInHouse] )
 			        {
 			            if ( IsOpenRefrigerador(playerid, PlayersData[playerid][IsPlayerInHouse]) )
@@ -18117,7 +18164,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    {
 				        new RefrigeradorID;
 						if (sscanf(cmdtext[16], "i", RefrigeradorID)) return SendSyntaxError(playerid, "Coger Articulo", "Coger Artículo 1");
-						
+
 						if ( PlayersData[playerid][IsPlayerInHouse] )
 						{
 							new HouseId = PlayersData[playerid][IsPlayerInHouse];
@@ -19761,7 +19808,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			            if (strcmp("/Dejar Chaleco", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14)
 				    	{
 							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
-							
+
 						    new Float:Chaleco1;
 							GetPlayerArmour(playerid, Chaleco1);
 							if ( Chaleco1 != 0.0 )
@@ -19780,7 +19827,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					  	else if (strcmp("/Dejar Arma", cmdtext, true, 11) == 0 && strlen(cmdtext) == 11)
 				    	{
 							if (LocalData[localid][LArmarioSeguro]) return SendInfoMessage(playerid, 0, "", "El armario se encuentra cerrado!");
-							
+
 							new MyWeapons, MyAmmo; MyWeapons = GetPlayerWeapon(playerid); MyAmmo = GetPlayerAmmo(playerid);
 					        if ( MyWeapons != 0 )
 					        {
@@ -20117,7 +20164,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					else if (PlayersData[playerid][InLocal] != -1)
 			        {
 			            new localid = PlayersData[playerid][InLocal];
-			            //LocalData[localid][]
+			            //LocalData[const localid][]
 			            if (LocalData[localid][LRefrigeradorSeguro]) return SendInfoMessage(playerid, 0, "", "El refrigerador se encuentra cerrado!");
 			            new MsgRefrigerador[150];
 	                    Acciones(playerid, 8, "mira dentro del refrigerador");
@@ -20214,7 +20261,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					else if (PlayersData[playerid][InLocal] != -1)
 			        {
 			            new localid = PlayersData[playerid][InLocal];
-			            //LocalData[localid][]
+			            //LocalData[const localid][]
 						if (LocalData[localid][LGavetaSeguro]) return SendInfoMessage(playerid, 0, "", "La gaveta se encuentra cerrada!");
 						new MsgGaveta[MAX_TEXT_CHAT];
 	                    Acciones(playerid, 8, "mira dentro de la gaveta");
@@ -21486,7 +21533,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								PlayersData[playerid][Phone] = 0;
 						        Acciones(playerid, 8, "ha tirado su móvil al suelo");
 						        SendInfoMessage(playerid, 2, "0", "Has botado su móvil, ahora no podrá realizar llamadas");
-						        
+
 						        new query[200];
 						        mysql_format(dataBase, query, 200, "UPDATE `%s` SET `Phone`='0' WHERE `Nombre`='%e';", DIR_USERS, PlayersDataOnline[playerid][NameOnline]);
 							    mysql_query(dataBase, query, false);
@@ -21745,7 +21792,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 								    {
 								        if ( PlayersData[playerid][Rango] == 1 && PlayersData[idTochange][Rango] <= 1 ) return SendInfoMessage(playerid, 0, "", "No puedes cambiarle el rango a este usuario");
 								        if ( PlayersData[playerid][Rango] == 1 && RangoID == 1 ) return SendInfoMessage(playerid, 0, "", "Solo el lider puede asignar ese rango");
-								        
+
 								        if ( RangoID != PlayersData[idTochange][Rango] )
 								        {
 				                            PlayersData[idTochange][Rango] = RangoID + 1;
@@ -21795,12 +21842,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							if ( PlayersData[strval(IdSend)][Faccion] == PlayersData[playerid][Faccion] )
 							{
 							    if ( PlayersData[playerid][Rango] == 1 && PlayersData[strval(IdSend)][Rango] <= 1 ) return SendInfoMessage(playerid, 0, "", "No puedes cambiarle el rango a este usuario");
-							
+
 	                            PlayersData[strval(IdSend)][Faccion] = 0;
 	                            PlayersData[strval(IdSend)][Rango]   = 7;
 								PlayersData[strval(IdSend)][HorasWork] = 0;
 								PlayersData[strval(IdSend)][SpawnFac] = 0;
-								
+
 								new MsgExpulsarUser[MAX_TEXT_CHAT]; format(MsgExpulsarUser, sizeof(MsgExpulsarUser), "%s te ha expulsado de la facción!", PlayersDataOnline[playerid][NameOnlineFix]);
 								new MsgExpulsarMe[MAX_TEXT_CHAT]; format(MsgExpulsarMe, sizeof(MsgExpulsarMe), "Expulsaste a %s de tú facción.", PlayersDataOnline[strval(IdSend)][NameOnlineFix]);
 	                            SendInfoMessage(strval(IdSend), 3, "0", MsgExpulsarUser);
@@ -22028,7 +22075,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				   					{
 									    TaxisTaximetro[TaxiID][TaxiOn] = true;
 									    format(MsgEstadoTaxi, sizeof(MsgEstadoTaxi), "activa el taxímetro del taxí");
-									    
+
 									    for ( new i = 0; i < MAX_PLAYERS; i++)
 									    {
 									        if ( IsPlayerConnected(i) &&
@@ -23059,17 +23106,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 8 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( strval(cmdtext[9]) >= 0 && strval(cmdtext[9]) <= 500000 )
 				            {
-		                        NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Precio] = strval(cmdtext[9]);
+		                        NegociosData[BizzId][Precio] = strval(cmdtext[9]);
 		                        new MsgChangeType[MAX_TEXT_CHAT];
 		                        format(MsgChangeType, sizeof(MsgChangeType), "Cambiaste el precio de este negocio a: $%i", strval(cmdtext[9]));
 				                SendInfoMessage(playerid, 2, "0", MsgChangeType);
 
-	                            DataSaveBizz(PlayersDataOnline[playerid][MyPickupWorld], true);
+	                            DataSaveBizz(BizzId, true);
 					        }
 					        else
 					        {
@@ -23092,17 +23139,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 7 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( strval(cmdtext[8]) >= 0 && strval(cmdtext[8]) <= 50 )
 				            {
-		                        NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Level] = strval(cmdtext[8]);
+		                        NegociosData[BizzId][Level] = strval(cmdtext[8]);
 		                        new MsgChangeType[MAX_TEXT_CHAT];
 		                        format(MsgChangeType, sizeof(MsgChangeType), "Cambiaste el nivel de este negocio a: %i", strval(cmdtext[8]));
 				                SendInfoMessage(playerid, 2, "0", MsgChangeType);
 
-	                            DataSaveBizz(PlayersDataOnline[playerid][MyPickupWorld], true);
+	                            DataSaveBizz(BizzId, true);
 					        }
 					        else
 					        {
@@ -23125,17 +23172,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 8 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
 				            if ( strval(cmdtext[7]) >= 0 && strval(cmdtext[7]) <= MAX_BIZZ_TYPE )
 				            {
-		                        NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Type] = strval(cmdtext[7]);
+		                        NegociosData[BizzId][Type] = strval(cmdtext[7]);
 		                        new MsgChangeType[MAX_TEXT_CHAT];
 		                        format(MsgChangeType, sizeof(MsgChangeType), "Cambiaste el tipo de este negocio a tipo: %i", strval(cmdtext[7]));
 				                SendInfoMessage(playerid, 2, "0", MsgChangeType);
 
-	                            DataSaveBizz(PlayersDataOnline[playerid][MyPickupWorld], true);
+	                            DataSaveBizz(BizzId, true);
 					        }
 					        else
 					        {
@@ -23158,17 +23205,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 8 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
-				        {
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
+						{
+						    new houseid = PlayersDataOnline[playerid][InPickupCasa];
 				            if ( strval(cmdtext[9]) >= 0 && strval(cmdtext[9]) <= 1000000 )
 				            {
-		                        HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Price] = strval(cmdtext[9]);
+		                        HouseData[houseid][Price] = strval(cmdtext[9]);
 		                        new MsgChangeType[MAX_TEXT_CHAT];
 		                        format(MsgChangeType, sizeof(MsgChangeType), "Cambiaste el precio de esta casa a: %i", strval(cmdtext[9]));
 				                SendInfoMessage(playerid, 2, "0", MsgChangeType);
 
-	                            SaveHouse(PlayersDataOnline[playerid][MyPickupWorld], true);
+	                            SaveHouse(houseid, true);
 					        }
 					        else
 					        {
@@ -23243,13 +23290,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							{
 							    if ( IsValidName(NewName) )
 							    {
-							    
+
 									new query[100], Cache:cacheid, cuentaExiste;
 									mysql_format(dataBase, query, 100, "SELECT * FROM `%s` WHERE `Nombre`='%e';", DIR_USERS, NewName);
 									cacheid = mysql_query(dataBase, query);
 									cache_get_row_count(cuentaExiste);
 									cache_delete(cacheid);
-									
+
 									if ( !cuentaExiste )
 									{
 								        switch(SetPlayerName(playeridChange, NewName))
@@ -23399,17 +23446,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 7 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
-				        {
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
+						{
+						    new houseid = PlayersDataOnline[playerid][InPickupCasa];
 				            if ( strval(cmdtext[8]) >= 0 && strval(cmdtext[8]) <= 50 )
 				            {
-		                        HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Level] = strval(cmdtext[8]);
+		                        HouseData[houseid][Level] = strval(cmdtext[8]);
 		                        new MsgChangeType[MAX_TEXT_CHAT];
 		                        format(MsgChangeType, sizeof(MsgChangeType), "Cambiaste el nivel a está casa a: %i", strval(cmdtext[8]));
 				                SendInfoMessage(playerid, 2, "0", MsgChangeType);
 
-	                            SaveHouse(PlayersDataOnline[playerid][MyPickupWorld], true);
+	                            SaveHouse(houseid, true);
 					        }
 					        else
 					        {
@@ -23554,19 +23601,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 8 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
-				        {
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
+						{
+						    new houseid = PlayersDataOnline[playerid][InPickupCasa];
 				            if ( strval(cmdtext[7]) >= 0 && strval(cmdtext[7]) <= MAX_HOUSE_TYPE )
 				            {
-		                        HouseData[PlayersDataOnline[playerid][MyPickupWorld]][TypeHouseId] = strval(cmdtext[7]);
+		                        HouseData[houseid][TypeHouseId] = strval(cmdtext[7]);
 		                        new MsgChangeType[MAX_TEXT_CHAT];
 		                        format(MsgChangeType, sizeof(MsgChangeType), "Cambiaste el tipo de esta casa a tipo: %i", strval(cmdtext[7]));
 				                SendInfoMessage(playerid, 2, "0", MsgChangeType);
 
-								RemoveAllGarage(PlayersDataOnline[playerid][MyPickupWorld]);
+								RemoveAllGarage(houseid);
 
-	                            SaveHouse(PlayersDataOnline[playerid][MyPickupWorld], true);
+	                            SaveHouse(houseid, true);
 					        }
 					        else
 					        {
@@ -23863,12 +23910,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 8 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= HouseData[1][PickupId] &&
-				             PlayersDataOnline[playerid][InPickup] <= HouseData[MAX_HOUSE][PickupId] )
-				        {
-				            if ( strlen(HouseData[PlayersDataOnline[playerid][MyPickupWorld]][Dueno]) != 2 )
+				        if ( PlayersDataOnline[playerid][InPickupCasa] )
+						{
+						    new houseid = PlayersDataOnline[playerid][InPickupCasa];
+				            if ( strlen(HouseData[houseid][Dueno]) != 2 )
 				            {
-								new playerid_vender = RemoveDuenoOfHouse(PlayersDataOnline[playerid][MyPickupWorld]);
+								new playerid_vender = RemoveDuenoOfHouse(houseid);
 								new MsgVentaCasaEx[MAX_TEXT_CHAT];
 								format(MsgVentaCasaEx, sizeof(MsgVentaCasaEx), "Has vendido esta casa al estado, erá propiedad de %s", PlayersDataOnline[playerid_vender][NameOnline]);
 								SendInfoMessage(playerid, 3, "0", MsgVentaCasaEx);
@@ -23894,15 +23941,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if ( PlayersData[playerid][Admin] >= 8 )
 					{
-				        if ( PlayersDataOnline[playerid][InPickup] >= NegociosData[1][PickupOutId] &&
-				             PlayersDataOnline[playerid][InPickup] <= NegociosData[MAX_BIZZ][PickupOutId] )
+				        if ( PlayersDataOnline[playerid][InPickupNegocio] )
 				        {
-				            if ( strlen(NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Dueno]) != 1 )
+							new BizzId = PlayersDataOnline[playerid][InPickupNegocio];
+				            if ( strlen(NegociosData[BizzId][Dueno]) != 1 )
 				            {
 								new MsgVentaNegocioEx[MAX_TEXT_CHAT];
-								format(MsgVentaNegocioEx, sizeof(MsgVentaNegocioEx), "Has vendido este negocio al estado, erá propiedad de %s", NegociosData[PlayersDataOnline[playerid][MyPickupWorld]][Dueno]);
+								format(MsgVentaNegocioEx, sizeof(MsgVentaNegocioEx), "Has vendido este negocio al estado, erá propiedad de %s", NegociosData[BizzId][Dueno]);
 								SendInfoMessage(playerid, 3, "0", MsgVentaNegocioEx);
-								RemoveDuenoOfBizz(PlayersDataOnline[playerid][MyPickupWorld]);
+								RemoveDuenoOfBizz(BizzId);
 					        }
 					        else
 					        {
@@ -24158,7 +24205,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						}
 						SetPlayerInteriorEx(playerid, 0);
 						ChangeHouseOrOther(playerid, 0);
-						
+
 						if ( strval(SendString) != 26 )
 						{
 							SetPlayerVirtualWorldEx(playerid, 0);
@@ -24361,7 +24408,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					}
 				}
 		//		07-	*		/Kick [ID] [Razón]				- Kikear a un jugador
-				else if (strfind(cmdtext, "/Kick ", true) == 0)
+				else if (strfind(cmdtext, "/Kick", true) == 0)
 				{
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if (!PlayersData[playerid][Admin]) return SendAccessError(playerid, "Kick");
@@ -24369,9 +24416,9 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					new kickreason[80];
 					if (sscanf(cmdtext[6], "us[80]", PlayerKickID, kickreason)) return SendSyntaxError(playerid, "Kick", "Kick 12 No respetar las normas el servidor");
 					if (PlayerKickID == playerid) return SendInfoMessage(playerid, 0, "", "La ID que has introducído es la suya.");
-					if (!IsPlayerConnected(PlayerKickID)) return SendInfoMessage(playerid, 0, "", "El jugador que desea kikear no se encuentra conectado.");
+					if (!IsPlayerConnected(PlayerKickID)) return SendClientMessage(playerid, COLOR_MESSAGES[0], "El jugador no se encuentra conectado.");
 					if (strlen(kickreason) > 80 ) return SendInfoMessage(playerid, 0, "", "La razon no debe ecceder los 80 caracteres.");
-					
+
 					new StringFormat[250];
 					new StringFormatEX[100];
 					format(StringFormat, sizeof(StringFormat), "%s Han kickeado a %s[%i] por %s. Razón: %s", LOGO_STAFF, PlayersDataOnline[PlayerKickID][NameOnline], PlayerKickID, PlayersDataOnline[playerid][NameOnline], kickreason);
@@ -24459,7 +24506,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					if (PlayersData[playerid][Admin] >= 3)
 					{
          				new query[200], numberExist, PhoneOwner[MAX_PLAYER_NAME];
-         				
+
 					    mysql_format(dataBase, query, 200, "SELECT `Nombre`,`Phone` FROM `%s` WHERE `Phone`='%i';", DIR_USERS, strval(cmdtext[8]));
 					    new Cache:cacheid = mysql_query(dataBase, query);
 					    cache_get_row_count(numberExist);
@@ -24649,7 +24696,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					    new Myplayerid = playerid;
 					    if (sscanf(cmdtext[7], "u", playerid)) return SendSyntaxError(playerid, "Parar", "Parar 12");
 					    if (!IsPlayerLoguedEx(Myplayerid, playerid)) return 1;
-					    
+
 					    new string[150], Mystring[150];
 					    if (PlayersDataOnline[playerid][Freeze])
 					    {
@@ -24663,9 +24710,8 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					    }
 					    SendAdviseMessage(playerid, string);
 					    SendAdviseMessage(Myplayerid, Mystring);
-					    
 					    PlayersDataOnline[playerid][Freeze] = !PlayersDataOnline[playerid][Freeze];
-					    TogglePlayerControllableEx(playerid, PlayersDataOnline[playerid][Freeze]);
+					    TogglePlayerControllableEx(playerid, !PlayersDataOnline[playerid][Freeze]);
 						SetPlayerArmedWeapon(playerid, 0);
 					}
 					else
@@ -24717,7 +24763,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						    SetPlayerInteriorEx(PlayreSpawn, 0);
 						    SetPlayerVirtualWorldEx(PlayreSpawn, 0);
 							CleanDataDeath(PlayreSpawn);
-							
+
 							new StringFormat[MAX_TEXT_CHAT];
 							new StringFormatEX[MAX_TEXT_CHAT];
 
@@ -25364,7 +25410,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						if ( IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && PlayersData[i][Mapper] )
 						{
 						    if ( !foundMapper )
-						    {                                                                       
+						    {
 							    SendClientMessage(playerid, 0x505050FF, "{505050}»»»»»»»»»»»»»»»»»» {0035FF}M{0075FF}appers {F50000}O{A00000}nline {505050}««««««««««««««««««");
 								foundMapper++;
 							}
@@ -25378,19 +25424,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					}
 				}
                 // 		/Mapper [ID][Level]
-                else if (strfind(cmdtext, "/Mapper ", true) == 0)
+                else if (strfind(cmdtext, "/Mapper", true) == 0)
                 {
                     if (PlayersData[playerid][Admin] < 9) return SendAccessError(playerid, "Mapper");
-                    
+
                     new getid, level;
                     if (sscanf(cmdtext[7], "ui", getid, level)) return SendSyntaxError(playerid, "Mapper", "Mapper 12 1");
                     if (IsPlayerLoguedEx(playerid, getid) == 0) return 1;
                     if (level < 0 || level > 2 ) return SendInfoMessage(playerid, 0, "", "El nivel de mapper debe ser 1 o 2! Nivel 0 para expulsar.");
                     if (!PlayersData[getid][Mapper] && level == 0) return SendInfoMessage(playerid, 0, "", "Este usuario no es mapper del servidor.");
-                    
+
                     new Mystring[150], Pstring[150], Astring[150];
-                    
-                    
+
+
                     if ( level )
     				{
     				    if (!PlayersData[getid][Mapper])
@@ -25415,7 +25461,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
                     SendAdviseMessage(playerid, Mystring);
     				SendAdviseMessage(getid, Pstring);
 		            MsgCheatsReportsToAdminsEx(Astring, 9);
-		            
+
                     PlayersData[getid][Mapper] = level;
                 }
 				//		/Skin [ID]                  - Forzar a cambiar un Skin a un jugador
@@ -25661,13 +25707,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
                     {
                         new vehicleid = PlayersDataOnline[playerid][InCarId];
                         new Float:Speed[3]; GetVehicleVelocity(vehicleid, Speed[0], Speed[1], Speed[2]);
-                        
+
 						if (!DataCars[vehicleid][Freno] && Speed[0] != 0.0 && Speed[1] != 0.0 && Speed[2]!= 0.0 )
                         {
                             SendInfoMessage(playerid, 0, "1620", "El vehículo no debe estar en movimiento para aplicar el freno.");
                             return 1;
                         }
-                        
+
                         if (DataCars[vehicleid][Freno])
                         SendInfoMessage(playerid, 2, "0", "Sacaste el freno de mano al vehículo.");
                         else
@@ -25775,7 +25821,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
                         SetPlayerInteriorEx(playerid, 0);
                         SetPlayerVirtualWorldEx(playerid, WORLD_NORMAL);
 
-                        format(string,sizeof(string),"%s Has ido hacia el local %i.", LOGO_STAFF, getID);
+                        format(string,sizeof(string),"Has ido hacia el local %i.", getID);
                         SendAdviseMessage(playerid, string);
                         return 1;
                     }
@@ -25805,7 +25851,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						LocalData[localID][PosZZ] = Pos[3]-180.0;
 						SaveLocal(localID, true);
 
-						format(string,sizeof(string),"%s Moviste el local %i a tu posicion.", LOGO_STAFF, getID);
+						format(string,sizeof(string),"Moviste el local %i a tu posicion.", getID);
 						SendAdviseMessage(playerid, string);
 						return 1;
 					}
@@ -25819,17 +25865,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
                 else if (strfind(cmdtext, "/LPrecio ", true) == 0)
 			    {
 			        if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "LPrecio.");
-			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+			        new localID = GetPlayerCloseLocal(playerid);
+			        if (localID != -1)
 			        {
 				        new price = strval(cmdtext[9]);
 				        if (price < 0 || price > 1000000) return SendInfoMessage(playerid, 0, "", "El precio del local debe ser entre $0 y $1.000.000");
-				        
-			            new localID = PlayersDataOnline[playerid][InPickupLocal];
+
 			            new string[150];
-			            
+
 			            format(string,sizeof(string), "Cambiaste el precio del local [%i] de $%i a $%i.", localID+1, LocalData[localID][Precio], price);
 			            SendAdviseMessage(playerid, string);
-			            
+
                         LocalData[localID][Precio] = price;
 			            SaveLocal(localID, true);
 			            return 1;
@@ -25840,14 +25886,14 @@ public OnPlayerCommandText(playerid, cmdtext[])
                 else if (strfind(cmdtext, "/LNivel ", true) == 0)
 			    {
 			        if (PlayersData[playerid][Admin] < 7) return SendAccessError(playerid, "LNivel.");
-			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+			        new localID = GetPlayerCloseLocal(playerid);
+			        if (localID != -1)
 			        {
 				        new level = strval(cmdtext[8]);
 				        if (level < 0 || level > 99) return SendInfoMessage(playerid, 0, "", "El nivel del local debe ser entre 0 y 99");
-				        
-			            new localID = PlayersDataOnline[playerid][InPickupLocal];
+
 			            new string[150];
-			            
+
 			            format(string,sizeof(string), "Cambiaste el nivel del local [%i] de %i a %i.", localID+1, LocalData[localID][Nivel], level);
 			            SendAdviseMessage(playerid, string);
 
@@ -25861,16 +25907,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
                 else if (strcmp("/VLocal", cmdtext, true, 7) == 0 && strlen(cmdtext) == 7)
                 {
 			        if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "VLocal.");
-			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+			        new localID = GetPlayerCloseLocal(playerid);
+           			if (localID != -1)
 			        {
-			            new localID = PlayersDataOnline[playerid][InPickupLocal];
-			            
 			            if (IsLocalForSale(localID)) return SendInfoMessage(playerid, 0, "", "Este local ya esta a la venta.");
-			            
+
 			            new string[500];
 			            format(string, sizeof(string), "Has vendido este local [%i]. El propietario era %s", localID+1, LocalData[localID][Owner]);
 				        SendAdviseMessage(playerid, string);
-			            
+
 			            for(new i=0; i <= MAX_PLAYERS; i++){
 			            if (IsPlayerLogued(i) && PlayersData[i][Local] == localID)
 			            {
@@ -25891,20 +25936,19 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			    else if (strcmp("/Borrar Local", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
 			    {
 			        if (PlayersData[playerid][Admin] < 8) return SendAccessError(playerid, "Borrar Local.");
-			        if (PlayersDataOnline[playerid][InPickup] >= LocalData[0][Pickup] && PlayersDataOnline[playerid][InPickup] <= LocalData[MAX_LOCAL_ID][Pickup])
+			        new localID = GetPlayerCloseLocal(playerid);
+			        if (localID != -1)
 				    {
-				        new localID = PlayersDataOnline[playerid][InPickupLocal];
-
                         new pickupid = LocalData[localID][Pickup];
 					    DestroyPickupEx(pickupid);
 					    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NINGUNO;
                         DestroyDynamic3DTextLabel(LocalData[localID][TextLabel]);
                         DestroyDynamic3DTextLabel(LocalData[localID][TextLabelIn]);
                         ClearLocalData(localID);
-                        MAX_LOCAL--;                
-                        
+                        MAX_LOCAL--;
+
                         SaveLocal(localID, false);
-                        
+
 			            for(new i=0; i <= MAX_PLAYERS; i++){
 			            if (IsPlayerLogued(i) && PlayersData[i][Local] == localID)
 			            {
@@ -25917,24 +25961,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						return 1;
 				    }
 				    else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
-			    }
-			    else if(strcmp("/test",cmdtext,true) == 0)
-			    {
-			        new string[150];
-			        format(string,150,"InPickup %i - MyPickupX_Now %f", PlayersDataOnline[playerid][InPickup], PlayersDataOnline[playerid][MyPickupX_Now]);
-			     	SendClientMessage(playerid,-1,string);
-			     	/*
-			        for(new i=0; i!=MAX_FACCION; i++)
-			        {
-			            format(string,150,"Faccion %i PickupidOutF %i, PickupidInF %i", i, FaccionData[i][PickupidOutF], FaccionData[i][PickupidInF]);
-			            SendClientMessage(playerid,-1,string);
-			        }
-			        for(new i=1; i <= MAX_DYNAMIC_PICKUP; i++)
-			        {
-			            format(string,150,"PickupIndex[%i]: Tipo %i, Tipoid %i", i, PickupIndex[i][Tipo], PickupIndex[i][Tipoid]);
-			            SendClientMessage(playerid,-1,string);
-			        }
-			        */
 			    }
 			    // NO COMMANDS SEND
 				else
@@ -26216,12 +26242,12 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 	{
 		ClearPlayerPickups(playerid);
 	    PlayersDataOnline[playerid][InPickup] = pickupid;
-	    
+
 	    // FACCIONES
 	    if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_FACCION)
 	    {
 	        new faccionid = PickupIndex[pickupid][Tipoid];
-	        
+
 	        if ( FaccionData[faccionid][PickupidOutF] == pickupid || FaccionData[faccionid][PickupidInF] == pickupid )
             {
                 if ( FaccionData[faccionid][PickupidOutF] == pickupid )
@@ -26269,12 +26295,12 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
                 PlayersDataOnline[playerid][MyPickupZZ] 	= Teles[Teles[teleid][PickupIDGo]][PosZZ];
                 PlayersDataOnline[playerid][MyPickupInterior] = Teles[Teles[teleid][PickupIDGo]][Interior];
                 PlayersDataOnline[playerid][MyPickupWorld] = Teles[Teles[teleid][PickupIDGo]][World];
-                
+
                 if ( PlayersData[playerid][IsPlayerInVehInt] )
                 {
                     PlayersDataOnline[playerid][MyPickupWorld] = GetVagonByVagonID(PlayersData[playerid][IsPlayerInVehInt], Teles[Teles[teleid][PickupIDGo]][World]);
 				}
-				
+
 				PlayersDataOnline[playerid][MyPickupLock]  	= Teles[teleid][Lock];
 
                 PlayersDataOnline[playerid][MyPickupX_Now]  = Teles[teleid][PosX];
@@ -26336,7 +26362,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_CASA)
 	    {
 	        new casaid = PickupIndex[pickupid][Tipoid];
-	        
+
 	        if ( HouseData[casaid][PickupId] == pickupid )
             {
 	            PlayersDataOnline[playerid][MyPickupX]  	= TypeHouse[HouseData[casaid][TypeHouseId]][PosX];
@@ -26359,7 +26385,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 	    else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_CASA_TYPE)
 	    {
 	        new tipoid = PickupIndex[pickupid][Tipoid];
-	        
+
 	        if ( TypeHouse[tipoid][PickupId] == pickupid )
 	        {
 	            new houseid = PlayersData[playerid][IsPlayerInHouse];
@@ -26383,7 +26409,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 	    {
 	    	new i = PickupIndex[pickupid][Tipoid];
 	        new h = PickupIndex[pickupid][Tipoidextra];
-	    	
+
 	    	if ( Garages[h][i][PickupidIn] == pickupid || Garages[h][i][PickupidOut] == pickupid )
 	    	{
 	    	    if ( Garages[h][i][PickupidOut] == pickupid )
@@ -26422,7 +26448,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 	    {
 	        new i = PickupIndex[pickupid][Tipoid];
 	        new houseid = PlayersData[playerid][IsPlayerInHouse];
-	        
+
 	        if ( TypeGarage[i][PickupId] == pickupid || TypeGarage[i][PickupIdh] == pickupid )
             {
                 if ( TypeGarage[i][PickupIdh] == pickupid )
@@ -26471,7 +26497,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
         else if (PickupIndex[pickupid][Tipo] == PICKUP_TYPE_GARAGE_EX)
         {
             new gid = PickupIndex[pickupid][Tipoid];
-            
+
 			if ( GaragesEx[gid][PickupIDOneP] == pickupid || GaragesEx[gid][PickupIDTwoP] == pickupid )
 		    {
 		        if ( GaragesEx[gid][PickupIDOneP] == pickupid )
@@ -26510,7 +26536,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 	    {
 	        new localid = PickupIndex[pickupid][Tipoid];
 	        new type = LocalData[localid][Tipo] - 1;
-	        
+
 	        if (LocalData[localid][Pickup] == pickupid)
 	        {
 	            PlayersDataOnline[playerid][MyPickupX] = LocalTipo[type][PosX];
@@ -26524,7 +26550,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
                 PlayersDataOnline[playerid][MyPickupX_Now] = LocalData[localid][PosX];
 	            PlayersDataOnline[playerid][MyPickupY_Now] = LocalData[localid][PosY];
 	            PlayersDataOnline[playerid][MyPickupZ_Now] = LocalData[localid][PosZ];
-	            
+
 	            PlayersDataOnline[playerid][InPickupLocal] = localid;
 		    }
 	    }
@@ -26533,7 +26559,7 @@ public OnPlayerPickUpDynamicPickup(playerid, pickupid)
 		{
 		    new type = PickupIndex[pickupid][Tipoid];
 		    new localid = PlayersData[playerid][InLocal];
-		    
+
 		    if (LocalTipo[type][Pickup] == pickupid)
 	        {
 	            PlayersDataOnline[playerid][MyPickupX] = LocalData[localid][PosX];
@@ -27686,7 +27712,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 					}
 					return 1;
 				}
-				
+
 	            if ( PlayersDataOnline[playerid][MyPickupLock] && (!PlayersDataOnline[playerid][AdminOn] || PlayersData[playerid][Admin] < 4) ) return GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
 
 			    // NEGOCIOS
@@ -27767,10 +27793,10 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 				{
 				    new localID = PlayersDataOnline[playerid][InPickupLocal];
 				    if (LocalData[localID][PrecioEntrada] > PlayersData[playerid][Dinero]) return SendInfoMessage(playerid, 0, "", "No tiene suficiente dinero para entrar a este local.");
-				    
+
 				    GivePlayerMoneyEx(playerid, -LocalData[localID][PrecioEntrada]);
 			        LocalData[localID][Deposito] += LocalData[localID][PrecioEntrada];
-				    
+
 				    PlayersData[playerid][InLocal] = localID;
 				}
 		        else
@@ -28130,7 +28156,7 @@ public OnPlayerUpdate(playerid)
 		{
 			SetPlayerArmedWeapon(playerid, 0);
 		}
-		
+
 		if ( PlayersDataOnline[playerid][InPickup] )
 		{
 		    IsPlayerInPickup(playerid);
@@ -28291,12 +28317,12 @@ public OnPlayerUpdate(playerid)
 						if ( DataCars[PlayersDataOnline[playerid][InCarId]][Gas] < 1 && DataCars[PlayersDataOnline[playerid][InCarId]][GasNotShow] )
 					    {
 						    DataCars[PlayersDataOnline[playerid][InCarId]][GasNotShow] = false;
-							SendInfoMessage(playerid, 2, "0", "Vehículo sin gas! Use (Enter) para salir del mismo.");
+							SendInfoMessage(playerid, 0, "0", "Vehículo sin gas! Use (Enter) para salir del mismo.");
 						}
       					if ( DataCars[PlayersDataOnline[playerid][InCarId]][Oil] < 1 && DataCars[PlayersDataOnline[playerid][InCarId]][OilNotShow] )
 					    {
 						    DataCars[PlayersDataOnline[playerid][InCarId]][OilNotShow] = false;
-							SendInfoMessage(playerid, 2, "0", "Vehículo sin aceíte! Use (Enter) para salir del mismo.");
+							SendInfoMessage(playerid, 0, "0", "Vehículo sin aceíte! Use (Enter) para salir del mismo.");
 					    }
 						if ( DataCars[PlayersDataOnline[playerid][InCarId]][TemperaturaC] )
 						{
@@ -28607,8 +28633,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 
 		    DataUserSave(playerid);
 			LoadAccountBanking(playerid);
-			
-			
+
+
 			RemoveBuildingForPlayerEx(playerid);
 			new HoraPaga, MinutosPaga, SegundosPaga;
 			gettime(HoraPaga, MinutosPaga, SegundosPaga);
@@ -30112,7 +30138,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 								ShowPlayerDialogEx(playerid,140,DIALOG_STYLE_MSGBOX,"{00A5FF}Centro de Llamadas - LSMD", MsgToTransfer, "Aceptar", "");
 								format(MsgToTransfer, sizeof(MsgToTransfer), "%s ha transferido una llamada a SFMD. Número de la llamada %i.", PlayersDataOnline[playerid][NameOnlineFix], CallSAMD[PlayersDataOnline[playerid][SaveAfterAgenda][50]][PlayersDataOnline[playerid][SaveAfterAgenda][51]][Number]);
 								SendAlertCallRequestSAMD(CallSAMD[PlayersDataOnline[playerid][SaveAfterAgenda][50]][PlayersDataOnline[playerid][SaveAfterAgenda][51]][Type], MsgToTransfer, LSMD);
-								
+
 								if ( CallSAMD[PlayersDataOnline[playerid][SaveAfterAgenda][50]][PlayersDataOnline[playerid][SaveAfterAgenda][51]][Type] )
 								{
 									format(MsgToTransfer, sizeof(MsgToTransfer), "{F0F0F0}La central de LSMD nos ha trasferido una llamada de médicos.", PlayersDataOnline[playerid][NameOnlineFix]);
@@ -30133,7 +30159,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 								ShowPlayerDialogEx(playerid,140,DIALOG_STYLE_MSGBOX,"{00A5FF}Centro de Llamadas - SFMD", MsgToTransfer, "Aceptar", "");
 								format(MsgToTransfer, sizeof(MsgToTransfer), "%s ha transferido una llamada a . Número de la llamada %i.", PlayersDataOnline[playerid][NameOnlineFix], CallSAMD[PlayersDataOnline[playerid][SaveAfterAgenda][50]][PlayersDataOnline[playerid][SaveAfterAgenda][51]][Number]);
 								SendAlertCallRequestSAMD(CallSAMD[PlayersDataOnline[playerid][SaveAfterAgenda][50]][PlayersDataOnline[playerid][SaveAfterAgenda][51]][Type], MsgToTransfer, SFMD);
-								
+
 								if ( CallSAMD[PlayersDataOnline[playerid][SaveAfterAgenda][50]][PlayersDataOnline[playerid][SaveAfterAgenda][51]][Type] )
 								{
 									format(MsgToTransfer, sizeof(MsgToTransfer), "{F0F0F0}La central de SFMD nos ha trasferido una llamada de médicos.", PlayersDataOnline[playerid][NameOnlineFix]);
@@ -32328,7 +32354,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 							            }
 							        }
 							        DataCars[MyGuanteraOpen][GuanteraObjects][SlotIDGet] = PlayersData[playerid][Objetos][PlayersDataOnline[playerid][SaveAfterAgenda][10]];
-							        
+
 			                        new MsgTirarObjetos[MAX_TEXT_CHAT];
 									format(MsgTirarObjetos, sizeof(MsgTirarObjetos), "guarda %s en la guantera", ObjectsNames[GetTypeObjectEx(PlayersData[playerid][Objetos][PlayersDataOnline[playerid][SaveAfterAgenda][10]])]);
 							        Acciones(playerid, 8, MsgTirarObjetos);
@@ -32494,6 +32520,40 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		        ShowLocalKeys(playerid, PlayersDataOnline[playerid][InPickupLocal]);
 		    }
 		}
+		// ShowStations - Local
+		case 155:
+		{
+		    /*
+   		    if ( response == 1 )
+		    {
+		        if ( PlayersData[playerid][InLocal] )
+		        {
+		            new localid = PlayersData[playerid][InLocal];
+		            // Stop Music
+					if (!listitem)
+					{
+					    LocalData[localid][StationID] = -1;
+					    StopMusicOnLocal(localid);
+						ShowStations(playerid, LocalData[localid][StationID], 2);
+					}
+					// Volumen
+					else if ( listitem == 1 ) ShowStations(playerid, LocalData[localid][StationID], 2);
+					// Ecualizador
+					else if ( listitem == 2 ) ShowStations(playerid, LocalData[localid][StationID], 2);
+					else
+					{
+					    LocalData[localid][StationID] = listitem - 3;
+					    //Musica
+						ShowStations(playerid, LocalData[localid][StationID], 2);
+					}
+				}
+				else
+				{
+					SendInfoMessage(playerid, 0, "", "Ya no te encuentras dentro del local!");
+				}
+			}
+			*/
+		}
 	}
 	//// END DIALOGS
 	return 1;
@@ -32546,7 +32606,7 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////// MESSAGES INFO
-public SendInfoMessage(playerid, type, optional[], message[])
+public SendInfoMessage(playerid, type, const optional[], const message[])
 {
 	new MsgInfo[MAX_TEXT_CHAT];
 	switch ( type )
@@ -32628,21 +32688,21 @@ public IsPlayerNear(myplayerid, playerid)
 }
 
 
-public SendSyntaxError(playerid, command[], example[])
+public SendSyntaxError(playerid, const command[], const example[])
 {
 	new SintaxisErro[MAX_TEXT_CHAT];
 	format(SintaxisErro, sizeof(SintaxisErro), "Ha introducído mal el sintaxis del comando /%s. Ejemplo correcto: /%s", command, example );
 	return SendClientMessage(playerid, COLOR_MESSAGES[0], SintaxisErro);
 }
 
-public SendAccessError(playerid, command[])
+public SendAccessError(playerid, const command[])
 {
 	new AcessError[MAX_TEXT_CHAT];
 	format(AcessError, sizeof(AcessError), "Tú no tienes acceso a el comando /%s", command);
 	return SendClientMessage(playerid, COLOR_MESSAGES[0], AcessError);
 }
 
-public SendAdviseMessage(playerid, advise[])
+public SendAdviseMessage(playerid, const advise[])
 {
 	new adviseText[150];
     format(adviseText, sizeof(adviseText), "%s %s", LOGO_STAFF, advise);
@@ -32817,7 +32877,7 @@ public DataUserClean(playerid)
 	PlayersData[playerid][DescriptionColor]		= 0;
 	PlayersData[playerid][DescriptionSelect]	= 0;
 	PlayersData[playerid][SpawnFac]		= 0;
-	
+
 	// Nuevos 77
 	PlayersData[playerid][WantAudio]	= 0;
 	PlayersData[playerid][Objetos][0]	= 0;
@@ -32970,7 +33030,7 @@ public DataUserLoad(playerid)
 	if ( cuentaExiste )
 	{
 		new WeaponsData[50], AmmoData[50];
-		
+
 		cache_get_value_name(0, "Email", PlayersData[playerid][Email], 60);
 		cache_get_value_name(0, "Password", PlayersData[playerid][Password], 25);
 		cache_get_value_name_int(0, "AccountState", PlayersData[playerid][AccountState]);
@@ -33517,7 +33577,7 @@ public LoadDataFaccion(faccionid)
 	FaccionData[faccionid][Bombas][1]    = strval(FaccionDataSlots[60]);
 
 	UpdateFaccionTextLabel(faccionid, false);
-	
+
 	LoadPickupsAlmacenes(faccionid);
 }
 
@@ -33594,7 +33654,7 @@ public SaveDataFaccion(faccionid)
 	fwrite(SaveFaccion, FaccionDataALL);
 	fclose(SaveFaccion);
 }
-public SendChatStream(playerid, text[])
+public SendChatStream(playerid, const text[])
 {
 	new Float:X, Float:Y, Float:Z;
 	new MsgSendChat[MAX_TEXT_CHAT];
@@ -33686,7 +33746,7 @@ public SendChatStream(playerid, text[])
 		}
 	}
 }
-public SendChatStreamNormal(playerid, text[], type[])
+public SendChatStreamNormal(playerid, const text[], const type[])
 {
 	new Float:X, Float:Y, Float:Z;
 	new MsgSendChat[MAX_TEXT_CHAT];
@@ -33724,7 +33784,7 @@ public SendChatStreamNormal(playerid, text[], type[])
 		}
 	}
 }
-public SendChatStreamAnonymousPlayerid(playerid, text[], WorldStream, Float:X, Float:Y, Float:Z)
+public SendChatStreamAnonymousPlayerid(playerid, const text[], WorldStream, Float:X, Float:Y, Float:Z)
 {
     if(IsPlayerConnected(playerid) && IsPlayerInRangeOfPoint(playerid,30.0,X,Y,Z) && GetPlayerVirtualWorld(playerid) == WorldStream && PlayersDataOnline[playerid][State] == 3)
     {
@@ -33754,7 +33814,7 @@ public SendChatStreamAnonymousPlayerid(playerid, text[], WorldStream, Float:X, F
 		}
 	}
 }
-public SendChatStreamGritar(playerid, text[])
+public SendChatStreamGritar(playerid, const text[])
 {
     new TextAccion[150];
 	format(TextAccion, sizeof(TextAccion), "* %s Grita: %s!!", PlayersDataOnline[playerid][NameOnlineFix], text);
@@ -33792,7 +33852,7 @@ public SendChatStreamGritar(playerid, text[])
 		}
 	}
 }
-public SendChatStreamAnonymous(text[], WorldStream, Float:X, Float:Y, Float:Z)
+public SendChatStreamAnonymous(const text[], WorldStream, Float:X, Float:Y, Float:Z)
 {
 	for(new i=0;i<MAX_PLAYERS;i++)
 	{
@@ -33825,7 +33885,7 @@ public SendChatStreamAnonymous(text[], WorldStream, Float:X, Float:Y, Float:Z)
 		}
 	}
 }
-public Acciones(playerid, type, text[])
+public Acciones(playerid, type, const text[])
 {
 	new MsgAcciones[150];
 	switch (type)
@@ -33890,7 +33950,7 @@ public Acciones(playerid, type, text[])
 	}
 	print(MsgAcciones);
 }
-public IsPlayerNearEx(myplayerid, playerid, iderror1[], iderror2[], iderror3[], stringerror1[], stringerror2[], stringerror3[])
+public IsPlayerNearEx(myplayerid, playerid, const iderror1[], const iderror2[], const iderror3[], const stringerror1[], const stringerror2[], const stringerror3[])
 {
 	if ( myplayerid != playerid )
 	{
@@ -34043,7 +34103,7 @@ public IsCheatMoney(playerid, lastmoney)
 	    MsgCheatsReportsToAdmins(MsgAviso);
     }
 }
-public SendMessageRadioGeneral(playerid, text[])
+public SendMessageRadioGeneral(playerid, const text[])
 {
 	new MsgRadio[MAX_TEXT_CHAT];
 	format(MsgRadio, sizeof(MsgRadio), "***[%s] %s %s Radio General: %s, corto.", FaccionData[PlayersData[playerid][Faccion]][NameFaccion], FaccionesRangos[PlayersData[playerid][Faccion]][PlayersData[playerid][Rango]], PlayersDataOnline[playerid][NameOnlineFix], text);
@@ -34057,7 +34117,7 @@ public SendMessageRadioGeneral(playerid, text[])
 	SendChatStreamNormal(playerid, text, "[Radio General]:");
 	print(MsgRadio);
 }
-public SendMessageRadioGeneralSAMD(playerid, text[])
+public SendMessageRadioGeneralSAMD(playerid, const text[])
 {
 	new MsgRadio[MAX_TEXT_CHAT];
 	format(MsgRadio, sizeof(MsgRadio), "***[%s] %s %s Radio General: %s, corto.", FaccionData[PlayersData[playerid][Faccion]][NameFaccion], FaccionesRangos[PlayersData[playerid][Faccion]][PlayersData[playerid][Rango]], PlayersDataOnline[playerid][NameOnlineFix], text);
@@ -34071,7 +34131,7 @@ public SendMessageRadioGeneralSAMD(playerid, text[])
 	SendChatStreamNormal(playerid, text, "[Radio General]:");
 	print(MsgRadio);
 }
-public SendMessageRadio(playerid, frecuencia, text[])
+public SendMessageRadio(playerid, frecuencia, const text[])
 {
 	new MsgRadio[MAX_TEXT_CHAT];
 	format(MsgRadio, sizeof(MsgRadio), "*** %s %s radio Frecuencia[%i]: %s, corto.", FaccionesRangos[PlayersData[playerid][Faccion]][PlayersData[playerid][Rango]], PlayersDataOnline[playerid][NameOnlineFix], frecuencia,text);
@@ -34085,7 +34145,7 @@ public SendMessageRadio(playerid, frecuencia, text[])
 	SendChatStreamNormal(playerid, text, "[Radio]:");
 	print(MsgRadio);
 }
-public SendMessageDM(playerid, text[])
+public SendMessageDM(playerid, const text[])
 {
 	new MsgDM[MAX_TEXT_CHAT];
 	format(MsgDM, sizeof(MsgDM), "* DM General %s: %s", PlayersDataOnline[playerid][NameOnlineFix], text);
@@ -34098,7 +34158,7 @@ public SendMessageDM(playerid, text[])
 	}
 	print(MsgDM);
 }
-public SendMessageFamily(playerid, text[])
+public SendMessageFamily(playerid, const text[])
 {
 	new MsgFamily[MAX_TEXT_CHAT];
 	format(MsgFamily, sizeof(MsgFamily), "*** %s %s: %s", FaccionesRangos[PlayersData[playerid][Faccion]][PlayersData[playerid][Rango]], PlayersDataOnline[playerid][NameOnlineFix], text);
@@ -34111,7 +34171,7 @@ public SendMessageFamily(playerid, text[])
 	}
 	print(MsgFamily);
 }
-public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, String[])
+public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, const String[])
 {
 	///////// COMANDOS DE LA ADMINISTRACIÓN
 	switch (Comando)
@@ -34300,6 +34360,7 @@ public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, String
 			PlayersData[playeridAC][IsPlayerInBank] 			= PlayersData[playerid][IsPlayerInBank];
 			PlayersData[playeridAC][IsPlayerInGarage]      		= PlayersData[playerid][IsPlayerInGarage];
 			PlayersData[playeridAC][IsPlayerInVehInt] 			= PlayersData[playerid][IsPlayerInVehInt];
+			PlayersData[playeridAC][InLocal] = PlayersData[playerid][InLocal];
 
 			SetPlayerInteriorEx(playeridAC, GetPlayerInteriorEx(playerid));
 			SetPlayerVirtualWorldEx(playeridAC, GetPlayerVirtualWorld(playerid));
@@ -34339,6 +34400,7 @@ public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, String
 			PlayersData[playerid][IsPlayerInBank] 				= PlayersData[playeridAC][IsPlayerInBank];
 			PlayersData[playerid][IsPlayerInGarage] 			= PlayersData[playeridAC][IsPlayerInGarage];
 			PlayersData[playerid][IsPlayerInVehInt] 			= PlayersData[playeridAC][IsPlayerInVehInt];
+			PlayersData[playerid][InLocal] = PlayersData[playeridAC][InLocal];
 
 
             SetPlayerInteriorEx(playerid, GetPlayerInteriorEx(playeridAC));
@@ -34762,7 +34824,7 @@ public MostrarHora(Accion ,playerid)
 	Mes--;
 
 	new FechaHoraFormateada[150];
-	
+
 	if ( Accion == 0 )
 	{
 	    if ( PlayersData[playerid][Jail] == 0 )
@@ -34792,7 +34854,7 @@ public MostrarHora(Accion ,playerid)
 			if ( IsPlayerConnected(i) && PlayersDataOnline[i][State] == 3 && ((TimeNow - PlayersDataOnline[i][IsPagaO]) + PlayersData[i][IsPaga]) > 1200)
 			{
 			    GameTextForPlayer(i, FechaHoraFormateada, 6000, 1);
-			
+
 			    Intereses = PlayersData[i][Banco] / 2000;
 
 		   		PlayersData[i][Banco] = PlayersData[i][Banco] + FaccionData[PlayersData[i][Faccion]][Paga][PlayersData[i][Rango]] + Intereses + Bonus;
@@ -34939,7 +35001,7 @@ public SetTimerGlobal()
 	MostrarHora(1, 0);
 	return 1;
 }
-public LoadDataVehicle(vehicleid, dir[], type)
+public LoadDataVehicle(vehicleid, const dir[], type)
 {
 	new query [500], Cache:cacheid, vehicleExist;
 	format(query, 500, "SELECT * FROM `%s` WHERE `ID` = '%i';", dir, vehicleid);
@@ -35028,7 +35090,7 @@ public LoadDataVehicle(vehicleid, dir[], type)
 			cache_get_value_name_int(0, "World", DataCars[vehicleid][World]);
 		}
 		cache_get_value_name_int(0, "WorldLast", DataCars[vehicleid][WorldLast]);
-		
+
 		cache_get_value_name_int(0, "StationID", DataCars[vehicleid][StationID]);
 		cache_get_value_name_int(0, "VolumenVehicle", DataCars[vehicleid][VolumenVehicle]);
 		cache_get_value_name_int(0, "EcualizadorVehicle_0", DataCars[vehicleid][EcualizadorVehicle][0]);
@@ -35070,7 +35132,7 @@ public LoadDataVehicle(vehicleid, dir[], type)
     cache_delete(cacheid);
     return vehicleExist;
 }
-public SaveDataVehicle(vehicleid, dir[])
+public SaveDataVehicle(vehicleid, const dir[])
 {
 	new query[2000];
     /*//Utilizado para guardar los vehiculos de Scriptfiles
@@ -38108,7 +38170,7 @@ public LoadCarsFaccion()
 	DataCars[MAX_CAR][Interior]  = 5;
 	DataCars[MAX_CAR][World]   = WORLD_DEFAULT_INTERIOR;
 	DataCars[MAX_CAR][Time]     = HEORS;
-   
+
 	MAX_CAR++;
 	DataCars[MAX_CAR][PosX]   = -38.914875030518;
 	DataCars[MAX_CAR][PosY]     = 2496.9296875;
@@ -39257,7 +39319,7 @@ public LoadCarsPublic()
 	DataCars[MAX_CAR][Lock]   = false;
 	DataCars[MAX_CAR][Time]     = CIVIL;
 	MAX_CAR_PUBLIC = MAX_CAR;
-	
+
 	MAX_CAR++;
 	DataCars[MAX_CAR][PosX]   = 2118.5427;
 	DataCars[MAX_CAR][PosY]     = -1344.7986;
@@ -41445,12 +41507,12 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(3398,1516.081298,1348.845214,0.000000,0.000000,0.000000,0.000000,-1,7,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1569,1544.629882,1296.179687,10.297189,0.000000,0.000000,179.994506,-1,7,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1569,1541.626953,1296.174804,10.297189,0.000000,0.000000,0.000000,-1,7,-1,MAX_RADIO_STREAM);
-	
+
 	// NFS Parking
 	CreateDynamicObjectExULP(7245,1566.320800,1257.912231,13.318957,0.000000,0.000000,358.000000,-1,10,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(11327,1550.790771,1277.752685,12.360804,0.000000,0.000000,88.000000,-1,10,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(2938,1555.203125,1261.432861,12.564229,0.000000,0.000000,358.000000,-1,10,-1,MAX_RADIO_STREAM);
-	
+
 	// CNN Garage (Interior)
 	CreateDynamicObjectExULP(1498,2323.968750,1420.208984,41.894374,0.000000,0.000000,0.000000,-1,11,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(3354,2319.772460,1415.900634,43.159999,0.000000,0.000000,179.994506,-1,11,-1,MAX_RADIO_STREAM);
@@ -41857,7 +41919,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(2232,-2487.077880,-150.384826,33.246459,0.000000,0.000000,90.000000,-1,-1,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(2232,-2487.166503,-145.721801,33.246459,0.000000,0.000000,89.250000,-1,-1,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(2100,-2487.369873,-148.192062,32.648582,0.000000,0.000000,92.038818,-1,-1,-1,MAX_RADIO_STREAM);
-	
+
 // Puerta de Casa Gian Ayuntamiento
 	CreateDynamicObjectExULP(3354,1371.577392,-1767.243164,13.844690,0.000000,0.000000,90.000000,-1,-1,-1,MAX_RADIO_STREAM);
 
@@ -45547,7 +45609,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(2724,1345.8802490234,1289.0938720703,10.367315292358,0,0,269.59350585938, -1, 11, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(2813,1343.8013916016,1289.9742431641,10.625196456909,0,0,0, -1, 11, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(2828,1344.7908935547,1289.8625488281,10.6328125,0,0,108.01818847656, -1, 11, -1, MAX_RADIO_STREAM);*/
-	
+
 // OFICINA DE LINCENCIEROS 9-10-2011 Nueva (Interior)
 	CreateDynamicObjectExULP(15031,2261.014648,1012.637695,78.554687,0.000000,0.000000,0.000000,-1,3,-1,MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1738,2261.777343,1007.980590,79.209320,0.000000,0.000000,0.000000,-1,3,-1,MAX_RADIO_STREAM);
@@ -45609,7 +45671,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1557,1457.2900390625,1786.4654541016,9.9530515670776,0,0,0, -1, 15, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1557,1460.3199462891,1786.4691162109,9.9557552337646,0,0,180, -1, 15, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(14638,1467.1899414063,1767.44921875,9.8125,0,0,359.25, -1, 15, -1, MAX_RADIO_STREAM);
-	
+
 	/// Teatro 2 (Interior)
 	CreateDynamicObjectExULP(14623,1426.5721435547,1349.826171875,15.369256973267,0,0,0,-1, 15, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(14623,1426.5341796875,1305.31640625,11.356925964355,0,0,0,-1, 15, -1, MAX_RADIO_STREAM);
@@ -45618,7 +45680,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1569,1430.9470214844,1330.7879638672,9.8244514465332,0,0,188.96472167969,-1, 15, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1557,1423.0633544922,1343.5727539063,9.8334884643555,0,0,0,-1, 15, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1557,1426.0964355469,1343.5786132813,9.8334884643555,0,0,180.26214599609,-1, 15, -1, MAX_RADIO_STREAM);
-	
+
 	/// Teatro Teatro (Interior)
 	CreateObjectEx(4059,1124.3666992188,1544.6453857422,2.5,0,0,0, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(14624,1095.8115234375,1538.32421875,10.825218200684,0,0,89.241943359375,-1, 15, -1, MAX_RADIO_STREAM);
@@ -46757,7 +46819,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1665, -2166.4992675781, 643.97052001953, 1057.1120605469,  0, 0, 0, -1, 15, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1736, -2162.3266601563, 646.91302490234, 1059.9112548828,  0, 0, 0, -1, 15, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(2829, -2160.8640136719, 637.14019775391, 1057.4418945313,  0, 0, 0, -1, 15, -1, MAX_RADIO_STREAM);
-	
+
 // MECÁNICOS 1 (Interior)
 	CreateDynamicObjectExULP(13028, 603.45166015625, -7.929313659668, 1001.8225708008,  0, 0, 0, -1, 1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(13028, 603.451171875, -12.532783508301, 1001.8225708008,  0, 0, 0, -1, 1, -1, MAX_RADIO_STREAM);
@@ -46997,7 +47059,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(3475,-2084.91796900,1367.63256800,8.47773700,0,0,270.00000112,-1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8572,-2080.29003900,1420.61120600,8.32582900,0,0,0,-1, -1, -1, MAX_RADIO_STREAM);
 	CreateObjectEx(13694,-2077.09570300,1427.89685100,0.65574000,0,0,180.00001985, MAX_RADIO_STREAM); // CASA
-	
+
 // CNN OLD (Exterior)
 /*	CreateDynamicObjectExULP(3458,783.51812700,-1357.91955600,14.06218900,0,0,89,-1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(984,752.19891400,-1330.99353000,13.18363100,0,0,89,-1, -1, -1, MAX_RADIO_STREAM);
@@ -47021,7 +47083,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1231,752.39721700,-1345.72778300,15.24612000,0,0,89.99998128, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1231,771.06835900,-1346.49865700,15.25481200,0,0,89.99998128, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1231,771.67669700,-1368.38867200,15.25628700,0,0,89.99998128, -1, -1, -1, MAX_RADIO_STREAM);*/
-	
+
 // ESTUDIO DE LA CNN (Interior)
 	CreateDynamicObjectExULP(3494,1111.9545898438,1265.6226806641,13.834089279175,0,0,0, -1, 1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(980,1100.6721191406,1257.6921386719,12.593704223633,0,360,90, -1, 1, -1, MAX_RADIO_STREAM);
@@ -47091,7 +47153,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1215,-318.56030300,-878.86377000,47.40609000,0,0,0,-1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1215,-337.35534700,-870.91387900,47.22341900,0,0,0,-1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(694,-131.24736000,-951.70269800,27.37740700,0,0,-112.49997660,-1, -1, -1, MAX_RADIO_STREAM);
-	
+
 // MOTEL (Exterior)
 	CreateObjectEx(3596,-333.24868800,-888.47235100,50.13629500,0,0,157.49996723, MAX_RADIO_STREAM); // Motel
 
@@ -47099,7 +47161,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(3051,966.39483642578,-52.608592987061,1001.4867553711,0,0,45.75,-1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(3051,966.40460205078,-53.733352661133,1001.4867553711,0,0,226.97766113281,-1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(3051,966.38757324219,-53.166976928711,1003.3112182617,40.500152587891,270,89.7275390625,-1, -1, -1, MAX_RADIO_STREAM);
-	
+
 /* // PUERTAS ENCIMA DEL AYUNTAMIENTO
 	CreateDynamicObjectExULP(18553, 1438.141723632, -1788.7578125, 33.721633911133, 0, 0, 180, -1, -1, -1, MAX_RADIO_STREAM);*/
 	CreateDynamicObjectExULP(1498, 371.25634765625, 166.6453704834, 1007.3828125, 0, 0, 0, -1, -1, -1, MAX_RADIO_STREAM);
@@ -47168,7 +47230,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(3475,-1663.03259300,718.49542200,26.27374300,0,0,89.99998128, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(664,-1641.86743200,675.71752900,6.75880400,0,0,-168.74999354, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1267,-1571.47253400,646.18115200,22.25219300,0,0,270.00000112, -1, -1, -1, MAX_RADIO_STREAM);
-	
+
 // NFS GROTTI
 	CreateDynamicObjectExULP(1522,534.52520800,-1294.39184600,16.17875500,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8168,567.12744100,-1287.35070800,18.19621100,0,0,297.73402320, -1, -1, -1, MAX_RADIO_STREAM);
@@ -47198,10 +47260,10 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1215,57.22160700,-1535.73974600,7.76852800,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1215,48.21346300,-1534.41394000,7.79353100,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1215,49.14834200,-1528.10168500,7.76852800,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
-	
+
 // ARBÓL GROVE
 	CreateDynamicObjectExULP(709, 2489.2446,-1668.8193,8.3438,1,0, 100,-1, -1, -1, MAX_RADIO_STREAM);
-	
+
 // LSPD & AYUNTAMIENTO
 	// LUCES Y HEAD AYUNTA
 	CreateDynamicObjectExULP(1226,1504.877197,-1736.882934,16.426883,0.000000,0.000000,-90.000000,-1,-1,-1,MAX_RADIO_STREAM);
@@ -47473,7 +47535,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(1215,-2887.63134800,495.01590000,4.47089400,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(1215,-2866.72143600,493.72381600,4.47089400,0,0,0, -1, -1, -1, MAX_RADIO_STREAM);
     CreateDynamicObjectExULP(697,-2853.77026400,511.37951700,7.94962300,0,0,11.25002631, -1, -1, -1, MAX_RADIO_STREAM);
-    
+
     //		Job_Basureros
 	CreateObjectEx(1337,2536.4621600,-1592.0335700,23.6154700,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(binnt07_la) (1)
 	CreateObjectEx(1337,2520.5527300,-1674.5980200,18.1461700,0.0000000,0.0000000,0.0000000, MAX_RADIO_STREAM); //object(binnt07_la) (2)
@@ -47569,7 +47631,7 @@ public LoadStaticObjects()
 	CreateObjectEx(984, 1793.4, -1753.5, 17, -0.231, -0.005, 179.819, MAX_RADIO_STREAM);
 	CreateObjectEx(869, 1778.9, -1771.4, 13, 0, 0, 0, MAX_RADIO_STREAM);
 	CreateObjectEx(736, 1777.3, -1777, 23.7, 0, 0, 0, MAX_RADIO_STREAM);
-	
+
 	//Local Pequeño
 	CreateDynamicObjectExULP(19446, 1534.395141, 1319.975097, 11.595004, 0.0, 0.0, 0.0, -1, 10, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1542.250854, 1305.517456, 11.610797, 0.0, 0.0, 90.0, -1, 10, -1, MAX_RADIO_STREAM);
@@ -47580,7 +47642,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1534.415161, 1310.375244, 11.595004, 0.0, 0.0, 0.0, -1, 10, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1543.715576, 1310.768310, 16.814928, 180.0, 0.0, 0.0, -1, 10, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1543.715576, 1310.173706, 6.403772, 0.0, 0.0, 0.0, -1, 10, -1, MAX_RADIO_STREAM);
-	
+
 	//Local Mediano
 	CreateDynamicObjectExULP(19446, 1588.128051, 1291.892333, 11.658576, 0.000000, 0.000000, -89.599998, -1, 11, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1588.670776, 1310.961547, 11.658576, 0.000007, 0.000000, 89.299957, -1, 11, -1, MAX_RADIO_STREAM);
@@ -47610,7 +47672,7 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1578.516845, 1291.824707, 11.658576, -0.000007, 0.000000, -89.599975, -1, 11, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1580.274780, 1301.322998, 6.382473, 0.0, 0.0, 0.0, -1, 11, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1442.034912, 1308.407714, 6.324933, 0.0, 0.0, 0.0, -1, 11, -1, MAX_RADIO_STREAM);
-	
+
 	//Local Grande
 	CreateDynamicObjectExULP(19446, 1534.781616, 1294.253295, 11.622508, 0.000000, -0.000022, 179.699768, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1539.695556, 1292.477905, 11.622508, 0.000000, 0.000000, 90.000000, -1, 12, -1, MAX_RADIO_STREAM);
@@ -47668,13 +47730,13 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1538.459960, 1489.647338, 11.658576, -0.000000, 0.000038, -0.300023, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1538.408935, 1480.026245, 11.658576, -0.000000, 0.000038, -0.300023, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1514.965087, 1475.434936, 11.658576, -0.000045, -0.000000, -90.599868, -1, 12, -1, MAX_RADIO_STREAM);
-	CreateDynamicObjectExULP(19446, 1524.533691, 1475.416625, 11.658576, -0.000045, 0.000000, -89.599861, -1, 12, -1, MAX_RADIO_STREAM);	
+	CreateDynamicObjectExULP(19446, 1524.533691, 1475.416625, 11.658576, -0.000045, 0.000000, -89.599861, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1547.178833, 1300.820556, 6.383771, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1526.291625, 1382.522949, 6.392467, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1526.291625, 1414.673339, 6.392461, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1526.291625, 1450.584838, 6.432457, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1526.291625, 1484.914916, 6.372469, 0.000000, 0.000000, 0.000000, -1, 12, -1, MAX_RADIO_STREAM);
-	
+
 	//Local Garage
 	CreateDynamicObjectExULP(19446, 1535.898925, 1343.425415, 11.514995, 0.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1540.679809, 1347.806640, 11.514995, 0.000000, 0.000000, 90.000000, -1, 13, -1, MAX_RADIO_STREAM);
@@ -47688,9 +47750,9 @@ public LoadStaticObjects()
 	CreateDynamicObjectExULP(19446, 1553.798950, 1343.425415, 14.994996, 0.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1540.219360, 1339.504516, 14.974996, 0.000022, 0.000000, 89.999931, -1, 13, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(19446, 1549.824340, 1339.508911, 14.994992, 0.000022, 0.000000, 89.999931, -1, 13, -1, MAX_RADIO_STREAM);
-	CreateDynamicObjectExULP(8435, 1542.819091, 1343.250366, 20.160785, 180.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);	
+	CreateDynamicObjectExULP(8435, 1542.819091, 1343.250366, 20.160785, 180.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
 	CreateDynamicObjectExULP(8435, 1542.819091, 1343.250366, 6.390781, 0.000000, 0.000000, 0.000000, -1, 13, -1, MAX_RADIO_STREAM);
-	
+
 	//Plaza Doherty
 	new plazaobject;
     plazaobject = CreateObjectEx(18981, -2130.890869, 129.435638, 33.809520, 0.000000, 90.000000, 0.000000, MAX_RADIO_STREAM);
@@ -52019,7 +52081,7 @@ public LoadTelesPublics()
 //      \xa2 = I Con tílde"
 //		\xa6 = O Con tílde
 }
-public SetText3DTele(teleid, text[])
+public SetText3DTele(teleid, const text[])
 {
 	new TextLabelText[150];
 	format(TextLabelText, sizeof(TextLabelText), "Lugar: {"COLOR_CREMA"}%s", text);
@@ -52060,7 +52122,7 @@ public UpdateTextLabelNegocio(bizzid)
 	        NegociosData[bizzid][Level] );
 	}
 	if (IsValidDynamic3DTextLabel(NegociosData[bizzid][TextLabel])) DestroyDynamic3DTextLabel(NegociosData[bizzid][TextLabel]);
-	
+
 	NegociosData[bizzid][TextLabel] = CreateDynamic3DTextLabel(TextLabelText, 0xFFFFFFFF, NegociosData[bizzid][PosOutX], NegociosData[bizzid][PosOutY], NegociosData[bizzid][PosOutZ],
 	10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, -1, 0);
 }
@@ -53140,7 +53202,7 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(TYPE_PHONES_MENU, 0, "Azul Oscuro");
 	AddMenuItem(TYPE_PHONES_MENU, 0, "Amarillo");
 	AddMenuItem(TYPE_PHONES_MENU, 0, "Blanco");
-	
+
     SupermercadoArticulos	 = CreateMenu("Super Mercado San Fierro", 2, 300.0, 200.0, 250.0, 70.0);
 	AddMenuItem(SupermercadoArticulos, 0, "Pack 6 Cervezas");  			AddMenuItem(SupermercadoArticulos, 1, "$50"); 	SupermercadoArticulosPrecios[0] = 50;
 	AddMenuItem(SupermercadoArticulos, 0, "5 Vodkas");	  				AddMenuItem(SupermercadoArticulos, 1, "$100"); 	SupermercadoArticulosPrecios[1] = 100;
@@ -55266,7 +55328,7 @@ public LoadAllAnims()
 	PED_ANIMATIONS[284]   = "WOMAN_walkshop";
 	PED_ANIMATIONS[285]   = "XPRESSscratch";
 }
-public ApplyPlayerAnimCustom(playerid, animlib[], animid[], loop)
+public ApplyPlayerAnimCustom(playerid, const animlib[], const animid[], loop)
 {
 	if ( loop )
 	{
@@ -55292,7 +55354,7 @@ public LoadTypeObjectsBolsillos()
 	ObjetosBolsillosNombres[3] = "Móvil";
 	ObjetosBolsillosNombres[4] = "Agenda";
 }
-public IsNotFullBolsillo(playeridError, playerid, error[])
+public IsNotFullBolsillo(playeridError, playerid, const error[])
 {
 	for(new i = 0; i<=4; i++)
 	{
@@ -55339,7 +55401,7 @@ public AddObjectBolsillo(playerid, objectid)
 	}
 	return false;
 }
-public IntentarAccion(playerid, text[], rndNum)
+public IntentarAccion(playerid, const text[], rndNum)
 {
 	if ( gettime() - PlayersDataOnline[playerid][Intentar]  >= 5 )
 	{
@@ -55573,7 +55635,7 @@ public CreateTextDrawFijosVelocimetros()
 	TextDrawTextSize(VelocimetroFijos[6], 619.0, 402.8);
 	TextDrawSetShadow(VelocimetroFijos[6], 1);
 	TextDrawLetterSize(VelocimetroFijos[6], 0.1 , 0.1);
-	
+
 	//Barra del seguro Abierta
 	VelocimetroFijos[7] = TextDrawCreateEx(592.8, 430.0, "_");
 	TextDrawUseBox(VelocimetroFijos[7], 1);
@@ -55582,7 +55644,7 @@ public CreateTextDrawFijosVelocimetros()
 	TextDrawSetShadow(VelocimetroFijos[7], 1);
 	TextDrawTextSize(VelocimetroFijos[7], 616.2, 403.8);
 	TextDrawLetterSize(VelocimetroFijos[7], 0.2, 0.3);
-	
+
 	//Barra del seguro Cerada
 	VelocimetroFijos[8] = TextDrawCreateEx(592.8, 430.0, "_");
 	TextDrawUseBox(VelocimetroFijos[8], 1);
@@ -55667,7 +55729,7 @@ public ShowIdiomasToPlayer(playerid, playeridshow)
 	    SendClientMessage(playeridshow, COLOR_MESSAGES[3], MsgIdiomasShow);
 	}
 }
-public SendChatStreamIdioma(playerid, text[], idiomaid)
+public SendChatStreamIdioma(playerid, const text[], idiomaid)
 {
 	new Float:X, Float:Y, Float:Z;
 	new MsgSendChat[MAX_TEXT_CHAT];
@@ -55828,7 +55890,7 @@ public LoadGasolineras()
 	Gasolineras[MAX_GASOLINERAS][PosX]       = 851.4378;
 	Gasolineras[MAX_GASOLINERAS][PosY]       = -2086.6902;
 	Gasolineras[MAX_GASOLINERAS][PosZ]       = 1.3205;
-	
+
 	MAX_GASOLINERAS++; // LS Botes 2
 	Gasolineras[MAX_GASOLINERAS][PosX]       = 851.3387;
 	Gasolineras[MAX_GASOLINERAS][PosY]       = -2079.0093;
@@ -55838,7 +55900,7 @@ public LoadGasolineras()
 	Gasolineras[MAX_GASOLINERAS][PosX]       = 820.9417;
 	Gasolineras[MAX_GASOLINERAS][PosY]       = -2070.0710;
 	Gasolineras[MAX_GASOLINERAS][PosZ]       = 1.3205;
-	
+
 	MAX_GASOLINERAS++; // LS Botes 4
 	Gasolineras[MAX_GASOLINERAS][PosX]       = 820.9888;
 	Gasolineras[MAX_GASOLINERAS][PosY]       = -2079.0459;
@@ -55848,7 +55910,7 @@ public LoadGasolineras()
 	Gasolineras[MAX_GASOLINERAS][PosX]       = -1451.9092;
 	Gasolineras[MAX_GASOLINERAS][PosY]       = 806.9544;
 	Gasolineras[MAX_GASOLINERAS][PosZ]       = 1.3205;
-	
+
 	MAX_GASOLINERAS++; // SF Botes 2
 	Gasolineras[MAX_GASOLINERAS][PosX]       = -1451.7827;
 	Gasolineras[MAX_GASOLINERAS][PosY]       = 817.9048;
@@ -55932,13 +55994,13 @@ public LoadIconsPlayers()
 	// Museo SF
 	CreateDynamicMapIconULP(-2458.8830566406, 127.17351531982, 35.175952911377,  26);
 	CreateDynamicMapIconULP(1219.2227783203, -1811.7043457031, 16.59375,  26);
-	
+
 	// Supermercado SF
 	CreateDynamicMapIconULP(-2442.7781,754.3596,35.1719,  38);
-	
+
 	// Supermercado LS
 	CreateDynamicMapIconULP(1433.2834,-997.1200,57.5156,  38);
-	
+
 	// TALLER SF
 	CreateDynamicMapIconULP(-2974.1428,467.2453,4.9141, 27);
 
@@ -56052,7 +56114,7 @@ public LoadTypeJails()
 
 	///////////////////////////////
 }
-public GetPosSpace(text[], option)
+public GetPosSpace(const text[], option)
 {
 	new SavePos = -1;
 	for (new i = 1; i <= option; i++)
@@ -56577,7 +56639,7 @@ public SaveHouse(houseid, bool:update)
 
 		houseid);
 	mysql_query(dataBase, query, false);
-	
+
 	for(new i=0; i != MAX_GARAGE_FOR_HOUSE; i++)
 	{
 		format(query, 100, "UPDATE `%s` SET `Garage%i`='", DIR_HOUSES, i);
@@ -56655,7 +56717,7 @@ public UpdateTextLabelCasa(houseid)
 		);
 	}
 	if ( IsValidDynamic3DTextLabel(HouseData[houseid][TextLabel])) DestroyDynamic3DTextLabel(HouseData[houseid][TextLabel]);
-	
+
 	HouseData[houseid][TextLabel] = CreateDynamic3DTextLabel(TextLabelText, 0x00A5FFFF, HouseData[houseid][PosX], HouseData[houseid][PosY], HouseData[houseid][PosZ],
 	10.0, INVALID_PLAYER_ID, INVALID_VEHICLE_ID, true, WORLD_NORMAL, 0);
 }
@@ -56751,7 +56813,7 @@ public RemoveDuenoOfBizz(bizzid)
     format(NegociosData[bizzid][Extorsion], MAX_PLAYER_NAME, "No");
     DataSaveBizz(bizzid, true);
 }
-public ChangePasswordUser(playerid_admin, playeridname[], newpassword[])
+public ChangePasswordUser(playerid_admin, const playeridname[], const newpassword[])
 {
 	new playerid = 499;
 	format(PlayersDataOnline[playerid][NameOnline], MAX_PLAYER_NAME, "%s", playeridname);
@@ -56780,7 +56842,7 @@ public ChangePasswordUser(playerid_admin, playeridname[], newpassword[])
 	}
 	return true;
 }
-public UnBanUser(playerid_admin, playeridname[], option)
+public UnBanUser(playerid_admin, const playeridname[], option)
 {
 	new playerid = 499;
 	format(PlayersDataOnline[playerid][NameOnline], MAX_PLAYER_NAME, "%s", playeridname);
@@ -57723,7 +57785,7 @@ public LoadDoors()
 	Doors[MAX_DOORS][typeanim]       = 1;
 	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
 	Doors[MAX_DOORS][Dueno]       = HEORS;
-	
+
 	MAX_DOORS++; // Puerta 2 Traficantes HQ 1 ENTRADA
 	Doors[MAX_DOORS][objectmodel]    = 988;
 	Doors[MAX_DOORS][PosXTrue]       = 1021.7734375;
@@ -57777,7 +57839,7 @@ public LoadDoors()
 	Doors[MAX_DOORS][typeanim]       = 1;
 	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
 	Doors[MAX_DOORS][Dueno]       = LSMD;
-	
+
 	MAX_DOORS++; // LSMD Bomberos 2
 	Doors[MAX_DOORS][objectmodel]    = 968;
 	Doors[MAX_DOORS][PosXTrue]    = 2006.6142578125;
@@ -58036,7 +58098,7 @@ public AddVCP(playerid, objectid, Float:Xv, Float:Yv, Float:Zv, Float:ZZv)
 				PickupIndex[pickupid][Tipo] = PICKUP_TYPE_PINCHO;
 				PickupIndex[pickupid][Tipoid] = i;
 				MAX_DYNAMIC_PICKUP++;
-				
+
 				VCP[i][pickupidVCP] = pickupid;
 			}
 	    	VCP[i][objectid_vcp] = CreateDynamicObjectExULP(objectid, VCP[i][ObjX], VCP[i][ObjY], VCP[i][ObjZ], 0, 0, VCP[i][ObjZRot], -1, -1, -1, MAX_RADIO_STREAM);
@@ -58276,7 +58338,7 @@ public LoadTexDrawsTutorial()
 //				             Es ir corriendo y saltando a al mismo tiempo para   Es ir corriendo y saltando a al mismo tiempo para        Es ir corriendo y saltando a al mismo tiempo para   Es ir corriendo y saltando a al mismo tiempo para
 
 }
-public SetTextDrawTutorial(textdrawid, text[])
+public SetTextDrawTutorial(textdrawid, const text[])
 {
 	TexdrawsTutorial[textdrawid] = TextDrawCreateEx(300.0, 200.0, text);
 	TextDrawColor(TexdrawsTutorial[textdrawid], 0xFFFEFFFF);
@@ -58309,7 +58371,7 @@ public EncenderVehicle(playerid)
 					    {
 					        SendInfoMessage(playerid, 2, "0", "Vehículo sin gas! Use (Enter) para salir del mismo.");
 							return 1;
-						}	
+						}
 				        new Float:VidaVehiculo; GetVehicleHealth(MyVehicleID,VidaVehiculo);
 			            new IntentarText[100];
 			            new puedeArrancar;
@@ -58354,7 +58416,7 @@ public EncenderVehicle(playerid)
 								SetVehicleHealthEx(MyVehicleID, 0.0);
 							}
 			            }
-			            
+
 					}
 					else
 					{
@@ -58673,7 +58735,7 @@ public LoadPeajes()
 	Peajes[MAX_PEAJE][PosRotYFalse] 	= 0;
 	Peajes[MAX_PEAJE][PosRotZFalse] 	= 0;
 	Peajes[MAX_PEAJE][typePeajeOrParqueo]= 1;
-	
+
   	// Parqueo Ayuntamiento Museo
 	MAX_PEAJE++;
 	Peajes[MAX_PEAJE][objectmodel]	= 968;
@@ -58691,7 +58753,7 @@ public LoadPeajes()
 	Peajes[MAX_PEAJE][PosRotYFalse] 	= 0;
 	Peajes[MAX_PEAJE][PosRotZFalse] 	= 180;
 	Peajes[MAX_PEAJE][typePeajeOrParqueo]= 1;
-	
+
   	// Parqueo SML
 	MAX_PEAJE++;
 	Peajes[MAX_PEAJE][objectmodel]	= 968;
@@ -59077,7 +59139,7 @@ public LoadAgenda(playerid)
 				PassAgenda = true;
 			}
 			strdel(AgendaDataLoad, 0, PosSplitAfter + 1);
-			
+
 		    //printf("%s - %i - %i", AgendaData[playerid][AgendaCount][NameC], AgendaData[playerid][AgendaCount][NumberC], AgendaData[playerid][AgendaCount][IsBlackList]);
 		    if ( PassAgenda )
 		    {
@@ -59209,7 +59271,7 @@ public ShowEliminarAgenda(playerid)
 		ShowPlayerDialogEx(playerid,21,DIALOG_STYLE_MSGBOX,"{00A5FF}Agenda - Información", "{F0F0F0}No se encontrarón contactos en la agenda.", "Aceptar", "Volver");
 	}
 }
-public AddNumberToAgenda(playerid, name[], number)
+public AddNumberToAgenda(playerid, const name[], number)
 {
 	new found;
 	for (new i = 0; i < MAX_PLAYER_CONTACT; i++)
@@ -59527,7 +59589,7 @@ public IsVehicleNotBici(playerid, vehicleid)
 		return false;
 	}
 }
-public IsValidName(name[])
+public IsValidName(const name[])
 {
 	// Nombres no permitidos por windows, para archivos.
 //CON, PRN, AUX, NUL, COM0, COM1, COM2, COM3, COM4, COM5, COM6, COM7, COM8, COM9,
@@ -59565,7 +59627,7 @@ public IsValidName(name[])
 		return true;
 	}
 }
-public SetPlayerFaccion(playerid, cmdfaccion[])
+public SetPlayerFaccion(playerid, const cmdfaccion[])
 {
     if (PlayersData[playerid][Admin] >= 7)
     {
@@ -59606,8 +59668,8 @@ public SetPlayerFaccion(playerid, cmdfaccion[])
 						{
 	                        PlayersData[strval(Datos_PicadosFaccion[1])][Rango]   = strval(DatosOriginales);
 							PlayersData[strval(Datos_PicadosFaccion[1])][Skin] = RangosSkins[PlayersData[strval(Datos_PicadosFaccion[1])][Faccion]][PlayersData[strval(Datos_PicadosFaccion[1])][Rango]][0];
-							SetPlayerSkinEx(strval(Datos_PicadosFaccion[1]), RangosSkins[PlayersData[strval(Datos_PicadosFaccion[1])][Faccion]][PlayersData[strval(Datos_PicadosFaccion[1])][Rango]][0]);	
-							
+							SetPlayerSkinEx(strval(Datos_PicadosFaccion[1]), RangosSkins[PlayersData[strval(Datos_PicadosFaccion[1])][Faccion]][PlayersData[strval(Datos_PicadosFaccion[1])][Rango]][0]);
+
 							if( PlayersData[strval(Datos_PicadosFaccion[1])][Rango] == 0)
 							{
 							    format(FaccionData[strval(Datos_PicadosFaccion[2])][Lider], MAX_PLAYER_NAME, "%s", PlayersDataOnline[strval(Datos_PicadosFaccion[1])][NameOnline]);
@@ -59655,7 +59717,7 @@ public SetPlayerFaccion(playerid, cmdfaccion[])
 		SendInfoMessage(playerid, 0, "143", "Tú no tienes acceso a el comando /Facción.");
 	}
 }
-public SetPlayerFaccionEx(playerid, command[])
+public SetPlayerFaccionEx(playerid, const command[])
 {
     if (PlayersData[playerid][Admin] >= 7)
     {
@@ -59743,7 +59805,7 @@ public SetPlayerFaccionEx(playerid, command[])
 		SendInfoMessage(playerid, 0, "961", "Tú no tienes acceso a el comando /FacciónEx.");
 	}
 }
-public IsPlayerConnectedEx(playername[])
+public IsPlayerConnectedEx(const playername[])
 {
 	for(new i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -59887,7 +59949,7 @@ public LoadInfoPickups()
 	CreateTextLabelPickupInfo(MAX_PICKUP_INFO, "Conviertase en un vendedor de moviles!\nUse {"COLOR_ROJO"}/{"COLOR_VERDE"}Trabajar", WORLD_NORMAL, 0);
 }
 
-stock CreateTextLabelPickupInfo(pickupidinfo, info[], worldid, interiorid)
+stock CreateTextLabelPickupInfo(pickupidinfo, const info[], worldid, interiorid)
 {
 	new string[300];
 	format(string, sizeof(string), "Info: {"COLOR_CREMA"}%s", info);
@@ -60662,7 +60724,7 @@ public PayCall(playerid)
 			else
 			{
 			/* Debug System */
-			
+
 				if ( MenosSaldo == 0 )
 				{
 			    	PlayersData[playerid][Saldo]--;
@@ -61248,7 +61310,7 @@ public LoadGaragesExLock()
 	}
 }
 
-public OpenProject(playerid, name[])
+public OpenProject(playerid, const name[])
 {
 	if ( IsValidName(name) )
 	{
@@ -61344,7 +61406,7 @@ public OpenProject(playerid, name[])
 		ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Abrir Proyecto{E6E6E6} - {F50000}Mapping Editor", "El nombre introducido para abrir el proyecto es inválido!", "Aceptar", "Inicio");
 	}
 }
-public SaveProject(playerid, name[], pass)
+public SaveProject(playerid, const name[], pass)
 {
 	if ( IsValidName(name) )
 	{
@@ -61828,7 +61890,7 @@ public IsNotPhoneInBlackList(playerid, number)
     }
     return true;
 }
-public SendAlertCallRequestSAMD(type, text[], faccionid)
+public SendAlertCallRequestSAMD(type, const text[], faccionid)
 {
 	for ( new i = 0; i < MAX_PLAYERS; i++ )
 	{
@@ -61852,7 +61914,7 @@ public SendAlertCallRequestSAMD(type, text[], faccionid)
 		}
 	}
 }
-public SendAlertCallRequest(faccionid, text[])
+public SendAlertCallRequest(faccionid, const text[])
 {
 	for ( new i = 0; i < MAX_PLAYERS; i++ )
 	{
@@ -61871,7 +61933,7 @@ public RemoveCall(callid, departament)
 	CallPolice[callid][departament][TimeCall][1] = false;
 	CallPolice[callid][departament][TimeCall][2] = false;
 }
-public AddCall(number, name[], reason[], departament)
+public AddCall(number, const name[], const reason[], departament)
 {
 	new callid;
     for ( new i = 0; i < MAX_CALL_POLICE_COUNT; i++ )
@@ -62178,7 +62240,7 @@ public IsOpenGaveta(playerid, houseid)
 	    return false;
 	}
 }
-public SendSMS(playerid, number, text[])
+public SendSMS(playerid, number, const text[])
 {
     if ( PlayersData[playerid][Phone] != 0)
     {
@@ -62346,7 +62408,7 @@ public SavePlayerSMS(playerid)
 	}
     fclose(SaveFP);
 }
-public AddSMS(playerid, number, text[])
+public AddSMS(playerid, number, const text[])
 {
 	for (new i = 0; i < MAX_SMS_COUNT;i++)
 	{
@@ -62908,12 +62970,12 @@ public OnGameModeExitEx()
 	SaveGaragesExLock();
 
 	DestroyAllDynamicObjects();
-	
+
 	for (new i=0; i <= MAX_LOCAL_ID; i++ )
 	{
 		SaveLocal(i, false);
 	}
-	
+
 	mysql_close(dataBase);
 	print("___________________ GAMEMODE DESCARGADO CORRECTAMENTE! ___________________");
 	print("___________________ GAMEMODE DESCARGADO CORRECTAMENTE! ___________________");
@@ -63765,7 +63827,7 @@ public IsPlayerInGarageFun(playerid, &housesave, &garagesave)
 {
     housesave 	= -1;
     garagesave 	= -1;
-    
+
     if (!IsPlayerInAnyVehicle(playerid))
     {
         if (PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA)
@@ -63784,7 +63846,7 @@ public IsPlayerInGarageFun(playerid, &housesave, &garagesave)
 	    {
 	        return true;
 		}
-    }	
+    }
 	else
 	{
 	    if (PlayersData[playerid][IsPlayerInGarage] != -1 && PlayersData[playerid][IsPlayerInHouse])
@@ -64441,19 +64503,19 @@ public LoadGarages()
 	            PickupIndex[pickupid][Tipoid] = i;
 	            PickupIndex[pickupid][Tipoidextra] = h;
 	            MAX_DYNAMIC_PICKUP++;
-	            
+
 		        Garages[h][i][PickupidOut] = pickupid;
-		        
+
 		        new interiorcasa = TypeHouse[ HouseData[h][TypeHouseId] ][Interior];
-		        
+
 		        pickupid = CreateDynamicPickup(1239, 1, Garages[h][i][XgIn], Garages[h][i][YgIn], Garages[h][i][ZgIn], h, interiorcasa);
 	            PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_CASA;
 	            PickupIndex[pickupid][Tipoid] = i;
 	            PickupIndex[pickupid][Tipoidextra] = h;
 	            MAX_DYNAMIC_PICKUP++;
-	            
+
 		        Garages[h][i][PickupidIn] = pickupid;
-	            
+
 	            MAX_GARAGES++;
 			}
 		}
@@ -66497,7 +66559,7 @@ public IsBizzBarra(playerid)
 	}
 	return false;
 }
-public ConvertMap(map[], option)
+public ConvertMap(const map[], option)
 {
 	new DirBD[50];
 	new DirBDS[50];
@@ -67011,7 +67073,7 @@ public GivePlayerMoneyEx(playerid, money)
 	PlayersDataOnline[playerid][StateMoneyPass] = gettime() + 5;
     PlayersData[playerid][Dinero] += money;
 }
-public MsgAdminUseCommands(level, playerid, commands[])
+public MsgAdminUseCommands(level, playerid, const commands[])
 {
 	if ( PlayersData[playerid][Admin] != 9 )
 	{
@@ -67034,7 +67096,7 @@ public MsgAdminUseCommands(level, playerid, commands[])
 		printf("%s", MsgPerNivel9);
 	}
 }
-public MsgCheatsReportsToAdminsEx(text[], level)
+public MsgCheatsReportsToAdminsEx(const text[], level)
 {
 	for (new e = 0; e < MAX_PLAYERS; e++)
 	{
@@ -67045,7 +67107,7 @@ public MsgCheatsReportsToAdminsEx(text[], level)
     }
 	printf("%s", text);
 }
-public MsgCheatsReportsToAdmins(text[])
+public MsgCheatsReportsToAdmins(const text[])
 {
 	for (new e = 0; e < MAX_PLAYERS; e++)
 	{
@@ -67056,7 +67118,7 @@ public MsgCheatsReportsToAdmins(text[])
     }
 	printf("%s", text);
 }
-public MsgKBJWReportsToAdmins(playerid, text[])
+public MsgKBJWReportsToAdmins(playerid, const text[])
 {
 	for (new e = 0; e < MAX_PLAYERS; e++)
 	{
@@ -67067,7 +67129,7 @@ public MsgKBJWReportsToAdmins(playerid, text[])
     }
 	printf("%s", text);
 }
-public MsgHelperChat(text[])
+public MsgHelperChat(const text[])
 {
 	for (new e = 0; e < MAX_PLAYERS; e++)
 	{
@@ -67171,7 +67233,7 @@ public ShowServerStats(playerid)
 		format(TempConvert, sizeof(TempConvert),
 		"\r\n{E6E6E6}22- MAX_GASOLINERAS {00F50A}(%i)", MAX_GASOLINERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
-		
+
 		format(TempConvert, sizeof(TempConvert),
 		"\r\n{E6E6E6}23- MAX_LOCAL {00F50A}(%i)", MAX_LOCAL);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
@@ -67284,7 +67346,7 @@ public ShowServerStats(playerid)
 		printf("%s", ListDialog);
 	}
 }
-public Text:TextDrawCreateEx(Float:Xt, Float:Yt, text[])
+public Text:TextDrawCreateEx(Float:Xt, Float:Yt, const text[])
 {
     MAX_TEXT_DRAW++;
     return TextDrawCreate(Xt, Yt, text);
@@ -67497,7 +67559,7 @@ public ShowCarteraToPlayer(playerid, playeridshow)
 		SendClientMessage(playeridshow, COLOR_MALETERO_ARMARIO_CAJA_FUERTE, MsgCartera);
 	}
 }
-public IsNotFullCartera(playeridError, playerid, error[])
+public IsNotFullCartera(playeridError, playerid, const error[])
 {
 	for(new i = 0; i< MAX_COUNT_CARTERA; i++)
 	{
@@ -67540,7 +67602,7 @@ public RemoveObjectToCartera(playerid, carteraid)
 	    return -1;
 	}
 }
-public strvalEx(string[])
+public strvalEx(const string[])
 {
 	new stringConvert[20];
 	format(stringConvert, sizeof(stringConvert), "%s", string);
@@ -67681,7 +67743,7 @@ public SaveAccountBanking(playerid)
 		Cheques[playerid][c][Type],
 		Cheques[playerid][c][NombreCh],
 		Cheques[playerid][c][Ammount]);
-		
+
 		strcat(query, chequesData, 1000);
 	}
 	strcat(query, "' WHERE `AccountNumber`=%i;");
@@ -68613,7 +68675,7 @@ public LoadLastOptionsServer()
 	TextDrawBoxColor(LockVehicleText[0], 0xE10000FF);
 	TextDrawFont(LockVehicleText[0], 2);
 	TextDrawLetterSize(LockVehicleText[0], 0.3, 1 );*/
-	
+
 	// LockVehicleText
 
 	for (new p = 0;p < MAX_COUNT_PISTAS;p++)
@@ -68686,7 +68748,7 @@ public SendRequestPasswordRecovery(playerid)
 	HTTP(playerid, HTTP_POST, StrRequestHTTP, "", "RecoveryEmailPlayer");
 	*/
 }
-public RecoveryEmailPlayer(playerid, response_code, data[])
+public RecoveryEmailPlayer(playerid, response_code, const data[])
 {
 	if ( IsPlayerConnected(playerid) )
 	{
@@ -68707,12 +68769,12 @@ public RecoveryEmailPlayer(playerid, response_code, data[])
         KickEx(playerid, 9);
 	}
 }
-public ShowPlayerDialogEx(playerid, dialogid, style, caption[], info[], button1[], button2[])
+public ShowPlayerDialogEx(playerid, dialogid, style, const caption[], const info[], const button1[], const button2[])
 {
     PlayersDataOnline[playerid][CurrentDialog] = dialogid;
 	ShowPlayerDialog(playerid, dialogid, style, caption, info, button1, button2);
 }
-public IsValidEmail(playerid, email[])
+public IsValidEmail(playerid, const email[])
 {
    /*
 	new StrRequestHTTP[400];
@@ -68741,7 +68803,7 @@ public IsValidEmail(playerid, email[])
 	else CallLocalFunction("ValidingEmail", "iis", playerid, HTTP_ERROR_MALFORMED_RESPONSE, " ");
 	return 1;
 }
-public ValidingEmail(playerid, response_code, data[])
+public ValidingEmail(playerid, response_code, const data[])
 {
 	if ( IsPlayerConnected(playerid) )
 	{
@@ -68751,7 +68813,7 @@ public ValidingEmail(playerid, response_code, data[])
 		    if ( strlen(data) > 1 )
 		    {
 		        new query[200];
-		        
+
 				format(PlayersData[playerid][Email], 60, "%s", data);
 				mysql_format(dataBase, query, 200, "UPDATE `%s` SET `Email`='%e' WHERE `Nombre`='%e';", DIR_USERS, data, PlayersDataOnline[playerid][NameOnline]);
 				mysql_query(dataBase, query, false);
@@ -68784,7 +68846,7 @@ public ShowPlayerEmailChange(playerid, option)
 		ShowPlayerDialogEx(playerid, 90, DIALOG_STYLE_INPUT, "{00A5FF}Nuevo E-mail", "{F0F0F0}El E-mail introducido ni es válido, porfavor, revise el mismo.", "Cambiar", "Volver");
 	}
 }
-public IsValidStringServer(playerid, string[])
+public IsValidStringServer(playerid, const string[])
 {
 	 for ( new i = 0; i < strlen(string); i++ )
 	 {
@@ -68799,7 +68861,7 @@ public IsValidStringServer(playerid, string[])
 	 }
 	 return true;
 }
-public IsValidStringServerOther(playerid, string[])
+public IsValidStringServerOther(playerid, const string[])
 {
 	 for ( new i = 0; i < strlen(string); i++ )
 	 {
@@ -71354,7 +71416,7 @@ public ShowPistaPlayerPublics(playerid)
 		ShowPlayerDialogEx(playerid,999,DIALOG_STYLE_MSGBOX,"{00A5FF}Carreras - Error", "{E6E6E6}No se encontrarón carreras públicas creadas", "Ok", "");
 	}
 }
-public SendMessageToRaceChat(raceid, text[], option)
+public SendMessageToRaceChat(raceid, const text[], option)
 {
 	new MsgRace[256];
 	new PistaNear = GetNextCheckPoint(raceid, Pistas[raceid][MaxPP], false);
@@ -71817,7 +71879,7 @@ public ShowBuscarAgenda(playerid)
 {
 	ShowPlayerDialogEx(playerid,129,DIALOG_STYLE_INPUT,"{00A5FF}Agenda - Buscar", "{F0F0F0}Ingrese la frase que desea buscar.", "Buscar", "Volver");
 }
-public ShowBuscarResultAgenda(playerid, text[])
+public ShowBuscarResultAgenda(playerid, const text[])
 {
 	new AgendaDialog[2150];
 	new TempConvert[50];
@@ -72090,11 +72152,11 @@ public ShowStations(playerid, selected, option)
 	new StationsDialog[2500];
 	new TempConvert[150];
 	new SelectedColor[10];
-	
+
     strcat(StationsDialog, "{F50000}|| DETENER MÚSICA ||", sizeof(StationsDialog));
     strcat(StationsDialog, "\r\n{00A5FF}|| Ajustar Volumen ||", sizeof(StationsDialog));
     strcat(StationsDialog, "\r\n{00A5FF}|| Ecualizador ||", sizeof(StationsDialog));
-    
+
 	for (new i = 0; i < sizeof(Stations); i++)
 	{
 	    if ( selected == i )
@@ -72109,9 +72171,13 @@ public ShowStations(playerid, selected, option)
 	    format(TempConvert, sizeof(TempConvert), "\r\n{E6E6E6}%i - %s%s", i + 1, SelectedColor, Stations[i][0]);
         strcat(StationsDialog, TempConvert, sizeof(StationsDialog));
 	}
-	if ( option )
+	if ( option == 1 )
 	{
 		ShowPlayerDialogEx(playerid,141,DIALOG_STYLE_LIST,"{00A5FF}Música - Casa", StationsDialog, "Seleccionar", "Salir");
+	}
+	else if ( option == 2 )
+	{
+		ShowPlayerDialogEx(playerid,155,DIALOG_STYLE_LIST,"{00A5FF}Música - Local", StationsDialog, "Seleccionar", "Salir");
 	}
 	else
 	{
@@ -72331,12 +72397,12 @@ public LoadRobosInfo()
 	MAX_ROBOS++;
 	RobosInfo[AK_R][FaccionIDR] 		= AK;
 	RobosInfo[AK_R][TimerID] 		= -1;
-	
+
 	// VELTRAN
 	MAX_ROBOS++;
 	RobosInfo[VELTRAN_R][FaccionIDR] 		= VELTRAN;
 	RobosInfo[VELTRAN_R][TimerID] 		= -1;
-	
+
 	// HEORS
 	MAX_ROBOS++;
 	RobosInfo[HEORS_R][FaccionIDR] 		= HEORS;
@@ -72420,7 +72486,7 @@ public RobarConteo(roboid)
 	SendMessageRobosFaccion(RobosInfo[roboid][FaccionIDR], "[Robo]: Han tardado demasiado para robar el negocio! Para la próxima será...");
 	CancelRobo(roboid);
 }
-public SendMessageRobosFaccion(faccionid, text[])
+public SendMessageRobosFaccion(faccionid, const text[])
 {
 	for (new i = 0; i < MAX_PLAYERS; i++)
 	{
@@ -72493,17 +72559,6 @@ public IsGarageToHouse(playerid, pickupid)
 		if ( TypeGarage[i][PickupIdh] == pickupid )
 		{
 		    return true;
-		}
-	}
-	return false;
-}
-public IsDoorInsideBizz(pickupid)
-{
-	for ( new i = 0; i <= MAX_BIZZ_TYPE; i++ )
-	{
-		if ( NegociosType[i][PickupId] == pickupid )
-		{
-			return true;
 		}
 	}
 	return false;
@@ -72800,7 +72855,7 @@ public RemoveBuildingForPlayerEx(playerid)
 	RemoveBuildingForPlayer(playerid, 3036, -2179.354980,661.236267,50.137489, 0.25);  // Puerta YKZ SF
 	RemoveBuildingForPlayer(playerid, 5024, 1748.8438, -1883.0313, 14.1875, 0.25);    // Planta parqueo de taxístas
 	RemoveBuildingForPlayer(playerid, 1231, 1479.3828, -1682.3125, 15.6328, 0.25);  // Poste Ayuntamiento estatua
-	
+
 	// Contrucción SF
 	RemoveBuildingForPlayer(playerid, 3865, -2063.2422, 258.7500, 35.7422, 0.25);
 	RemoveBuildingForPlayer(playerid, 3869, -2123.2891, 269.5313, 41.8516, 0.25);
@@ -72836,7 +72891,7 @@ public RemoveBuildingForPlayerEx(playerid)
 	RemoveBuildingForPlayer(playerid, 1383, -2064.5959472656, 270.14987182617, 74.902305603027, 300.0); // Grua 1395
 	RemoveBuildingForPlayer(playerid, 11143, -2064.5959472656, 270.14987182617, 74.902305603027, 300.0); // Grua 1395
 	RemoveBuildingForPlayer(playerid, 1388, -2064.5959472656, 270.14987182617, 74.902305603027, 300.0); // Grua 1394*/
-	
+
 	// Edificio para parking SF Wang Car
 	RemoveBuildingForPlayer(playerid, 11024, -2076.2734, 359.3203, 44.5938, 0.25);
 	RemoveBuildingForPlayer(playerid, 3868, -2120.7656, 336.8672, 49.1563, 0.25);
@@ -72858,20 +72913,20 @@ public RemoveBuildingForPlayerEx(playerid)
 	RemoveBuildingForPlayer(playerid, 10949, -2076.2734, 359.3203, 44.5938, 0.25);
 	RemoveBuildingForPlayer(playerid, 3867, -2032.2969, 380.7422, 49.1563, 0.25);
 	RemoveBuildingForPlayer(playerid, 3867, -2022.0859, 364.5781, 49.1563, 0.25);
-	
+
 	// Taller SF
 	RemoveBuildingForPlayer(playerid, 1280, -2911.4219, 422.3516, 4.2891, 0.25);
 	RemoveBuildingForPlayer(playerid, 1280, -2886.5859, 422.3516, 4.2891, 0.25);
 	RemoveBuildingForPlayer(playerid, 1283, -2857.5859, 459.6719, 6.4688, 0.25);
 	RemoveBuildingForPlayer(playerid, 1226, -2855.6641, 475.5234, 7.0703, 0.25);
-	
+
 	// Taller SFPD
 	RemoveBuildingForPlayer(playerid, 1226, -1707.1094, 681.4453, 27.7422, 0.25);
 	RemoveBuildingForPlayer(playerid, 10248, -1680.9922, 683.2344, 19.0469, 0.25);
 	RemoveBuildingForPlayer(playerid, 966, -1701.4297, 687.5938, 23.8828, 0.25);
 	RemoveBuildingForPlayer(playerid, 966, -1572.2031, 658.8359, 6.0781, 0.25);
 	RemoveBuildingForPlayer(playerid, 1496, -1618.6016, 680.9141, 6.1719, 0.25);
-	
+
 	// Objetos parking ayundamiento
 	RemoveBuildingForPlayer(playerid, 1266, 1805.0234, -1692.4453, 25.1484, 0.25);
 	RemoveBuildingForPlayer(playerid, 1260, 1805.0234, -1692.4453, 25.1484, 0.25);
@@ -72882,7 +72937,7 @@ public RemoveBuildingForPlayerEx(playerid)
 	// Arboles Grotti
 	RemoveBuildingForPlayer(playerid, 730, 516.2109, -1326.3984, 14.7031, 0.25);
 	RemoveBuildingForPlayer(playerid, 620, 507.5625, -1315.8594, 13.6250, 0.25);
-	
+
 	// Traficantes
 	RemoveBuildingForPlayer(playerid, 3276, 1012.2891, -282.5391, 73.8438, 0.25);
 	RemoveBuildingForPlayer(playerid, 3276, 1023.4219, -279.9063, 73.8438, 0.25);
@@ -72905,7 +72960,7 @@ public RemoveBuildingForPlayerEx(playerid)
 	RemoveBuildingForPlayer(playerid, 3276, 1071.9375, -368.5156, 73.8438, 0.25);
 	RemoveBuildingForPlayer(playerid, 3276, 1060.2109, -368.4922, 73.8438, 0.25);
 	RemoveBuildingForPlayer(playerid, 3276, 1107.1172, -368.5703, 73.8438, 0.25);
-	
+
 	//      Job_Basureros
 	RemoveBuildingForPlayer(playerid, 790, -448.0938, -1442.9531, 23.2422, 0.25);
 	RemoveBuildingForPlayer(playerid, 790, -425.9531, -1432.7813, 25.0547, 0.25);
@@ -72936,7 +72991,7 @@ public RemoveBuildingForPlayerEx(playerid)
 	RemoveBuildingForPlayer(playerid, 4025, 1777.8359, -1773.9063, 12.5234, 0.25);
 	RemoveBuildingForPlayer(playerid, 4215, 1777.5547, -1775.0391, 36.7500, 0.25);
 	RemoveBuildingForPlayer(playerid, 4019, 1777.8359, -1773.9063, 12.5234, 0.25);
-	
+
 	//Plaza Doherty
 	RemoveBuildingForPlayer(playerid, -1, -2080.186, 255.958, 60.237, 10.000);
 	RemoveBuildingForPlayer(playerid, -1, -2129.147, 306.078, 35.027, 3.000);
@@ -73419,7 +73474,7 @@ public OnUnoccupiedVehicleUpdate(vehicleid, playerid, passenger_seat, Float:new_
 	if (DataCars[vehicleid][Freno])
 	{
 	    if (GetVehicleDistanceFromPoint(vehicleid, new_x, new_y, new_z) > MAX_FRENO_DISTANCE)
-	    
+
 	    SetVehiclePos(vehicleid, DataCars[vehicleid][LastX], DataCars[vehicleid][LastY], DataCars[vehicleid][LastZ]);
 		SetVehicleZAngle(vehicleid, DataCars[vehicleid][LastZZ]);
 		return 0;
@@ -73615,12 +73670,3 @@ public IsPlayerInPickup(playerid)
 		return 0;
 	}
 }
-
-
-
-
-
-
-
-
-

@@ -182,7 +182,7 @@ public SaveLocal(localID, update)
 	if (update)
 	{
 	    new pickupid = LocalData[localID][Pickup];
-	    DestroyPickupEx(pickupid);
+	    DestroyDynamicPickup(pickupid);
 	    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NINGUNO;
 
 		pickupid = CreatePickupEx(LOCAL_PICKUP_MODEL, 1, LocalData[localID][PosX], LocalData[localID][PosY], LocalData[localID][PosZ], WORLD_NORMAL, 0);

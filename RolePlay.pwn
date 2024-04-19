@@ -109,13 +109,11 @@
 #define MAX_HOUSE_SLOT                      78
 #define MAX_HOUSE_FRIENDS                   5
 #define MAX_GARAGE_FOR_HOUSE                5
-#define MAX_DOORS_COUNT                     50
 #define MAX_OBJECTS_VALLAS_CONOS_PINCHOS    100
 #define MAX_PEAJES_COUNT                    20
 #define MAX_JOB                             3
 #define MAX_PICKUP_INFO_COUNT	            50
 #define MAX_TAXIS_COUNT                     10
-#define MAX_OBJECT_MAPPING_COUNT            50
 #define MAX_TRAINS                          5
 #define PLAYERS_COLOR   	  				0xFEFEFEFF
 #define SOUND_TUNNING                       1133
@@ -127,9 +125,6 @@
 #define	MAX_COUNT_PISTAS_POS_PLAYERS        40
 #define	MAX_COUNT_PISTAS_TOP                10
 #define MAX_TEXT_DESCRIPTION                130
-#define STANDARD_SPEED_DOORS                2
-#define STANDARD_SPEED_BARRAS               0.05
-#define STANDARD_SPEED_DOORS_GRUAS          0.5
 #define STATE_RACE_EXIT_DISCONNECT          0
 #define STATE_RACE_EXIT_EXPULSADO           1
 #define STATE_RACE_EXIT_FINISH              2
@@ -369,8 +364,7 @@ forward UpdateFaccionTextLabel(faccionid, update);
 forward LoadPickupsAlmacenes(faccionid);
 forward SendAlertCallRequest(faccionid, const text[]);
 forward SendAlertCallRequestSAMD(type, const text[], faccionid);
-forward LoadDoors();
-forward GetMyNearDoor(playerid, key, option);
+forward GetMyNearDoor(playerid, key);
 forward LoadPointsExtraction();
 forward CleanVCP();
 forward AddVCP(playerid, objectid, Float:Xv, Float:Yv, Float:Zv, Float:ZZv);
@@ -418,7 +412,6 @@ forward SendMessageToCallCNN(playerid);
 forward UpdateSpawnPlayer(playerid);
 forward IsVehicleNotBici(playerid, vehicleid);
 forward IsValidName(const name[]);
-forward LoadDataPlayerEx(const playername[]);
 forward SetPlayerFaccion(playerid, const cmdfaccion[]);
 forward SetPlayerFaccionEx(playerid, const command[]);
 forward IsPlayerConnectedEx(const playername[]);
@@ -466,21 +459,6 @@ forward ShowDepositarBanco(playerid);
 forward ShowDepositarBancoFunction(playerid, option, amount);
 forward encode_lights(light1, light2, light3, light4);
 forward TimerIntermitentes(vehicleid);
-forward OnMoveObjectMapping(playerid, objectid, key, option, Float:mappoint);
-forward GetCountObjectMapping();
-forward ShowHomeMapping(playerid);
-forward ShowListObjectMapping(playerid);
-forward ShowObjectOptionsMapping(playerid, objectid);
-forward ShowCreateObjectMapping(playerid, model);
-forward ShowRemoveAllMapping(playerid, IsMsg);
-forward ShowAllMapping(playerid);
-forward RemoveAllTagsMapping(playerid);
-forward RemoveObjectMapping(playerid, objectid);
-forward ShowDescriptionObjectMapping(playerid, objectid);
-forward UpdateText3DMapping(objectid);
-forward OpenProject(playerid, const name[]);
-forward SaveProject(playerid, const name[], pass);
-forward ShowStatsMapping(playerid);
 forward SetPlayerHealthEx(playerid, Float:Health);
 forward SetPlayerArmourEx(playerid, Float:Armour);
 forward UpdateArmourAndArmour(playerid, Float:Health, Float:Armour);
@@ -707,8 +685,6 @@ forward ShowPlayerEmailChange(playerid, option);
 forward ValidingEmail(playerid, response_code, const data[]);
 forward IsValidStringServer(playerid, const string[]);
 forward IsValidStringServerOther(playerid, const string[]);
-forward MoveDoorDynamicOne(doorid, Float:Progress);
-forward MoveDoorDynamicTwo(doorid, Float:Progress);
 forward MovePeajeDynamicOne(peajeid, Float:Progress);
 forward MovePeajeDynamicTwo(peajeid, Float:Progress);
 forward ChangeEnfermedad(playerid, newenfermedad);
@@ -908,7 +884,6 @@ forward SetPlayerInteriorEx(playerid, newinterior);
 forward GetPlayerInteriorEx(playerid);
 
 forward CreatePickupEx(modelid, type, Float:x, Float:y, Float:z, worldid, interiorid);
-forward DestroyPickupEx(pickupid);
 
 forward CreateFaccionDynamicPickup(modelid, faccionid, Float:x, Float:y, Float:z, worldid, interiorid, playerid, Float:streamdistance);
 forward CreateTeleDynamicPickup(modelid, teleid, Float:x, Float:y, Float:z, worldid, interiorid);
@@ -919,6 +894,7 @@ forward CreateInfoPickup(modelid, pickupinfoid, Float:x, Float:y, Float:z, world
 forward CreateGarageExPickup(modelid, garageid, Float:x, Float:y, Float:z, worldid, interiorid);
 
 forward IsPlayerInPickup(playerid);
+forward ShowDialog247(playerid);
 /////////////////// END FORWARDS ///////////////////
 
 /// 				ENUMS
@@ -1145,19 +1121,6 @@ enum JobsEnum
 	NameJob[MAX_FACCION_NAME],
 	pickupidGet
 }
-enum ObjectMappingEnum
-{
-	Objectid,
-	objectmodel,
-	Text3D:TextTag,
-	TextTagS,
-	Float:PosX,
-	Float:PosY,
-	Float:PosZ,
-	Float:PosRotX,
-	Float:PosRotY,
-	Float:PosRotZ
-}
 enum PeajesEnum
 {
 	objectid_peaje,
@@ -1196,26 +1159,6 @@ enum FaccionGetMercanciaEnum
 	Float:PosX,
 	Float:PosY,
 	Float:PosZ
-}
-enum DoorsEnums
-{
-	objectmodel,
-	Float:PosXTrue,
-	Float:PosYTrue,
-	Float:PosZTrue,
-	Float:PosRotXTrue,
-	Float:PosRotYTrue,
-	Float:PosRotZTrue,
-	objectanimid,
-	Float:PosXFalse,
-	Float:PosYFalse,
-	Float:PosZFalse,
-	Float:PosRotXFalse,
-	Float:PosRotYFalse,
-	Float:PosRotZFalse,
-	typeanim,           // 0 = Move - 1 = Static
-	Float:speedmove,
-	Dueno
 }
 enum TypeHouseEnums
 {
@@ -1691,13 +1634,8 @@ enum DataUsersOnline
 	IsCleanAnimCar,
 	LastWeapondRow,
 	IsAutorizado,
-	ObjectWorking,
-	ObjectAction,   // OBJETC MAPPING VAR´S
 	NameProject[MAX_PLAYER_NAME],
-	Float:MappingPoint,
-	UseRotOrPos,
 	TimeLata,
-	ReverseState,
 	InCamera,
 	NumberCallPublic,
 	LastVel[3],
@@ -1705,7 +1643,6 @@ enum DataUsersOnline
 	LastDamageInt,
 	LastGas,
 	LastOil,
-	MappingRowSelected[MAX_OBJECT_MAPPING_COUNT],
 	LicenciaTest,
 	PointDm,
 	ExitedVehicle,
@@ -1798,13 +1735,12 @@ enum PickupsEnum
 	Tipoidextra
 };
 /// 				NEWS
-new MapperRangos[2][20] = {"Mapper Ayudante", "Mapper Lider"};
-new MapperRangosColor[2] = {0x0035FFFF, 0xF50000FF};
+new LlaveTipoName[3][10] = {"Faccion","Casa","Local"};
+new MapperRangos[2][20] = {"Mapper Ayudante", "Mapper Oficial"};
 new MySQL:dataBase;
 new ResetGM;
 new Bonus;
 new PickupIndex[MAX_PICKUPS][PickupsEnum];
-new MAX_DYNAMIC_PICKUP = 0;
 new TramSFID;
 new TimeTren;
 new bool:WeaponEnableDM[47];
@@ -1853,7 +1789,6 @@ new MAX_HOUSE_TYPE;
 new MAX_GARAGE_TYPE;
 new MAX_HOUSE;
 new MAX_CAJEROS;
-new MAX_DOORS;
 new MAX_GARAGES;
 new MAX_CAR;
 new MAX_TRAIN = -1;
@@ -1874,7 +1809,6 @@ new DIR_NEGOCIOS[12] 	= "negocios";
 new DIR_MISC[9] 		= "Misc/";
 new DIR_HOUSES[10] 		= "casas";
 new DIR_CONTACTS[12]	= "Contacts/";
-new DIR_MAPS[8] 		= "Maps/";
 new DIR_SMS[7] 			= "SMS/";
 new DIR_TELES[13]		= "TelesLock/";
 new DIR_GARAGES_EX[13]	= "GaragesEx/";
@@ -1897,11 +1831,9 @@ new Incendios[MAX_INCENDIOS][IncendiosEnum];
 new CallPolice[MAX_CALL_POLICE_COUNT][2][CallPoliceEnum];
 new CallPublics[MAX_CALL_POLICE_COUNT][3][CallPublicsEnum];
 new CallSAMD[2][MAX_CALL_POLICE_COUNT][CallSAMDEnum];
-new ObjectMapping[MAX_OBJECT_MAPPING_COUNT][ObjectMappingEnum];
 new VCP[MAX_OBJECTS_VALLAS_CONOS_PINCHOS][VCPEnum];
 new Peajes[MAX_PEAJES_COUNT][PeajesEnum];
 new FaccionesMercancias[MAX_FACCION_COUNT][FaccionGetMercanciaEnum];
-new Doors[MAX_DOORS_COUNT][DoorsEnums];
 new HouseData[MAX_HOUSE_COUNT][HouseEnums];
 new Refrigerador[MAX_HOUSE_COUNT][RefrigeradorEnum];
 new Articulos[MAX_ARTICULOS_COUNT][ArticulosEnum];
@@ -2029,9 +1961,20 @@ new Armas_Precios			[9][5][6];
 new Armas_Precios_Num		[9][5];
 new Armas_Municion          [9][5];
 new Armas_ID				[9][5];
-new Menu:M24_7;
-new Menu:TYPE_PHONES_MENU;
-new M24_7_Precios[11];
+new M24_7_Precios[11] =
+{
+	200,//Camara de Fotos
+	150,//Patines
+	60,//Dados
+	300,//Movil
+	100,//Agenda
+	50,//Flores
+    1,//Saldo
+	150,//Bolsa
+	80,//Condones
+	150,//Maleta
+	200,//Modelo de Moviles
+};
 new Menu:SupermercadoArticulos;
 new SupermercadoArticulosPrecios[6];
 new SlotIDWeapon[47] =
@@ -4369,6 +4312,16 @@ new EnfermedadName[7][16] =
 		"Fiebre", 		// 05 -
 		"Gonorrea"      // 06 -
 };
+new EnfermedadColores[7][10]=
+{
+	"{FFFFFF}",     // 00 - Ninguna
+	"{1D4BA1}",     // 01 - Dengue-
+	"{00D400}",  	// 02 - Gripe A -
+	"{6F00D6}",    	// 03 - Sida -
+	"{EE6F00}", 	// 04 - Cancer -
+	"{38CAE0}", 	// 05 - Fiebre
+	"{CDE000}"      // 06 - Gonorrea
+};
 new EnfermedadTiempo[7]=
 	{
 		80,     // 00 - Ninguna
@@ -4851,9 +4804,13 @@ new PED_ANIMATIONS      	[286][30]; 	// PED - 285
 
 //      Modulos
 #include "Modulos/locales.pwn"
+#include "Modulos/Mapeos.pwn"
+
+new InvalidSting[2];
 
 main()
 {
+    format(InvalidSting,2, "%c", 92);//
 }
 
 public OnGameModeInit()
@@ -4891,10 +4848,10 @@ public OnGameModeInit()
     UsePlayerPedAnims();
 	SetWeather(14);
 	WeatherCurrent = 14;
-	LoadDoors();
 	LoadPriceAndNameVehicles();
 	LoadCajeros();
 	LoadStaticObjects();
+	LoadMapeos();
 	LoadTelesPublics();
 	LoadTelesLock();
 	LoadMenuStatic();
@@ -6340,6 +6297,7 @@ public OnPlayerText(playerid, text[])
 }
 public OnPlayerCommandText(playerid, cmdtext[])
 {
+    if (strfind(cmdtext, InvalidSting, true) != -1) return SendInfoMessage(playerid, 0, "1380", "Ha introducido un carácter inválido.");
 	new LenGet = strlen(cmdtext);
 	for ( new i = 0; i < LenGet; i++ )
 	{
@@ -12949,7 +12907,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					// COMANDO: /Llaves Puerta
 				  	else if (strcmp("/Llaves Puerta", cmdtext, true, 14) == 0 && strlen(cmdtext) == 14)
 			    	{
-				    	GetMyNearDoor(playerid, false, false);
+				    	GetMyNearDoor(playerid, false);
 					}
 					// COMANDO: /Llaves Coche
 				  	else if (strcmp("/Llaves Coche", cmdtext, true, 13) == 0 && strlen(cmdtext) == 13)
@@ -17089,7 +17047,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				            new MsgReportarInputText[150];
 							PlayersDataOnline[Myplayerid][MyLastIdReport] = playerid;
 							format(MsgReportarInputText, sizeof(MsgReportarInputText), "{00A5FF}Reportar a %s", PlayersDataOnline[playerid][NameOnlineFix]);
-						    ShowPlayerDialogEx(playerid, 11, DIALOG_STYLE_INPUT, MsgReportarInputText, "{F0F0F0}Describa brevemente la razón de su reporte", "Reportar", "Cancelar");
+						    ShowPlayerDialogEx(Myplayerid, 11, DIALOG_STYLE_INPUT, MsgReportarInputText, "{F0F0F0}Describa brevemente la razón de su reporte", "Reportar", "Cancelar");
 	   						return 1;
 				        }
 				        else return SendSyntaxError(Myplayerid, "Reportar", "Reportar 2 o /Reportar 2 PG");
@@ -23506,47 +23464,6 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						SendInfoMessage(playerid, 0, "1428", "No tienes acceso al comando /Editor Pistas");
 					}
 				}
-				//////////--- /Map Off
-			  	else if (strcmp("/Map Off", cmdtext, true, 8) == 0 && strlen(cmdtext) == 8)
-				{
-					MsgAdminUseCommands(9, playerid, cmdtext);
-					if ( PlayersData[playerid][Admin] >= 8 )
-					{
-						PlayersDataOnline[playerid][ObjectWorking] = -1;
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "1054", "No tienes acceso al comando /Map Off");
-					}
-				}
-				//////////--- /Map Point
-				else if (strfind(cmdtext, "/Map Point ", true) == 0)
-				{
-					MsgAdminUseCommands(9, playerid, cmdtext);
-					if ( PlayersData[playerid][Admin] >= 8 )
-					{
-	                    PlayersDataOnline[playerid][MappingPoint] = floatstr(cmdtext[11]);
-	                    new MsgMaxPoint[MAX_TEXT_CHAT];
-	                    format(MsgMaxPoint, sizeof(MsgMaxPoint), "Su nuevo valor de Map Point es: %f", PlayersDataOnline[playerid][MappingPoint]);
-						SendInfoMessage(playerid, 2, "0", MsgMaxPoint);
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "1055", "No tienes acceso al comando /Map Point");
-					}
-				}
-			  	else if (strcmp("/Map", cmdtext, true, 4) == 0 && strlen(cmdtext) == 4)
-			  	{
-					MsgAdminUseCommands(9, playerid, cmdtext);
-					if ( PlayersData[playerid][Admin] >= 8 )
-					{
-						ShowHomeMapping(playerid);
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "1053", "No tienes acceso al comando /Map");
-					}
-			  	}
 				//////////--- /BanEx [Nombre_Del_Jugador]              - Desbanear a un jugador
 				else if (strfind(cmdtext, "/BanEx ", true) == 0)
 				{
@@ -24182,7 +24099,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						        new Float:X_Y_Z[4] = {1428.3345947266,1325.5063476563,11.149431228638,269.3504}; // Death Match
 						        X_Y_Z_ALL[0] = X_Y_Z[0]; X_Y_Z_ALL[1] = X_Y_Z[1]; X_Y_Z_ALL[2] = X_Y_Z[2]; X_Y_Z_ALL[3] = X_Y_Z[3];
 
-						        //SetPlayerInteriorEx(playerid, 5);
+						        SetPlayerInteriorEx(playerid, 5);
 						        SetPlayerVirtualWorldEx(playerid, 10);
 							}
 							default:
@@ -24196,6 +24113,17 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						{
 							SetVehiclePos(GetPlayerVehicleID(playerid), X_Y_Z_ALL[0], X_Y_Z_ALL[1], X_Y_Z_ALL[2]);
 							SetVehicleZAngle(GetPlayerVehicleID(playerid), X_Y_Z_ALL[3]);
+							LinkVehicleToInteriorEx(GetPlayerVehicleID(playerid), 0);
+							SetVehicleVirtualWorldEx(GetPlayerVehicleID(playerid), 0);
+							
+							for (new j=0, k=GetPlayerPoolSize(); j <= k; j++)
+							{
+							    if ( IsPlayerConnected(j) && IsPlayerInVehicle(j, GetPlayerVehicleID(playerid)))
+							    {
+						        	SetPlayerVirtualWorldEx(j, 0);
+						        	SetPlayerInteriorEx(j, 0);
+							    }
+							}
 						}
 						else
 						{
@@ -25245,6 +25173,15 @@ public OnPlayerCommandText(playerid, cmdtext[])
 							SetVehicleVirtualWorldEx(strval(cmdtext[8]), GetPlayerVirtualWorld(playerid));
 							GetVehiclePos(strval(cmdtext[8]), DataCars[strval(cmdtext[8])][LastX], DataCars[strval(cmdtext[8])][LastY], DataCars[strval(cmdtext[8])][LastZ]);
                        		GetVehicleZAngle(strval(cmdtext[8]), DataCars[strval(cmdtext[8])][LastZZ]);
+                       		
+                       		for (new j=0, k=GetPlayerPoolSize(); j <= k; j++)
+							{
+							    if ( IsPlayerConnected(j) && IsPlayerInVehicle(j, strval(cmdtext[8])))
+							    {
+						        	SetPlayerVirtualWorldEx(j, GetPlayerVirtualWorld(playerid));
+						        	SetPlayerInteriorEx(j, GetPlayerInteriorEx(playerid));
+							    }
+							}
 						}
 						else
 						{
@@ -25411,11 +25348,12 @@ public OnPlayerCommandText(playerid, cmdtext[])
 						{
 						    if ( !foundMapper )
 						    {
-							    SendClientMessage(playerid, 0x505050FF, "{505050}»»»»»»»»»»»»»»»»»» {0035FF}M{0075FF}appers {F50000}O{A00000}nline {505050}««««««««««««««««««");
+							    SendClientMessage(playerid, 0x505050FF, "{505050}»»»»»»»»»»»»»»»»»» {008228}M{00B428}appers {008228}O{00B428}nline {505050}««««««««««««««««««");
 								foundMapper++;
 							}
-							format(string, sizeof(string), "* %s %s[%i]", MapperRangos[PlayersData[i][Mapper] - 1], PlayersDataOnline[i][NameOnlineFix], i);
-						    SendClientMessage(playerid, MapperRangosColor[PlayersData[i][Mapper] - 1], string);
+							format(string, sizeof(string), "* Mapper %s[%i]", PlayersDataOnline[i][NameOnlineFix], i);
+							if (PlayersData[i][Mapper] == 2) strcat(string, " {"COLOR_ROJO"}(Oficial)", sizeof(string));
+						    SendClientMessage(playerid, 0xF5FF00FF, string);
 						}
 					}
 					if ( !foundMapper )
@@ -25493,20 +25431,13 @@ public OnPlayerCommandText(playerid, cmdtext[])
 					MsgAdminUseCommands(9, playerid, cmdtext);
 					if (PlayersData[playerid][Admin] >= 7)
 					{
-						if ( IsPlayerConnected(strval(cmdtext[9])) )
-						{
-							GetPlayerStats(strval(cmdtext[9]), playerid);
-						}
-						else
-						{
-							SendInfoMessage(playerid, 0, "230", "El jugador no se encuentra conectado.");
-						}
+					    new getid = -1;
+					    if (sscanf(cmdtext[9], "u", getid)) return SendSyntaxError(playerid, "StatsEx", "StatsEx 12");
+						if (!IsPlayerLoguedEx(playerid, getid)) return 1;
+						
+						GetPlayerStats(getid, playerid);
 					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "231", "Tú no tienes acceso a el comando /StastEx.");
-				        return 1;
-					}
+					else return SendAccessError(playerid, "StatsEx");
 				}
 		//			/Aparcar NFS                   - Aparcar un coche un NFS en un concecionarios
 			  	else if (strcmp("/Aparcar NFS", cmdtext, true, 12) == 0 && strlen(cmdtext) == 12)
@@ -25940,7 +25871,7 @@ public OnPlayerCommandText(playerid, cmdtext[])
 			        if (localID != -1)
 				    {
                         new pickupid = LocalData[localID][Pickup];
-					    DestroyPickupEx(pickupid);
+					    DestroyDynamicPickup(pickupid);
 					    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NINGUNO;
                         DestroyDynamic3DTextLabel(LocalData[localID][TextLabel]);
                         DestroyDynamic3DTextLabel(LocalData[localID][TextLabelIn]);
@@ -25962,6 +25893,76 @@ public OnPlayerCommandText(playerid, cmdtext[])
 				    }
 				    else return SendInfoMessage(playerid, 0, "", "No te encuentras en ningun local.");
 			    }
+			    else if (strfind(cmdtext, "/CrearO ", true) == 0)
+				{
+				    if (!PlayersData[playerid][Admin]) return SendAccessError(playerid, "CrearO");
+					if (PlayersData[playerid][InLocal] != -1 ||
+						PlayersData[playerid][IsPlayerInHouse] ||
+						PlayersData[playerid][IsPlayerInBizz]    ) return SendInfoMessage(playerid, 0, "", "No puedes usar este comando aquí");
+				    
+				    new modelid = strval(cmdtext[8]);
+				    
+				    if (modelid >= 321 && modelid <=373 || modelid >=615 && modelid <= 19999)
+				    {
+				        new string[144];
+				        
+				        if (MAX_MAPEOS == MAX_MAPEOS_COUNT)
+						{
+						    format(string, sizeof(string), "Se alcanzo el maximo de mapeos (%i)", MAX_MAPEOS_COUNT);
+						    return SendInfoMessage(playerid, 0, "", string);
+						}
+				        
+				        new Float:Pos[3]; GetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
+
+						new mapeoid = CrearMapeo(playerid, modelid, Pos[0], Pos[1], Pos[2], 0.0, 0.0, 0.0, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid));
+
+					    format(string, sizeof(string), "Creaste un objeto modelo %i, con el ID %i[%i]", modelid, Mapeo[mapeoid][ID_Objeto], mapeoid);
+						SendAdviseMessage(playerid, string);
+				    }
+				    else SendInfoMessage(playerid, 0, "", "ID de objeto invalido");
+				}
+				else if (strcmp("/sel", cmdtext, true) == 0)
+				{
+				    if (!PlayersData[playerid][Admin]) return SendAccessError(playerid, "Sel");
+				    SelectObject(playerid);
+				    return 1;
+				}
+				else if (strfind(cmdtext, "/sel ", true) == 0)
+				{
+				    if (!PlayersData[playerid][Admin]) return SendAccessError(playerid, "Sel [ID]");
+				    
+				    new mapeoid = strval(cmdtext[5]);
+				    
+				    if (mapeoid < 0 || mapeoid > MAX_MAPEOS_COUNT - 1) return SendInfoMessage(playerid, 0, "", "ID de objeto invalido");
+				    
+				    if (Mapeo[mapeoid][Modelo] != 0)
+				    {
+				        SetPVarInt(playerid, "editingmapeo", mapeoid);
+						SetPVarInt(playerid, "editingobject", Mapeo[mapeoid][ID_Objeto]);
+				        ShowObjectMenu(playerid, 1);
+				    }
+				    else return SendInfoMessage(playerid, 0, "", "El ID de objeto no existe.");
+				}
+				else if (strfind(cmdtext, "/iro ", true) == 0)
+				{
+				    if (!PlayersData[playerid][Admin]) return SendAccessError(playerid, "IrO [ID]");
+
+				    new mapeoid = strval(cmdtext[5]);
+
+				    if (mapeoid < 0 || mapeoid > MAX_MAPEOS_COUNT - 1) return SendInfoMessage(playerid, 0, "", "ID de objeto invalido");
+
+				    if (Mapeo[mapeoid][Modelo] != 0)
+				    {
+				        new string[144];
+				        
+				        SetPlayerPos(playerid, Mapeo[mapeoid][PosX], Mapeo[mapeoid][PosY], Mapeo[mapeoid][PosZ]);
+				        SetPlayerVirtualWorldEx(playerid, Mapeo[mapeoid][Mundo]);
+				        SetPlayerInteriorEx(playerid, Mapeo[mapeoid][Interior]);
+				        format(string, sizeof(string), "Fuiste al objeto ID %i[%i]", Mapeo[mapeoid][ID_Objeto], mapeoid);
+				        SendAdviseMessage(playerid, string);
+				    }
+				    else return SendInfoMessage(playerid, 0, "", "El ID de objeto no existe.");
+				}
 			    // NO COMMANDS SEND
 				else
 				{
@@ -26139,9 +26140,7 @@ public OnPlayerEnterCheckpoint(playerid)
 		else if ( TypeBizz >= 16 &&
 				TypeBizz <= 17 )
 		{
-			ShowMenuForPlayer(M24_7, playerid);
-			PlayersDataOnline[playerid][InMenu] = GetPlayerMenu(playerid);
-			TogglePlayerControllableEx(playerid, 0);
+		    ShowDialog247(playerid);
 		}
 	}
 	else
@@ -26780,233 +26779,6 @@ public OnPlayerSelectedMenuRow(playerid, row)
 		ShowMenuForPlayer(SupermercadoArticulos, playerid);
 		PlayersDataOnline[playerid][InMenu] = GetPlayerMenu(playerid);
 	}
-	else if ( PlayersDataOnline[playerid][InMenu] == M24_7 )
-	{
-		if (PlayersData[playerid][Dinero] >= M24_7_Precios[row] )
-		{
-		    if ( CheckWeapondCheat(playerid) && NegociosData[GetPlayerVirtualWorld(playerid)][Materiales] >= 2 )
-		    {
-		        new PassSwitch = false;
-				if ( row != 0 )
-				{
-				    switch(row)
-				    {
-	                    // Patines
-				        case 1:
-				        {
-				            if ( !IsObjectInBolsillo(playerid, row) )
-				            {
-					            if ( IsNotFullBolsillo(playerid, playerid, "Usted tiene los bolsillos llenos!") )
-					            {
-									AddObjectBolsillo(playerid, row);
-									new MsgCompra[MAX_TEXT_CHAT];
-									format(MsgCompra, sizeof(MsgCompra), "Has comprado unos Patines por $%i.", M24_7_Precios[row]);
-									SendInfoMessage(playerid, 3, "0", MsgCompra);
-									print(MsgCompra);
-								}
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "366", "Ya usted tiene unos patines, deshágase de el si quiere comprar unos nuevos");
-								PassSwitch = true;
-							}
-						}
-	                    // Dados
-				        case 2:
-				        {
-				            if ( !IsObjectInBolsillo(playerid, row) )
-				            {
-					            if ( IsNotFullBolsillo(playerid, playerid, "Usted tiene los bolsillos llenos!") )
-					            {
-									AddObjectBolsillo(playerid, row);
-									new MsgCompra[MAX_TEXT_CHAT];
-									format(MsgCompra, sizeof(MsgCompra), "Has comprado unos Dados por $%i.", M24_7_Precios[row]);
-									SendInfoMessage(playerid, 3, "0", MsgCompra);
-									print(MsgCompra);
-								}
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "365", "Ya usted tiene unos dados, deshágase de el si quiere comprar unos nuevos");
-								PassSwitch = true;
-							}
-						}
-	                    // Móvil
-				        case 3:
-				        {
-						    if ( PlayersData[playerid][Phone] == 0)
-						    {
-   								AddObjectBolsillo(playerid, row);
-
-								BuyPhone24_7(playerid);
-
-								new MsgCompra[MAX_TEXT_CHAT];
-								format(MsgCompra, sizeof(MsgCompra), "Has comprado un nuevo móvil con número %i por $%i.", PlayersData[playerid][Phone], M24_7_Precios[row]);
-								SendInfoMessage(playerid, 3, "0", MsgCompra);
-								print(MsgCompra);
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "364", "Ya usted tiene un móvil, deshágase de el si quiere comprar uno nuevo");
-								PassSwitch = true;
-							}
-						}
-						// Agenda
-				        case 4:
-				        {
-				            if ( !IsObjectInBolsillo(playerid, row) )
-				            {
-					            if ( IsNotFullBolsillo(playerid, playerid, "Usted tiene los bolsillos llenos!") )
-					            {
-									AddObjectBolsillo(playerid, row);
-									new MsgCompra[MAX_TEXT_CHAT];
-									format(MsgCompra, sizeof(MsgCompra), "Has comprado una Agenda por $%i.", M24_7_Precios[row]);
-									SendInfoMessage(playerid, 3, "0", MsgCompra);
-			  					    CleanSMS(playerid);
-						            CleanAgenda(playerid);
-									print(MsgCompra);
-								}
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "892", "Ya usted tiene una agenda");
-								PassSwitch = true;
-							}
-				        }
-						// Flores
-				        case 5:
-				        {
-						    GivePlayerWeaponEx(playerid, 14, 1);
-							new MsgCompra[MAX_TEXT_CHAT];
-							format(MsgCompra, sizeof(MsgCompra), "Has comprado unas flores por $%i.", M24_7_Precios[row]);
-							SendInfoMessage(playerid, 3, "0", MsgCompra);
-							print(MsgCompra);
-				        }
-						// Comprar Saldo
-				        case 6:
-				        {
-					        ShowPlayerDialogEx(playerid, 30, DIALOG_STYLE_INPUT, "{00A5FF}Seleccione el monto de saldo a comprar", "{F0F0F0}¿Cuanto desea comprar de saldo para su móvil?", "Comprar", "Volver");
-				        }
-						//Bolsa
-				        case 7:
-				        {
-				            if ( !PlayersData[playerid][HaveBolsa] )
-				            {
-									new MsgCompra[MAX_TEXT_CHAT];
-									PlayersData[playerid][HaveBolsa] = true;
-									CleanArticulosBolsa(playerid);
-									format(MsgCompra, sizeof(MsgCompra), "Has comprado una Bolsa por $%i.", M24_7_Precios[row]);
-									SendInfoMessage(playerid, 3, "0", MsgCompra);
-									print(MsgCompra);
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "1228", "Ya usted tiene una bolsa");
-								PassSwitch = true;
-							}
-				        }
-						//Condones
-				        case 8:
-				        {
-				            if ( IsNotFullCartera(playerid, playerid, "Usted tiene la cartera llena!") )
-				            {
-									new MsgCompra[MAX_TEXT_CHAT];
-									format(MsgCompra, sizeof(MsgCompra), "Has comprado unos Condones por $%i.", M24_7_Precios[row]);
-									SendInfoMessage(playerid, 3, "0", MsgCompra);
-									print(MsgCompra);
-
-									AddObjectToCartera(playerid, CARTERA_TYPE_CONDONES, 3, 0, 0);
-							}
-							else
-							{
-								PassSwitch = true;
-							}
-				        }
-						// Maleta
-				        case 9:
-				        {
-				            if ( GetObjectByType(playerid, TYPE_MALETIN) == -1 )
-				            {
-								new MsgCompra[MAX_TEXT_CHAT];
-								format(MsgCompra, sizeof(MsgCompra), "Has comprado un maletín por $%i.", M24_7_Precios[row]);
-								SendInfoMessage(playerid, 3, "0", MsgCompra);
-								print(MsgCompra);
-								AddObjectHoldToPlayer(playerid, 1210);
-							}
-							else
-							{
-								SendInfoMessage(playerid, 0, "1548", "Tienes las manos ocupadas, no puedes llevar más nada en ellas!");
-								PassSwitch = true;
-							}
-				        }
-						// Teléfonos Móviles
-				        case 10:
-				        {
-							new MsgCompra[MAX_TEXT_CHAT];
-							format(MsgCompra, sizeof(MsgCompra), "Ya puedes selecconar tu teléfono móvil favorito. Se te ha cobrado $%i.", M24_7_Precios[row]);
-							SendInfoMessage(playerid, 3, "0", MsgCompra);
-							print(MsgCompra);
-							PassSwitch = false;
-					        ShowMenuForPlayer(TYPE_PHONES_MENU, playerid);
-							PlayersDataOnline[playerid][InMenu] = GetPlayerMenu(playerid);
-				        }
-						default:
-						{
-							PassSwitch = true;
-						}
-
-					}
-				}
-				else
-				{
-				    GivePlayerWeaponEx(playerid, 43, 200);
-					new MsgCompra[MAX_TEXT_CHAT];
-					format(MsgCompra, sizeof(MsgCompra), "Has comprado una Cámara por $%i.", M24_7_Precios[row]);
-					SendInfoMessage(playerid, 3, "0", MsgCompra);
-					print(MsgCompra);
-				}
-				if ( row != 6 && row != 10 )
-				{
-					ShowMenuForPlayer(M24_7, playerid);
-					PlayersDataOnline[playerid][InMenu] = GetPlayerMenu(playerid);
-				}
-
-				if ( PassSwitch )
-				{
-				    return 1;
-				}
-				else
-				{
-					SetMoneyExtorsion(GetPlayerVirtualWorld(playerid), M24_7_Precios[row]);
-				    GivePlayerMoneyEx(playerid, -M24_7_Precios[row]);
-				}
-			}
-			else
-			{
-				if ( row == 6 || row == 10 )
-				{
-					TogglePlayerControllableEx(playerid, true);
-					PlayersDataOnline[playerid][SubAfterMenuRow] = 0;
-					PlayersDataOnline[playerid][AfterMenuRow] 	 = 0;
-				}
-				SendInfoMessage(playerid, 0, "359", "Éste 24/7 no tiene materiales!");
-			}
-		}
-		else
-		{
-			SendInfoMessage(playerid, 0, "360", "No tienes suficiente dinero para comprar éste artículo del 27/7");
-		}
-		if ( row != 6 && row != 10)
-		{
-			ShowMenuForPlayer(M24_7, playerid);
-			PlayersDataOnline[playerid][InMenu] = GetPlayerMenu(playerid);
-		}
-	}
-	else if ( PlayersDataOnline[playerid][InMenu] == TYPE_PHONES_MENU )
-	{
-		PlayersData[playerid][TypePhone] =  row;
-		ShowMenuForPlayer(M24_7, playerid);
-	}
 	else if ( PlayersDataOnline[playerid][InMenu] == TallerPrincipal )
 	{
 		if ( IsTunnigContinue(playerid) )
@@ -27526,11 +27298,6 @@ public OnPlayerExitedMenu(playerid)
 		PlayersDataOnline[playerid][SubAfterMenuRow] = 0;
 		PlayersDataOnline[playerid][AfterMenuRow] 	 = 0;
 	}
-	else if ( PlayersDataOnline[playerid][InMenu] == TYPE_PHONES_MENU )
-	{
-	     ShowMenuForPlayer(M24_7, playerid);
-	     PlayersDataOnline[playerid][InMenu] = GetPlayerMenu(playerid);
-	}
 	else if ( PlayersDataOnline[playerid][InMenu] != Menu_Principal_Armas &&
 			  PlayersData[playerid][IsPlayerInBizz] &&
 		 	  NegociosData[PlayersData[playerid][IsPlayerInBizz]][Type] >= 8 &&
@@ -27658,411 +27425,383 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	*/
 	/*new Keys[MAX_TEXT_CHAT]; format(Keys, sizeof(Keys), "Key: %i", newkeys);
     SendClientMessage(playerid, COLOR_MESSAGES[0], Keys);*/
-	if ( PlayersDataOnline[playerid][ObjectWorking] == -1 )
+    if (newkeys == KEY_WALK)
+    {
+        if (GetPVarInt(playerid, "editingmapeo") != -1 && GetPVarInt(playerid, "editingmovement") == 0)
+        {
+            new objectid = GetPVarInt(playerid, "editingobject");
+            if (objectid != 0)
+            {
+                DuplicarMapeoEx(playerid, GetPVarInt(playerid, "editingmapeo"));
+                return 1;
+            }
+        }
+    }
+	if (newkeys == 16 || newkeys == 8192)
 	{
-		if (newkeys == 16 || newkeys == 8192)
+		if( PlayersDataOnline[playerid][InPickup] )
 		{
-			if( PlayersDataOnline[playerid][InPickup] )
-			{
-		    	if (!IsPlayerInPickup(playerid)) return 1;
-			    if (IsPlayerInAnyVehicle(playerid)) return 1;
+	    	if (!IsPlayerInPickup(playerid)) return 1;
+		    if (IsPlayerInAnyVehicle(playerid)) return 1;
 
-				if ( PlayersData[playerid][IsPlayerInVehInt] )
-			    {
-			        if ( PickupInfo[PickupidAmbulance][PickupId] == PlayersDataOnline[playerid][InPickup] ||
-					  	 PickupInfo[PickupidFurgoCNN][PickupId] == PlayersDataOnline[playerid][InPickup] ||
-						 PickupInfo[PickupidPoliceFurgo][PickupId] == PlayersDataOnline[playerid][InPickup] ||
-						 PickupInfo[PickupExitVagones[0]][PickupId] == PlayersDataOnline[playerid][InPickup] ||
-						 PickupInfo[PickupExitVagones[1]][PickupId] == PlayersDataOnline[playerid][InPickup] ||
-						 PickupInfo[PickupExitVagones[2]][PickupId] == PlayersDataOnline[playerid][InPickup] )
-					{
-			            new vehicleid = PlayersData[playerid][IsPlayerInVehInt];
-				        if ( GetPlayerVirtualWorld(playerid) > 0 && GetPlayerVirtualWorld(playerid) <= MAX_CAR)
-				        {
-				            if ( !DataCars[vehicleid][Lock] )
-				            {
-					            PlayersData[playerid][IsPlayerInVehInt] = false;
-					            SetPlayerInteriorEx(playerid, DataCars[vehicleid][InteriorLast]);
-								SetPlayerVirtualWorldEx(playerid, DataCars[vehicleid][WorldLast]);
-								if ( GetVehicleVirtualWorld(vehicleid) != 999 )
-								{
-								    if ( coches_Todos_Type[GetVehicleModel(vehicleid) - 400] == TREN )
-								    {
-								        new Float:VehiclePos[3]; GetVehiclePos(vehicleid, VehiclePos[0], VehiclePos[1], VehiclePos[2]);
-										SetPlayerPos(playerid, VehiclePos[0] + 2, VehiclePos[1] + 2, VehiclePos[2]);
-						            }
-						            else
-						            {
-							            PlayersDataOnline[playerid][ExitedVehicle] = true;
-										PutPlayerInVehicle(playerid, vehicleid, 2);
-										RemovePlayerFromVehicle(playerid);
-							            SetTimerEx("PlayerRestoreVarExitedVehicle", 1000, false, "d", playerid);
-									}
-								}
-								else
-								{
-								    SetPlayerPos(playerid, DataCars[vehicleid][PosX], DataCars[vehicleid][PosY], DataCars[vehicleid][PosZ]);
+			if ( PlayersData[playerid][IsPlayerInVehInt] )
+		    {
+		        if ( PickupInfo[PickupidAmbulance][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+				  	 PickupInfo[PickupidFurgoCNN][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+					 PickupInfo[PickupidPoliceFurgo][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+					 PickupInfo[PickupExitVagones[0]][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+					 PickupInfo[PickupExitVagones[1]][PickupId] == PlayersDataOnline[playerid][InPickup] ||
+					 PickupInfo[PickupExitVagones[2]][PickupId] == PlayersDataOnline[playerid][InPickup] )
+				{
+		            new vehicleid = PlayersData[playerid][IsPlayerInVehInt];
+			        if ( GetPlayerVirtualWorld(playerid) > 0 && GetPlayerVirtualWorld(playerid) <= MAX_CAR)
+			        {
+			            if ( !DataCars[vehicleid][Lock] )
+			            {
+				            PlayersData[playerid][IsPlayerInVehInt] = false;
+				            SetPlayerInteriorEx(playerid, DataCars[vehicleid][InteriorLast]);
+							SetPlayerVirtualWorldEx(playerid, DataCars[vehicleid][WorldLast]);
+							if ( GetVehicleVirtualWorld(vehicleid) != 999 )
+							{
+							    if ( coches_Todos_Type[GetVehicleModel(vehicleid) - 400] == TREN )
+							    {
+							        new Float:VehiclePos[3]; GetVehiclePos(vehicleid, VehiclePos[0], VehiclePos[1], VehiclePos[2]);
+									SetPlayerPos(playerid, VehiclePos[0] + 2, VehiclePos[1] + 2, VehiclePos[2]);
+					            }
+					            else
+					            {
+						            PlayersDataOnline[playerid][ExitedVehicle] = true;
+									PutPlayerInVehicle(playerid, vehicleid, 2);
+									RemovePlayerFromVehicle(playerid);
+						            SetTimerEx("PlayerRestoreVarExitedVehicle", 1000, false, "d", playerid);
 								}
 							}
 							else
 							{
-								GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
-							}
-						}
-					}
-					return 1;
-				}
-
-	            if ( PlayersDataOnline[playerid][MyPickupLock] && (!PlayersDataOnline[playerid][AdminOn] || PlayersData[playerid][Admin] < 4) ) return GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
-
-			    // NEGOCIOS
-		        if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_NEGOCIO ||
-					Teles[PickUpAlambraAndJizzy[0]][PickupID] == PlayersDataOnline[playerid][InPickup] ||
-					Teles[PickUpAlambraAndJizzy[1]][PickupID] == PlayersDataOnline[playerid][InPickup] )
-				{
-				    new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
-				    if (PlayersData[playerid][Dinero] >= NegociosData[bizzid][PriceJoin] )
-					{
-					    NegociosData[bizzid][Deposito] = NegociosData[bizzid][Deposito] + NegociosData[bizzid][PriceJoin];
-					    GivePlayerMoneyEx(playerid, -NegociosData[bizzid][PriceJoin]);
-
-				        SetFunctionsForBizz(playerid, NegociosData[bizzid][Type]);
-				        PlayersData[playerid][IsPlayerInBizz] = bizzid;
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "295", "No tienes suficiente dinero para entrar a este negocio");
-						return 1;
-					}
-				}
-				else if ( PlayersDataOnline[playerid][InPickup] == BANCO_PICKUPID_out )
-		        {
-					PlayersData[playerid][IsPlayerInBank] = true;
-				}
-				else if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out ||
-						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[0] ||
-						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[1] ||
-						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[2] ||
-						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[3] ||
-						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[4] ||
-						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[5] ||
-						  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[6] )
-				{
-					if (PlayersData[playerid][Dinero] >= 40 )
-					{
-						FaccionData[GOBIERNO][Deposito] = FaccionData[GOBIERNO][Deposito] + 40;
-						GivePlayerMoneyEx(playerid, -40);
-						if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out )
-						{
-							PlayersDataOnline[playerid][IsPlayerInHotel] = true;
-						}
-					}
-					else
-					{
-						SendInfoMessage(playerid, 0, "870", "No tienes suficiente dinero para entrar a está instalación del Gobierno!");
-						return 1;
-					}
-				}
-				// CASAS
-				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_CASA)
-				{
-				    PlayersData[playerid][IsPlayerInHouse] = PlayersDataOnline[playerid][InPickupCasa];
-                    OnPlayerEnterInHouse(playerid);
-				}
-				// CASAS GARAGE
-				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA)
-				{
-				    PlayersData[playerid][IsPlayerInGarage] = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
-				    PlayersData[playerid][IsPlayerInHouse] = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoidextra];
-				    OnPlayerEnterInHouse(playerid);
-				}
-				// CASAS GARAGE TIPO
-				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA_TYPE)
-				{
-				    new tipoid = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
-
-				    if ( PlayersDataOnline[playerid][InPickup] == TypeGarage[tipoid][PickupId])
-					{
-						PlayersData[playerid][IsPlayerInHouse] = 0;
-						OnPlayerExitHouse(playerid);
-				    }
-					PlayersData[playerid][IsPlayerInGarage] = -1;
-				}
-				// LOCALES
-				else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_LOCAL )
-				{
-				    new localID = PlayersDataOnline[playerid][InPickupLocal];
-				    if (LocalData[localID][PrecioEntrada] > PlayersData[playerid][Dinero]) return SendInfoMessage(playerid, 0, "", "No tiene suficiente dinero para entrar a este local.");
-
-				    GivePlayerMoneyEx(playerid, -LocalData[localID][PrecioEntrada]);
-			        LocalData[localID][Deposito] += LocalData[localID][PrecioEntrada];
-
-				    PlayersData[playerid][InLocal] = localID;
-				}
-		        else
-		        {
-			        DisablePlayerCheckpoint(playerid);
-			        PlayersData[playerid][IsPlayerInHouse] = false;
-					PlayersData[playerid][IsPlayerInGarage] = -1;
-			        PlayersData[playerid][IsPlayerInBizz] = false;
-					PlayersData[playerid][IsPlayerInBank] = false;
-					PlayersDataOnline[playerid][IsPlayerInHotel] = false;
-					PlayersData[playerid][InLocal] = -1;
-					OnPlayerExitHouse(playerid);
-				}
-				new InterioridTele = PlayersDataOnline[playerid][MyPickupInterior];
-				new WorldTele = PlayersDataOnline[playerid][MyPickupWorld];
-				SetPlayerInteriorEx(playerid, InterioridTele);
-				SetPlayerVirtualWorldEx(playerid, WorldTele);
-			    SetPlayerPos(playerid, PlayersDataOnline[playerid][MyPickupX], PlayersDataOnline[playerid][MyPickupY], PlayersDataOnline[playerid][MyPickupZ]);
-				SetPlayerFacingAngle(playerid, PlayersDataOnline[playerid][MyPickupZZ]);
-				SetCameraBehindPlayer(playerid);
-
-				if(PlayersDataOnline[playerid][IsEspectando])
-				{
-					UpdateSpectatedPlayers(playerid, false, InterioridTele, WorldTele);
-				}
-				if ( newkeys == 8192 )
-				{
-					SetPlayerSpecialAction(playerid, 0);
-			    	ClearAnimations(playerid, true);
-					SetPlayerSpecialAction(playerid, PlayersDataOnline[playerid][InSpecialAnim]);
-				}
-			}
-			else if ( PlayersDataOnline[playerid][InAnim] )
-			{
-			    ApplyAnimation(playerid,"PED",PED_ANIMATIONS[ModeWalkID[4]], 4.0, 0, 1, 1, 0, 1, 1);
-				PlayersDataOnline[playerid][InAnim] = false;
-			}
-			IsPlayerNearTram(playerid);
-			if ( PlayersDataOnline[playerid][InSleep] )
-			{
-				PlayersDataOnline[playerid][InSleep] = false;
-				TogglePlayerControllableEx(playerid, true);
-			}
-		}
-		else if ( newkeys == 16384 )
-		{
-			RemoveSpectatePlayer(playerid);
-		}
-		else if ( newkeys == 0 )
-		{
-		    if ( PlayersDataOnline[playerid][InWalk])
-		    {
-			    ApplyAnimation(playerid,"PED",PED_ANIMATIONS[ModeWalkID[PlayersData[playerid][MyStyleWalk]]], 4.0, 0, 1, 1, 0, 1, 1);
-			    PlayersDataOnline[playerid][InWalk] = false;
-			}
-		}
-		else if ( newkeys == 1024)
-		{
-			ApplyPlayerAnimCustom(playerid,
-			"PED",
-			PED_ANIMATIONS[ModeWalkID[PlayersData[playerid][MyStyleWalk]]], true);
-			PlayersDataOnline[playerid][InWalk] = true;
-		}
-		else if ( newkeys == 8)
-		{
-		    if ( PlayersDataOnline[playerid][Espectando] != -1 )
-		    {
-				SetPlayerSpectateToPlayer(playerid, PlayersDataOnline[playerid][Espectando]);
-			}
-		}
-		else if ( newkeys == 4 )
-		{
-		    if ( GetPlayerSpecialAction(playerid) == 22 || GetPlayerSpecialAction(playerid) == 21 )
-		    {
-		        SetPlayerDrunkLevel(playerid, GetPlayerDrunkLevel(playerid) + 200);
-			    if ( GetPlayerDrunkLevel(playerid) >= 20000 )
-			    {
-				    GameTextForPlayer(playerid, "~W~Vaya ~B~nota llevas!", 5000, 1);
-					SetPlayerSpecialAction(playerid, 0);
-				}
-			    if ( GetPlayerDrunkLevel(playerid) >= 5000 )
-			    {
-					ApplyPlayerAnimCustom(playerid,
-					"PED",
-					PED_ANIMATIONS[257], true);
-			    }
-			}
-			if ( PlayersDataOnline[playerid][InCarId] && IsPlayerInAnyVehicle(playerid) && !DataCars[GetPlayerVehicleID(playerid)][StateEncendido] ||
-				 PlayersDataOnline[playerid][InVehicle] && IsPlayerInAnyVehicle(playerid) && !DataCars[GetPlayerVehicleID(playerid)][StateEncendido] )
-			{
-				EncenderVehicle(playerid);
-			}
-			if ( !PlayersData[playerid][IntermitentState] )
-			{
-				IntermitenteEncendido(playerid);
-			}
-			LastPlayerSpect(playerid);
-		}
-		else if ( newkeys == 128 || newkeys == 512 )
-		{
-		    if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && coches_Todos_Type[GetVehicleModel(GetPlayerVehicleID(playerid)) - 400] == COCHE )
-		    {
-	 			ApplyPlayerAnimCustom(playerid,
-				"CAR",
-				CAR_ANIMATIONS[4], false);
-		    }
-			NextPlayerSpect(playerid);
-		}
-		else if ( newkeys == 2048 )
-		{
-			if ( !PlayersData[playerid][IntermitentState] )
-			{
-				IntermitenteIzquierdo(playerid);
-			}
-		}
-		else if ( newkeys == 4096 )
-		{
-			if ( !PlayersData[playerid][IntermitentState] )
-			{
-				IntermitenteDerecho(playerid);
-			}
-		}
-		else if ( newkeys == 132 )
-		{
-			if ( !PlayersData[playerid][IntermitentState] )
-			{
-				IntermitenteEstacionamiento(playerid);
-			}
-		}
-		else if ( newkeys == 2 )
-		{
-		    if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) != 0 && PlayersDataOnline[playerid][IsCleanAnimCar] == 2 && GetPlayerWeapon(playerid))
-		    {
-				PlayersDataOnline[playerid][LastWeapondRow] = GetPlayerWeapon(playerid);
-				PlayersDataOnline[playerid][IsCleanAnimCar] = 0;
-	            SetPlayerArmedWeapon(playerid, 0);
-		        if ( coches_Todos_Type[GetVehicleModel(GetPlayerVehicleID(playerid)) - 400] == MOTO )
-		        {
-		 			ApplyPlayerAnimCustom(playerid,
-					"MD_CHASE",
-					CHASE_ANIMATIONS[3], false);
-				}
-				else
-				{
-		 			ApplyPlayerAnimCustom(playerid,
-					"PED",
-					PED_ANIMATIONS[59], false);
-				}
-			}
-			else if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) != 0 && PlayersDataOnline[playerid][IsCleanAnimCar] <= 1)
-			{
-				SetPlayerArmedWeapon(playerid, PlayersDataOnline[playerid][LastWeapondRow]);
-				PlayersDataOnline[playerid][IsCleanAnimCar]++;
-			}
-			else if ( PlayersDataOnline[playerid][InCarId] && IsPlayerInVehicle(playerid, PlayersDataOnline[playerid][InCarId])  && GetPlayerVehicleSeat(playerid) == 0  )
-			{
-                new Float:Speed[3]; GetVehicleVelocity(GetPlayerVehicleID(playerid), Speed[0], Speed[1], Speed[2]);
-			    if (Speed[0] == 0.0 && Speed[1] == 0.0 && Speed[2] == 0.0 )
-                {
-                    GetMyNearDoor(playerid, true, false);
-					if ( !IsPlayerNearGarage(GetPlayerVehicleID(playerid), playerid) )
-					{
-						IsPlayerNearGarageEx(GetPlayerVehicleID(playerid), playerid);
-					}
-				}
-			}
-		}
-		else if ( newkeys == 1 )
-		{
-		    if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 525 ||
-				 IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 ||
-	 			 IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 ||
-	 			 IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 )
-			{
-				new MySecondNearVehicle = GetMySecondNearVehicle(playerid);
-				if ( GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 && GetVehicleModel(MySecondNearVehicle) != 591 &&
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 && GetVehicleModel(MySecondNearVehicle) != 435 &&
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 && GetVehicleModel(MySecondNearVehicle) != 584 ||
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 && GetVehicleModel(MySecondNearVehicle) != 591 &&
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 && GetVehicleModel(MySecondNearVehicle) != 435 &&
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 && GetVehicleModel(MySecondNearVehicle) != 584 ||
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 && GetVehicleModel(MySecondNearVehicle) != 591 &&
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 && GetVehicleModel(MySecondNearVehicle) != 435 &&
-					 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 && GetVehicleModel(MySecondNearVehicle) != 584  )
-				{
-					return 1;
-				}
-			    // printf("Segundo coche cerca: %i", MySecondNearVehicle);
-			    if ( MySecondNearVehicle )
-			    {
-			        if ( PlayersData[playerid][Faccion] == TALLER_LS ||
-			        	 PlayersData[playerid][Faccion] == TALLER_SF ||
-				         PlayersData[playerid][Faccion] == CAMIONEROS ||
-				         PlayersData[playerid][Faccion] == NFS ||
-	 			         PlayersData[playerid][Faccion] == LSPD ||
-					     PlayersData[playerid][Faccion] == SFPD)
-					{
-						if ( !GetVehicleTrailer(GetPlayerVehicleID(playerid)) )
-						{
-						    AttachTrailerToVehicle(MySecondNearVehicle, GetPlayerVehicleID(playerid));
-
-						    if ( GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 ||
-								 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 ||
-								 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 )
-						    {
-								Acciones(playerid, 8, "remolca un trailer");
-							}
-							else
-							{
-								Acciones(playerid, 8, "remolca un vehículo");
+							    SetPlayerPos(playerid, DataCars[vehicleid][PosX], DataCars[vehicleid][PosY], DataCars[vehicleid][PosZ]);
 							}
 						}
 						else
 						{
-							DetachTrailerFromVehicle(GetPlayerVehicleID(playerid));
-						    if ( GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 ||
-								 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 ||
-	 							 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 )
-						    {
-								Acciones(playerid, 8, "desengancha un trailer");
-							}
-							else
-							{
-								Acciones(playerid, 8, "desengancha un vehículo");
-							}
+							GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
 						}
 					}
+				}
+				return 1;
+			}
+
+            if ( PlayersDataOnline[playerid][MyPickupLock] && (!PlayersDataOnline[playerid][AdminOn] || PlayersData[playerid][Admin] < 4) ) return GameTextForPlayer(playerid, "~W~Puerta ~R~Cerrada!", 1000, 6);
+
+		    // NEGOCIOS
+	        if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_NEGOCIO ||
+				Teles[PickUpAlambraAndJizzy[0]][PickupID] == PlayersDataOnline[playerid][InPickup] ||
+				Teles[PickUpAlambraAndJizzy[1]][PickupID] == PlayersDataOnline[playerid][InPickup] )
+			{
+			    new bizzid = PlayersDataOnline[playerid][InPickupNegocio];
+			    if (PlayersData[playerid][Dinero] >= NegociosData[bizzid][PriceJoin] )
+				{
+				    NegociosData[bizzid][Deposito] = NegociosData[bizzid][Deposito] + NegociosData[bizzid][PriceJoin];
+				    GivePlayerMoneyEx(playerid, -NegociosData[bizzid][PriceJoin]);
+
+			        SetFunctionsForBizz(playerid, NegociosData[bizzid][Type]);
+			        PlayersData[playerid][IsPlayerInBizz] = bizzid;
+				}
+				else
+				{
+					SendInfoMessage(playerid, 0, "295", "No tienes suficiente dinero para entrar a este negocio");
+					return 1;
+				}
+			}
+			else if ( PlayersDataOnline[playerid][InPickup] == BANCO_PICKUPID_out )
+	        {
+				PlayersData[playerid][IsPlayerInBank] = true;
+			}
+			else if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out ||
+					  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[0] ||
+					  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[1] ||
+					  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[2] ||
+					  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[3] ||
+					  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[4] ||
+					  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[5] ||
+					  PlayersDataOnline[playerid][InPickup] == MUSEO_PICKUPID_out[6] )
+			{
+				if (PlayersData[playerid][Dinero] >= 40 )
+				{
+					FaccionData[GOBIERNO][Deposito] = FaccionData[GOBIERNO][Deposito] + 40;
+					GivePlayerMoneyEx(playerid, -40);
+					if ( PlayersDataOnline[playerid][InPickup] == HOTEL_PICKUPID_out )
+					{
+						PlayersDataOnline[playerid][IsPlayerInHotel] = true;
+					}
+				}
+				else
+				{
+					SendInfoMessage(playerid, 0, "870", "No tienes suficiente dinero para entrar a está instalación del Gobierno!");
+					return 1;
+				}
+			}
+			// CASAS
+			else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_CASA)
+			{
+			    PlayersData[playerid][IsPlayerInHouse] = PlayersDataOnline[playerid][InPickupCasa];
+                OnPlayerEnterInHouse(playerid);
+			}
+			// CASAS GARAGE
+			else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA)
+			{
+			    PlayersData[playerid][IsPlayerInGarage] = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
+			    PlayersData[playerid][IsPlayerInHouse] = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoidextra];
+			    OnPlayerEnterInHouse(playerid);
+			}
+			// CASAS GARAGE TIPO
+			else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_GARAGE_CASA_TYPE)
+			{
+			    new tipoid = PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipoid];
+
+			    if ( PlayersDataOnline[playerid][InPickup] == TypeGarage[tipoid][PickupId])
+				{
+					PlayersData[playerid][IsPlayerInHouse] = 0;
+					OnPlayerExitHouse(playerid);
+			    }
+				PlayersData[playerid][IsPlayerInGarage] = -1;
+			}
+			// LOCALES
+			else if ( PickupIndex[PlayersDataOnline[playerid][InPickup]][Tipo] == PICKUP_TYPE_LOCAL )
+			{
+			    new localID = PlayersDataOnline[playerid][InPickupLocal];
+			    if (LocalData[localID][PrecioEntrada] > PlayersData[playerid][Dinero]) return SendInfoMessage(playerid, 0, "", "No tiene suficiente dinero para entrar a este local.");
+
+			    GivePlayerMoneyEx(playerid, -LocalData[localID][PrecioEntrada]);
+		        LocalData[localID][Deposito] += LocalData[localID][PrecioEntrada];
+
+			    PlayersData[playerid][InLocal] = localID;
+			}
+	        else
+	        {
+		        DisablePlayerCheckpoint(playerid);
+		        PlayersData[playerid][IsPlayerInHouse] = false;
+				PlayersData[playerid][IsPlayerInGarage] = -1;
+		        PlayersData[playerid][IsPlayerInBizz] = false;
+				PlayersData[playerid][IsPlayerInBank] = false;
+				PlayersDataOnline[playerid][IsPlayerInHotel] = false;
+				PlayersData[playerid][InLocal] = -1;
+				OnPlayerExitHouse(playerid);
+			}
+			new InterioridTele = PlayersDataOnline[playerid][MyPickupInterior];
+			new WorldTele = PlayersDataOnline[playerid][MyPickupWorld];
+			SetPlayerInteriorEx(playerid, InterioridTele);
+			SetPlayerVirtualWorldEx(playerid, WorldTele);
+		    SetPlayerPos(playerid, PlayersDataOnline[playerid][MyPickupX], PlayersDataOnline[playerid][MyPickupY], PlayersDataOnline[playerid][MyPickupZ]);
+			SetPlayerFacingAngle(playerid, PlayersDataOnline[playerid][MyPickupZZ]);
+			SetCameraBehindPlayer(playerid);
+
+			if(PlayersDataOnline[playerid][IsEspectando])
+			{
+				UpdateSpectatedPlayers(playerid, false, InterioridTele, WorldTele);
+			}
+			if ( newkeys == 8192 )
+			{
+				SetPlayerSpecialAction(playerid, 0);
+		    	ClearAnimations(playerid, true);
+				SetPlayerSpecialAction(playerid, PlayersDataOnline[playerid][InSpecialAnim]);
+			}
+		}
+		else if ( PlayersDataOnline[playerid][InAnim] )
+		{
+		    ApplyAnimation(playerid,"PED",PED_ANIMATIONS[ModeWalkID[4]], 4.0, 0, 1, 1, 0, 1, 1);
+			PlayersDataOnline[playerid][InAnim] = false;
+		}
+		IsPlayerNearTram(playerid);
+		if ( PlayersDataOnline[playerid][InSleep] )
+		{
+			PlayersDataOnline[playerid][InSleep] = false;
+			TogglePlayerControllableEx(playerid, true);
+		}
+	}
+	else if ( newkeys == 16384 )
+	{
+		RemoveSpectatePlayer(playerid);
+	}
+	else if ( newkeys == 0 )
+	{
+	    if ( PlayersDataOnline[playerid][InWalk])
+	    {
+		    ApplyAnimation(playerid,"PED",PED_ANIMATIONS[ModeWalkID[PlayersData[playerid][MyStyleWalk]]], 4.0, 0, 1, 1, 0, 1, 1);
+		    PlayersDataOnline[playerid][InWalk] = false;
+		}
+	}
+	else if ( newkeys == 1024)
+	{
+		ApplyPlayerAnimCustom(playerid,
+		"PED",
+		PED_ANIMATIONS[ModeWalkID[PlayersData[playerid][MyStyleWalk]]], true);
+		PlayersDataOnline[playerid][InWalk] = true;
+	}
+	else if ( newkeys == 8)
+	{
+	    if ( PlayersDataOnline[playerid][Espectando] != -1 )
+	    {
+			SetPlayerSpectateToPlayer(playerid, PlayersDataOnline[playerid][Espectando]);
+		}
+	}
+	else if ( newkeys == 4 )
+	{
+	    if ( GetPlayerSpecialAction(playerid) == 22 || GetPlayerSpecialAction(playerid) == 21 )
+	    {
+	        SetPlayerDrunkLevel(playerid, GetPlayerDrunkLevel(playerid) + 200);
+		    if ( GetPlayerDrunkLevel(playerid) >= 20000 )
+		    {
+			    GameTextForPlayer(playerid, "~W~Vaya ~B~nota llevas!", 5000, 1);
+				SetPlayerSpecialAction(playerid, 0);
+			}
+		    if ( GetPlayerDrunkLevel(playerid) >= 5000 )
+		    {
+				ApplyPlayerAnimCustom(playerid,
+				"PED",
+				PED_ANIMATIONS[257], true);
+		    }
+		}
+		if ( PlayersDataOnline[playerid][InCarId] && IsPlayerInAnyVehicle(playerid) && !DataCars[GetPlayerVehicleID(playerid)][StateEncendido] ||
+			 PlayersDataOnline[playerid][InVehicle] && IsPlayerInAnyVehicle(playerid) && !DataCars[GetPlayerVehicleID(playerid)][StateEncendido] )
+		{
+			EncenderVehicle(playerid);
+		}
+		if ( !PlayersData[playerid][IntermitentState] )
+		{
+			IntermitenteEncendido(playerid);
+		}
+		LastPlayerSpect(playerid);
+	}
+	else if ( newkeys == 128 || newkeys == 512 )
+	{
+	    if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && coches_Todos_Type[GetVehicleModel(GetPlayerVehicleID(playerid)) - 400] == COCHE )
+	    {
+ 			ApplyPlayerAnimCustom(playerid,
+			"CAR",
+			CAR_ANIMATIONS[4], false);
+	    }
+		NextPlayerSpect(playerid);
+	}
+	else if ( newkeys == 2048 )
+	{
+		if ( !PlayersData[playerid][IntermitentState] )
+		{
+			IntermitenteIzquierdo(playerid);
+		}
+	}
+	else if ( newkeys == 4096 )
+	{
+		if ( !PlayersData[playerid][IntermitentState] )
+		{
+			IntermitenteDerecho(playerid);
+		}
+	}
+	else if ( newkeys == 132 )
+	{
+		if ( !PlayersData[playerid][IntermitentState] )
+		{
+			IntermitenteEstacionamiento(playerid);
+		}
+	}
+	else if ( newkeys == 2 )
+	{
+	    if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) != 0 && PlayersDataOnline[playerid][IsCleanAnimCar] == 2 && GetPlayerWeapon(playerid))
+	    {
+			PlayersDataOnline[playerid][LastWeapondRow] = GetPlayerWeapon(playerid);
+			PlayersDataOnline[playerid][IsCleanAnimCar] = 0;
+            SetPlayerArmedWeapon(playerid, 0);
+	        if ( coches_Todos_Type[GetVehicleModel(GetPlayerVehicleID(playerid)) - 400] == MOTO )
+	        {
+	 			ApplyPlayerAnimCustom(playerid,
+				"MD_CHASE",
+				CHASE_ANIMATIONS[3], false);
+			}
+			else
+			{
+	 			ApplyPlayerAnimCustom(playerid,
+				"PED",
+				PED_ANIMATIONS[59], false);
+			}
+		}
+		else if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) != 0 && PlayersDataOnline[playerid][IsCleanAnimCar] <= 1)
+		{
+			SetPlayerArmedWeapon(playerid, PlayersDataOnline[playerid][LastWeapondRow]);
+			PlayersDataOnline[playerid][IsCleanAnimCar]++;
+		}
+		else if ( PlayersDataOnline[playerid][InCarId] && IsPlayerInVehicle(playerid, PlayersDataOnline[playerid][InCarId])  && GetPlayerVehicleSeat(playerid) == 0  )
+		{
+            new Float:Speed[3]; GetVehicleVelocity(GetPlayerVehicleID(playerid), Speed[0], Speed[1], Speed[2]);
+		    if (Speed[0] == 0.0 && Speed[1] == 0.0 && Speed[2] == 0.0 )
+            {
+                GetMyNearDoor(playerid, true);
+				if ( !IsPlayerNearGarage(GetPlayerVehicleID(playerid), playerid) )
+				{
+					IsPlayerNearGarageEx(GetPlayerVehicleID(playerid), playerid);
 				}
 			}
 		}
 	}
-	else
+	else if ( newkeys == 1 )
 	{
-	    if ( newkeys == 16 )
-	    {
-	        if ( PlayersDataOnline[playerid][UseRotOrPos] )
-	        {
-		    	PlayersDataOnline[playerid][UseRotOrPos] = false;
-				GameTextForPlayer(playerid, "~G~Usando ~Y~ROT!", 1000, 6);
-	    	}
-	    	else
-	    	{
-	    	    PlayersDataOnline[playerid][UseRotOrPos] = true;
-				GameTextForPlayer(playerid, "~G~Usando ~R~POS!", 1000, 6);
+	    if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 525 ||
+			 IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 ||
+ 			 IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 ||
+ 			 IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 )
+		{
+			new MySecondNearVehicle = GetMySecondNearVehicle(playerid);
+			if ( GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 && GetVehicleModel(MySecondNearVehicle) != 591 &&
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 && GetVehicleModel(MySecondNearVehicle) != 435 &&
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 && GetVehicleModel(MySecondNearVehicle) != 584 ||
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 && GetVehicleModel(MySecondNearVehicle) != 591 &&
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 && GetVehicleModel(MySecondNearVehicle) != 435 &&
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 && GetVehicleModel(MySecondNearVehicle) != 584 ||
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 && GetVehicleModel(MySecondNearVehicle) != 591 &&
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 && GetVehicleModel(MySecondNearVehicle) != 435 &&
+				 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 && GetVehicleModel(MySecondNearVehicle) != 584  )
+			{
+				return 1;
 			}
-	    }
-	    else if ( newkeys == 128 )
-	    {
-	        if ( PlayersDataOnline[playerid][ReverseState] )
-	        {
-	    	    PlayersDataOnline[playerid][ReverseState] = false;
-				GameTextForPlayer(playerid, "~R~Reverse ~R~Desactivado!", 1000, 6);
-	    	}
-	    	else
-	    	{
-	    	    PlayersDataOnline[playerid][ReverseState] = true;
-				GameTextForPlayer(playerid, "~R~Reverse ~G~Activado!", 1000, 6);
+		    // printf("Segundo coche cerca: %i", MySecondNearVehicle);
+		    if ( MySecondNearVehicle )
+		    {
+		        if ( PlayersData[playerid][Faccion] == TALLER_LS ||
+		        	 PlayersData[playerid][Faccion] == TALLER_SF ||
+			         PlayersData[playerid][Faccion] == CAMIONEROS ||
+			         PlayersData[playerid][Faccion] == NFS ||
+ 			         PlayersData[playerid][Faccion] == LSPD ||
+				     PlayersData[playerid][Faccion] == SFPD)
+				{
+					if ( !GetVehicleTrailer(GetPlayerVehicleID(playerid)) )
+					{
+					    AttachTrailerToVehicle(MySecondNearVehicle, GetPlayerVehicleID(playerid));
+
+					    if ( GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 ||
+							 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 ||
+							 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 )
+					    {
+							Acciones(playerid, 8, "remolca un trailer");
+						}
+						else
+						{
+							Acciones(playerid, 8, "remolca un vehículo");
+						}
+					}
+					else
+					{
+						DetachTrailerFromVehicle(GetPlayerVehicleID(playerid));
+					    if ( GetVehicleModel(GetPlayerVehicleID(playerid)) == 515 ||
+							 GetVehicleModel(GetPlayerVehicleID(playerid)) == 514 ||
+ 							 GetVehicleModel(GetPlayerVehicleID(playerid)) == 403 )
+					    {
+							Acciones(playerid, 8, "desengancha un trailer");
+						}
+						else
+						{
+							Acciones(playerid, 8, "desengancha un vehículo");
+						}
+					}
+				}
 			}
-	    }
-	    if ( PlayersDataOnline[playerid][ReverseState] )
-	    {
-	    	OnMoveObjectMapping(playerid, PlayersDataOnline[playerid][ObjectWorking], newkeys, PlayersDataOnline[playerid][UseRotOrPos], PlayersDataOnline[playerid][MappingPoint]);
-    	}
-    	else
-    	{
-	    	OnMoveObjectMapping(playerid, PlayersDataOnline[playerid][ObjectWorking], newkeys, PlayersDataOnline[playerid][UseRotOrPos], -PlayersDataOnline[playerid][MappingPoint]);
 		}
 	}
 	return 1;
@@ -28247,7 +27986,7 @@ public OnPlayerUpdate(playerid)
 								{
 									static MsgNotLicencias[MAX_TEXT_CHAT];
 									format(MsgNotLicencias, sizeof(MsgNotLicencias), "No tienes licencia de %s. ¡Cuidado con la policia!", LicenciasNames[coches_Todos_Type[GetVehicleModel(GetPlayerVehicleID(playerid)) - 400]]);
-									SendInfoMessage(playerid, 0, "517", MsgNotLicencias);
+									SendInfoMessage(playerid, 2, "517", MsgNotLicencias);
 							    }
 						    }
 						    if ( PlayersDataOnline[playerid][InCarId] <= MAX_CAR_DUENO && DataCars[PlayersDataOnline[playerid][InCarId]][Puente] && strlen(DataCars[PlayersDataOnline[playerid][InCarId]][Dueno]) == 1)
@@ -28456,7 +28195,8 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						}
 
 						GetPlayerIp(playerid, PlayersData[playerid][MyIP],16);
-
+						
+						PlayersDataOnline[playerid][State] = 3;
 						SetPlayerScore(playerid, GetPlayerScoreEx(playerid));
    						SetSpawnInfo(playerid, -1, PlayersData[playerid][Skin],	PlayersData[playerid][Spawn_X], PlayersData[playerid][Spawn_Y], PlayersData[playerid][Spawn_Z], PlayersData[playerid][Spawn_ZZ], 0, 0, 0, 0, 0, 0);
 					    SpawnPlayer(playerid);
@@ -28484,8 +28224,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 						{
 							format(PlayersData[playerid][DescriptionString], MAX_TEXT_DESCRIPTION, "Ninguno");
 						}
-
-        			    PlayersDataOnline[playerid][State] = 3;
 
 						PlayerPlaySound(playerid, 1186, -1999.2559, 743.3678, 58.7168);
 						new HiMsg[45];
@@ -29222,8 +28960,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		    }
 		    else
 		    {
-				ShowMenuForPlayer(M24_7, playerid);
-				PlayersDataOnline[playerid][InMenu] = GetPlayerMenu(playerid);
+          		ShowDialog247(playerid);
 			}
 	    }
 		//      BANCO - HOME
@@ -29327,203 +29064,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
    		    if ( response == 0 )
 			{
 				ShowHomeBanco(playerid);
-			}
-		}
-		///////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////
-		///////////////////////////////////////////////////////////////
-		//      INICIO - Mapping Editor
-		case 37:
-		{
-   		    if ( response == 1 )
-			{
-			    switch ( listitem )
-			    {
-			        case 0: // LISTA DE OBJETOS
-			        {
-						ShowListObjectMapping(playerid);
-					}
-					case 1: // CREAR OBJETO
-					{
-						ShowPlayerDialogEx(playerid,41,DIALOG_STYLE_INPUT, "{00A5FF}Crear Objeto{E6E6E6} - {F50000}Mapping Editor", "Ingrese la ID del objeto que desea crear!", "Crear", "Inicio");
-					}
-					case 2: // ELIMINAR TODOS
-					{
-						ShowRemoveAllMapping(playerid, true);
-					}
-					case 3: // MOSTRAR TODOS LOS TAG´S
-					{
-						ShowAllMapping(playerid);
-						ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Mostrar Tag´s Objeto{E6E6E6} - {F50000}Mapping Editor", "Todos los tag´s fuerón mostrados", "Aceptar", "Inicio");
-					}
-					case 4: // OCULTAR TODOS LOS TAG´s
-					{
-						RemoveAllTagsMapping(playerid);
-						ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Ocultar Tag´s{E6E6E6} - {F50000}Mapping Editor", "Todos los tag´s fuerón ocultados", "Aceptar", "Inicio");
-					}
-					case 5: // ABRIR PROYECTO
-					{
-						ShowPlayerDialogEx(playerid,44,DIALOG_STYLE_INPUT, "{00A5FF}Abrir Proyecto{E6E6E6} - {F50000}Mapping Editor", "Introduzca el nombre del proyecto\n que desea abrir", "Abrir", "Inicio");
-					}
-					case 6: // GUARDAR PROYECTO
-					{
-						ShowPlayerDialogEx(playerid,45,DIALOG_STYLE_INPUT, "{00A5FF}Guardar Proyecto{E6E6E6} - {F50000}Mapping Editor", "Introduzca un nombre para guardar su proyecto", "Guardar", "Inicio");
-					}
-					case 7: // ESTADÍSTICAS DEL PROYECTO
-					{
-						ShowStatsMapping(playerid);
-					}
-				}
-			}
-		}
-		//      MSG INICIO - Mapping Editor
-		case 38:
-		{
-   		    if ( response == 0 )
-			{
-				ShowHomeMapping(playerid);
-			}
-		}
-		//      CREAR OBJETO - Mapping Editor
-		case 39:
-		{
-   		    if ( response == 1 )
-			{
-				ShowObjectOptionsMapping(playerid, PlayersDataOnline[playerid][ObjectAction]);
-			}
-			else
-			{
-				ShowHomeMapping(playerid);
-			}
-		}
-		//      LISTA DE OBJETOS - Mapping Editor
-		case 40:
-		{
-   		    if ( response == 1 )
-			{
-			    ShowDescriptionObjectMapping(playerid, PlayersDataOnline[playerid][MappingRowSelected][listitem]);
-			}
-			else
-			{
-				ShowHomeMapping(playerid);
-			}
-		}
-		//      CREAR OBJETO ** - Mapping Editor
-		case 41:
-		{
-   		    if ( response == 1 )
-			{
-				ShowCreateObjectMapping(playerid, strval(inputtext));
-			}
-			else
-			{
-				ShowHomeMapping(playerid);
-			}
-		}
-		//      OPCIONES DEL OBJETO - Mapping Editor
-		case 42:
-		{
-   		    if ( response == 1 )
-			{
-			    switch ( listitem )
-			    {
-			        case 0: // Seleccionar
-			        {
-						PlayersDataOnline[playerid][ObjectWorking] = PlayersDataOnline[playerid][ObjectAction];
-					}
-					case 1: // Mostrar/Oculta Tag
-					{
-						if ( ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][TextTagS] == -1 )
-						{
-							ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][TextTag] = Create3DTextLabel("New Text 3D Label", COLOR_FAMILY,ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosX],ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosY],ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosZ],50.0,0);
-							ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][TextTagS] = true;
-							UpdateText3DMapping(PlayersDataOnline[playerid][ObjectAction]);
-						}
-						else
-						{
-							Delete3DTextLabel(ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][TextTag]);
-							ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][TextTagS] = -1;
-						}
-						ShowObjectOptionsMapping(playerid, PlayersDataOnline[playerid][ObjectAction]);
-					}
-					case 2: // Ir
-					{
-						SetPlayerPos(playerid, ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosX], ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosY], ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosZ]);
-						UpdateText3DMapping(PlayersDataOnline[playerid][ObjectAction]);
-					}
-					case 3: // Traer
-					{
-					    new Float:PlayerPos[3]; GetPlayerPos(playerid, PlayerPos[0], PlayerPos[1], PlayerPos[2]);
-					    SetObjectPos(ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][Objectid], PlayerPos[0], PlayerPos[1], PlayerPos[2]);
-					    GetObjectPos(ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][Objectid], ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosX], ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosY], ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][PosZ]);
-						UpdateText3DMapping(PlayersDataOnline[playerid][ObjectAction]);
-					}
-					case 4: // Eliminar
-					{
-						if ( RemoveObjectMapping(playerid, PlayersDataOnline[playerid][ObjectAction]) )
-						{
-							ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Eliminar Objeto{E6E6E6} - {F50000}Mapping Editor", "Este objeto fue eliminado con éxito!", "Aceptar", "Inicio");
-						}
-						else
-						{
-							ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Eliminar Objeto{E6E6E6} - {F50000}Mapping Editor", "Este objeto ya no existe!", "Aceptar", "Inicio");
-						}
-					}
-				}
-			}
-			else
-			{
-				ShowHomeMapping(playerid);
-			}
-		}
-		//      DESCRIPCIÓN DEL OBJETO ** - Mapping Editor
-		case 43:
-		{
-   		    if ( response == 1 )
-			{
-				ShowObjectOptionsMapping(playerid, PlayersDataOnline[playerid][ObjectAction]);
-			}
-			else
-			{
-				ShowListObjectMapping(playerid);
-			}
-		}
-		//      ABRIR PROYECTO - Mapping Editor
-		case 44:
-		{
-   		    if ( response == 1 )
-			{
-				OpenProject(playerid, inputtext);
-			}
-			else
-			{
-				ShowHomeMapping(playerid);
-			}
-		}
-		//      GUARDAR PROYECTO - Mapping Editor
-		case 45:
-		{
-   		    if ( response == 1 )
-			{
-				SaveProject(playerid, inputtext, false);
-			}
-			else
-			{
-				ShowHomeMapping(playerid);
-			}
-		}
-		//      GUARDAR PROYECTO **- Mapping Editor
-		case 46:
-		{
-   		    if ( response == 1 )
-			{
-				SaveProject(playerid, PlayersDataOnline[playerid][NameProject], true);
-			}
-			else
-			{
-				ShowHomeMapping(playerid);
 			}
 		}
 		//      SEXO - CUENTA
@@ -32554,6 +32094,458 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			}
 			*/
 		}
+		//ObjectsMenu
+		case 156:
+		{
+		    if (response)
+		    {
+				new mapeoid = GetPVarInt(playerid, "editingmapeo");
+		        new objectid = GetPVarInt(playerid, "editingobject");
+
+		        if (Mapeo[mapeoid][Tipo] == 0)//Objeto
+		        {
+		            if (listitem == 0)//Editar
+			        {
+			            EditDynamicObject(playerid, objectid);
+			        }
+			        else if (listitem == 1)//Indexes
+			        {
+			            ShowObjectIndexes(playerid);
+			        }
+			        else if (listitem == 2)//Duplicar
+			        {
+			            DuplicarMapeo(playerid, mapeoid);
+			        }
+					else if (listitem == 4)//Tipo
+			        {
+			            CambiarMapeoTipo(playerid, mapeoid);
+						ShowObjectMenu(playerid, 1);
+			        }
+					else if (listitem == 6)//Borrar
+			        {
+			            BorrarMapeo(playerid, mapeoid);
+			        }
+			        else
+			        {
+			            ShowObjectMenu(playerid, 1);
+			        }
+		        }
+		        else if (Mapeo[mapeoid][Tipo] == 1)//Puerta
+		        {
+		            if (listitem == 0)//Editar
+			        {
+			            EditDynamicObject(playerid, objectid);
+			        }
+			        else if (listitem == 1)//Indexes
+			        {
+			            ShowObjectIndexes(playerid);
+			        }
+			        else if (listitem == 2)//Duplicar
+			        {
+			            DuplicarMapeo(playerid, mapeoid);
+			        }
+					else if (listitem == 4)//Tipo
+			        {
+						CambiarMapeoTipo(playerid, mapeoid);
+						ShowObjectMenu(playerid, 1);
+			        }
+			        else if (listitem == 6)//LlaveTipo
+			        {
+			            Puerta[Mapeo[mapeoid][Tipoid]][LlaveTipo] = (Puerta[Mapeo[mapeoid][Tipoid]][LlaveTipo] == 2) ? (0) : (Puerta[Mapeo[mapeoid][Tipoid]][LlaveTipo] + 1);
+						ShowObjectMenu(playerid, 1);
+			        }
+			        else if (listitem == 7)//LlaveOwnerID
+			        {
+			            ShowPuertaOwnerMenu(playerid, mapeoid);
+			        }
+			        else if (listitem == 9)//Recorrido
+			        {
+			            SetPVarInt(playerid, "editingmovement", 1);
+			            EditDynamicObject(playerid, objectid);
+			        }
+			        else if (listitem == 10)//Velocidad
+			        {
+			            ShowVelocidadObjetoMenu(playerid, mapeoid);
+			        }
+					else if (listitem == 12)//Borrar
+			        {
+			            BorrarMapeo(playerid, mapeoid);
+			        }
+			        else
+			        {
+			            ShowObjectMenu(playerid, 1);
+			        }
+		        }
+
+		    }
+		    else
+		    {
+		        SetPVarInt(playerid, "editingmapeo", -1);
+				SetPVarInt(playerid, "editingobject", false);
+		    }
+		}
+		//ObjetIndexes
+		case 157:
+		{
+		    if (response)
+		    {
+		        SetPVarInt(playerid, "editingindex", listitem);
+		        ShowObjectIndex(playerid, listitem);
+		    }
+		    else
+		    {
+		        if ( GetPVarInt(playerid, "editingmapeo") != -1 )
+		        ShowObjectMenu(playerid, 1);
+		    }
+		}
+		//ObjectIndex
+		case 158:
+		{
+		    new objectid = GetPVarInt(playerid, "editingobject");
+		    new indexid = GetPVarInt(playerid, "editingindex");
+
+		    if (response)
+		    {
+		        new mapeoid = GetPVarInt(playerid, "editingmapeo");
+		        //Material
+		        if (listitem >= 1 && listitem <= 4)
+		        {
+		            //Modelo-TXD-Textura-Color
+		            SetPVarInt(playerid, "editingoption", listitem);
+		           	ShowEditObjectMaerial(playerid, indexid, listitem);
+		        }
+				//MaterialText
+		        else if (listitem >= 7 && listitem <= 14)
+		        {
+		            if (listitem == 8 || listitem == 11 || listitem == 14)
+		            {
+		                new text[128] = "Texto", lienzosize = OBJECT_MATERIAL_SIZE_256x128, fontface[40] = "Arial", textsize = 24, usebold = 1, color = 0xFFFFFFFF, backcolor = 0xFF000000, alineacion = 0;
+		                //////////////////
+		                if (mapeoid != -1)
+			            {
+			                if (strlen(MapeoText[mapeoid][indexid])) format(text, sizeof(text), MapeoText[mapeoid][indexid]);
+			                if (Mapeo[mapeoid][materialsize][indexid]) lienzosize = Mapeo[mapeoid][materialsize][indexid];
+			                if (strlen(MapeoFont[mapeoid][indexid])) format(fontface, 40, MapeoFont[mapeoid][indexid]);
+			                if (Mapeo[mapeoid][fontsize][indexid]) textsize = Mapeo[mapeoid][fontsize][indexid];
+			                usebold = Mapeo[mapeoid][bold];
+			                if (Mapeo[mapeoid][fontcolor][indexid]) color = Mapeo[mapeoid][fontcolor][indexid];
+			                if (Mapeo[mapeoid][backgroundcolor][indexid]) backcolor = Mapeo[mapeoid][backgroundcolor][indexid];
+			                alineacion = Mapeo[mapeoid][textalignment][indexid];
+			            }
+		                //////////////////
+		                if (listitem == 8)//Tamaño Lienzo
+		                {
+		                    lienzosize = (lienzosize == 140) ? (10) : (lienzosize + 10);
+		                }
+		                else if (listitem == 11)//Usar Negrita
+		                {
+		                    usebold = !usebold;
+		                }
+		                else if (listitem == 14)//Alineacion
+		                {
+		                    alineacion = (alineacion == 3) ? (0) : (alineacion + 1);
+		                }
+		                //////////////////
+						if (mapeoid != -1)
+			            {
+			                format(MapeoText[mapeoid][indexid], sizeof(text), text);
+			                Mapeo[mapeoid][materialsize][indexid] = lienzosize;
+			                format(MapeoFont[mapeoid][indexid], 40, fontface);
+			                Mapeo[mapeoid][fontsize][indexid] = textsize;
+			                Mapeo[mapeoid][bold][indexid] = usebold;
+			                Mapeo[mapeoid][fontcolor][indexid] = color;
+			                Mapeo[mapeoid][backgroundcolor][indexid] = backcolor;
+			                Mapeo[mapeoid][textalignment][indexid] = alineacion;
+			                Mapeo[mapeoid][materialtype][indexid] = 2;
+			            }
+		                SetDynamicObjectMaterialText(objectid, indexid, ConvertToRGBColor(text), lienzosize, fontface, textsize, usebold, color, backcolor, alineacion);
+
+		                ShowObjectIndex(playerid, indexid);
+		            }
+		            else
+		            {
+		                SetPVarInt(playerid, "editingoption", listitem);
+		            	ShowEditObjectMaerial(playerid, indexid, listitem);
+		            }
+		        }
+		        else if (listitem == 16)//Borrar Index
+		        {
+		            BorrarObjetoIndex(playerid, 1, indexid);
+		            ShowObjectIndexes(playerid);
+		        }
+		        else
+		        {
+		            ShowObjectIndex(playerid, indexid);
+		        }
+		    }
+		    else
+		    {
+		        if (GetPVarInt(playerid, "editingmapeo") != -1)
+		        ShowObjectIndexes(playerid);
+		    }
+		}
+		//EditIndex - ObjectMaterialEdition
+		case 159:
+		{
+		    new objectid = GetPVarInt(playerid, "editingobject");
+		    new indexid = GetPVarInt(playerid, "editingindex");
+
+		    if (response)
+		    {
+		        new mapeoid = GetPVarInt(playerid, "editingmapeo");
+		        new option = GetPVarInt(playerid, "editingoption");
+
+		        //Material
+		        if (option >= 1 && option <= 4)
+		        {
+		            new modelid, txdname[30], texturename[30], color = 0;
+					//////////////////
+		            if (mapeoid != -1)
+		            {
+		                modelid = Mapeo[mapeoid][texturemodel][indexid];
+		                format(txdname, 30, MapeoTxdName[mapeoid][indexid]);
+		                format(texturename, 30, MapeoTextureName[mapeoid][indexid]);
+		                color = Mapeo[mapeoid][materialcolor][indexid];
+		            }
+					//////////////////
+			        if (option == 1)//Modelo
+			        {
+			            if (IsValidStringServer(playerid, inputtext))
+			            modelid = strval(inputtext);
+			        }
+			        else if (option == 2)//TXD
+			        {
+			            if (IsValidStringServer(playerid, inputtext))
+			            format(txdname, 30, inputtext);
+			        }
+			        else if (option == 3)//Textura
+			        {
+			            if (IsValidStringServer(playerid, inputtext))
+			            format(texturename, 30, inputtext);
+			        }
+			        else if (option == 4)//Color
+			        {
+			            if (IsValidStringServer(playerid, inputtext))
+			            sscanf(inputtext, "x", color);
+			        }
+					//////////////////
+			        if (mapeoid != -1)
+		            {
+		                Mapeo[mapeoid][texturemodel][indexid] = modelid;
+		                format(MapeoTxdName[mapeoid][indexid], 30, txdname);
+		                format(MapeoTextureName[mapeoid][indexid], 30, texturename);
+		                Mapeo[mapeoid][materialcolor][indexid] = color;
+		                Mapeo[mapeoid][materialtype][indexid] = 1;
+		            }
+		            SetDynamicObjectMaterial(objectid, indexid, modelid, txdname, texturename, color);
+		        }
+		        //MaterialText
+		        else if (option >= 7 && option <= 14)
+		        {
+		            new text[128] = "Texto", lienzosize = OBJECT_MATERIAL_SIZE_256x128, fontface[40] = "Arial", textsize = 24, usebold = 1, color = 0xFFFFFFFF, backcolor = 0xFF000000, alineacion = 0;
+					//////////////////
+					if (mapeoid != -1)
+		            {
+		                if (strlen(MapeoText[mapeoid][indexid])) format(text, sizeof(text), MapeoText[mapeoid][indexid]);
+		                if (Mapeo[mapeoid][materialsize][indexid]) lienzosize = Mapeo[mapeoid][materialsize][indexid];
+		                if (strlen(MapeoFont[mapeoid][indexid])) format(fontface, 40, MapeoFont[mapeoid][indexid]);
+		                if (Mapeo[mapeoid][fontsize][indexid]) textsize = Mapeo[mapeoid][fontsize][indexid];
+		                usebold = Mapeo[mapeoid][bold];
+		                if (Mapeo[mapeoid][fontcolor][indexid]) color = Mapeo[mapeoid][fontcolor][indexid];
+		                if (Mapeo[mapeoid][backgroundcolor][indexid]) backcolor = Mapeo[mapeoid][backgroundcolor][indexid];
+		                alineacion = Mapeo[mapeoid][textalignment][indexid];
+		            }
+					//////////////////
+				    if (option == 7)//Asignar Texto
+				    {
+			            if (IsValidStringServer(playerid, inputtext))
+				        format(text, sizeof(text), "%s", inputtext);
+				    }
+				    else if (option == 9)//Fuente
+				    {
+			            if (IsValidStringServer(playerid, inputtext))
+				        format(fontface, 40, inputtext);
+				    }
+				    else if (option == 10)//Tamaño de Texto
+				    {
+			            if (IsValidStringServer(playerid, inputtext))
+				        textsize = strval(inputtext);
+				    }
+				    else if (option == 12)//Color Texto
+				    {
+			            if (IsValidStringServer(playerid, inputtext))
+				        sscanf(inputtext, "x", color);
+				    }
+				    else if (option == 13)//Color Fondo
+				    {
+			            if (IsValidStringServer(playerid, inputtext))
+				        sscanf(inputtext, "x", backcolor);
+				    }
+					//////////////////
+					if (mapeoid != -1)
+		            {
+		                format(MapeoText[mapeoid][indexid], sizeof(text), text);
+		                Mapeo[mapeoid][materialsize][indexid] = lienzosize;
+		                format(MapeoFont[mapeoid][indexid], 40, fontface);
+		                Mapeo[mapeoid][fontsize][indexid] = textsize;
+		                Mapeo[mapeoid][bold][indexid] = usebold;
+		                Mapeo[mapeoid][fontcolor][indexid] = color;
+		                Mapeo[mapeoid][backgroundcolor][indexid] = backcolor;
+		                Mapeo[mapeoid][textalignment][indexid] = alineacion;
+		                Mapeo[mapeoid][materialtype][indexid] = 2;
+		            }
+				    SetDynamicObjectMaterialText(objectid, indexid, ConvertToRGBColor(text), lienzosize, fontface, textsize, usebold, color, backcolor, alineacion);
+		        }
+	            ShowObjectIndex(playerid, indexid);
+		    }
+		    else
+		    {
+		        ShowObjectIndex(playerid, indexid);
+		    }
+		}
+		//ShowVelocidadObjetoMenu
+		case 160:
+		{
+		    new mapeoid = GetPVarInt(playerid, "editingmapeo");
+		    new puertaid = Mapeo[mapeoid][Tipoid];
+		    if (response)
+		    {
+		        Puerta[puertaid][Velocidad] = floatstr(inputtext);
+		    }
+		    ShowObjectMenu(playerid, 1);
+		}
+		//ShowPuertaOwnerMenu
+		case 161:
+		{
+		    new mapeoid = GetPVarInt(playerid, "editingmapeo");
+		    Puerta[Mapeo[mapeoid][Tipoid]][LlaveOwnerID] = strval(inputtext);
+		    ShowObjectMenu(playerid, 1);
+		}
+		//ShowDialog247
+		case 162:
+		{
+		    if (!response) return 1;
+		    if (!PlayersData[playerid][IsPlayerInBizz]) return SendInfoMessage(playerid, 0, "", "Ya no te encuentras en el negocio");
+		    new bizzid = PlayersData[playerid][IsPlayerInBizz];
+		    if (PlayersData[playerid][Dinero] < M24_7_Precios[listitem] ) return SendInfoMessage(playerid, 0, "360", "No tienes suficiente dinero para comprar éste artículo del 27/7");
+		    if ( CheckWeapondCheat(playerid) && NegociosData[bizzid][Materiales] >= 2 )
+		    {
+		        new MsgCompra[144];
+		        if (listitem == 0)//Camara de Fotos
+		        {
+					GivePlayerWeaponEx(playerid, 43, 200);
+					format(MsgCompra, sizeof(MsgCompra), "Has comprado una Cámara por $%i.", M24_7_Precios[listitem]);
+		        }
+		        else if (listitem == 1)//Patines
+		        {
+					if ( IsObjectInBolsillo(playerid, listitem) ) return SendInfoMessage(playerid, 0, "", "Ya usted tiene unos patines, deshágase de el si quiere comprar unos nuevos");
+		            if ( IsNotFullBolsillo(playerid, playerid, "Usted tiene los bolsillos llenos!") )
+		            {
+						AddObjectBolsillo(playerid, listitem);
+						format(MsgCompra, sizeof(MsgCompra), "Has comprado unos Patines por $%i.", M24_7_Precios[listitem]);
+					}
+					else return 1;
+		        }
+		        else if (listitem == 2)//Dados
+		        {
+		            if ( IsObjectInBolsillo(playerid, listitem) ) return SendInfoMessage(playerid, 0, "", "Ya usted tiene unos dados, deshágase de el si quiere comprar unos nuevos");
+		            if ( IsNotFullBolsillo(playerid, playerid, "Usted tiene los bolsillos llenos!") )
+		            {
+						AddObjectBolsillo(playerid, listitem);
+						format(MsgCompra, sizeof(MsgCompra), "Has comprado unos Dados por $%i.", M24_7_Precios[listitem]);
+					}
+					else return 1;
+		        }
+		        else if (listitem == 3)//Movil
+		        {
+		            if ( PlayersData[playerid][Phone] != 0) return SendInfoMessage(playerid, 0, "364", "Ya usted tiene un móvil, deshágase de el si quiere comprar uno nuevo");
+					AddObjectBolsillo(playerid, listitem);
+					BuyPhone24_7(playerid);
+					format(MsgCompra, sizeof(MsgCompra), "Has comprado un nuevo móvil con número %i por $%i.", PlayersData[playerid][Phone], M24_7_Precios[listitem]);
+		        }
+		        else if (listitem == 4)//Agenda
+		        {
+		            if ( IsObjectInBolsillo(playerid, listitem) ) return SendInfoMessage(playerid, 0, "892", "Ya usted tiene una agenda");
+		            if ( IsNotFullBolsillo(playerid, playerid, "Usted tiene los bolsillos llenos!") )
+		            {
+						AddObjectBolsillo(playerid, listitem);
+						format(MsgCompra, sizeof(MsgCompra), "Has comprado una Agenda por $%i.", M24_7_Precios[listitem]);
+  					    CleanSMS(playerid);
+			            CleanAgenda(playerid);
+					}
+					else return 1;
+		        }
+		        else if (listitem == 5)//Flores
+		        {
+		            GivePlayerWeaponEx(playerid, 14, 1);
+					format(MsgCompra, sizeof(MsgCompra), "Has comprado unas flores por $%i.", M24_7_Precios[listitem]);
+		        }
+		        else if (listitem == 6)//Comprar Saldo
+		        {
+		            ShowPlayerDialogEx(playerid, 30, DIALOG_STYLE_INPUT, "{00A5FF}Seleccione el monto de saldo a comprar", "{F0F0F0}¿Cuanto desea comprar de saldo para su móvil?", "Comprar", "Volver");
+		            return 1;
+		        }
+		        else if (listitem == 7)//Bolsa
+		        {
+		            if ( PlayersData[playerid][HaveBolsa] ) return SendInfoMessage(playerid, 0, "1228", "Ya usted tiene una bolsa");
+					PlayersData[playerid][HaveBolsa] = true;
+					CleanArticulosBolsa(playerid);
+					format(MsgCompra, sizeof(MsgCompra), "Has comprado una Bolsa por $%i.", M24_7_Precios[listitem]);
+		        }
+		        else if (listitem == 8)//Condones
+		        {
+		            if ( IsNotFullCartera(playerid, playerid, "Usted tiene la cartera llena!") )
+		            {
+						AddObjectToCartera(playerid, CARTERA_TYPE_CONDONES, 3, 0, 0);
+						format(MsgCompra, sizeof(MsgCompra), "Has comprado unos Condones por $%i.", M24_7_Precios[listitem]);
+					}
+					else return 1;
+		        }
+		        else if (listitem == 9)//Maleta
+		        {
+		            if ( GetObjectByType(playerid, TYPE_MALETIN) == -1 )
+		            {
+						format(MsgCompra, sizeof(MsgCompra), "Has comprado un maletín por $%i.", M24_7_Precios[listitem]);
+						AddObjectHoldToPlayer(playerid, 1210);
+					}
+					else return SendInfoMessage(playerid, 0, "1548", "Tienes las manos ocupadas, no puedes llevar más nada en ellas!");
+		        }
+		        else if (listitem == 10)//Modelo de Moviles
+		        {
+            		ShowDialogTypePhones(playerid);
+            		return 1;
+		        }
+				SendInfoMessage(playerid, 3, "0", MsgCompra);
+				printf("%s[%i]: %s", PlayersDataOnline[playerid][NameOnline], playerid, MsgCompra);
+				
+				SetMoneyExtorsion(bizzid, M24_7_Precios[listitem]);
+				GivePlayerMoneyEx(playerid, -M24_7_Precios[listitem]);
+				
+				ShowDialog247(playerid);
+		    }
+		    else
+		    {
+			    SendInfoMessage(playerid, 0, "359", "Éste 24/7 no tiene materiales!");
+		    }
+		}
+		//ShowDialogTypePhones
+		case 163:
+		{
+		    if (response)
+		    {
+		        if (!PlayersData[playerid][IsPlayerInBizz]) return SendInfoMessage(playerid, 0, "", "Ya no te encuentras en el negocio");
+		        PlayersData[playerid][TypePhone] = listitem;
+		        new MsgCompra[144];
+				format(MsgCompra, sizeof(MsgCompra), "Has comprado un modeo de movil por $%i.", M24_7_Precios[10]);
+				SendInfoMessage(playerid, 3, "0", MsgCompra);
+				printf("%s[%i]: %s", PlayersDataOnline[playerid][NameOnline], playerid, MsgCompra);
+				
+				SetMoneyExtorsion(PlayersData[playerid][IsPlayerInBizz], M24_7_Precios[10]);
+				GivePlayerMoneyEx(playerid, -M24_7_Precios[10]);
+				ShowDialog247(playerid);
+		    }
+		    else ShowDialog247(playerid);
+		}
 	}
 	//// END DIALOGS
 	return 1;
@@ -32950,7 +32942,7 @@ public DataUserClean(playerid)
 	PlayersDataOnline[playerid][IsEntrevistado]		= false;
 	PlayersDataOnline[playerid][SubAfterMenuRow] 	= 0;
 	PlayersDataOnline[playerid][AfterMenuRow] 	 	= 0;
-	//TEXTDRAW
+
 	PlayersDataOnline[playerid][InvitePlayer]  		= 0;
 	PlayersDataOnline[playerid][InviteFaccion] 		= 0;
 	PlayersDataOnline[playerid][Frecuencia]    		= 0;
@@ -32968,8 +32960,6 @@ public DataUserClean(playerid)
 	PlayersDataOnline[playerid][IsTeazer]     		= false;
 	PlayersDataOnline[playerid][LastInterior]     	= false;
 	PlayersDataOnline[playerid][StateDeath]     	= false;
-	PlayersDataOnline[playerid][ObjectWorking]	    = -1;
-	PlayersDataOnline[playerid][MappingPoint]	    = 0.1;
 	PlayersDataOnline[playerid][IsNotSilenciado]    = true;
 	PlayersDataOnline[playerid][ModeDM]    			= false;
 	PlayersDataOnline[playerid][ModeRace]  			= false;
@@ -34012,87 +34002,118 @@ public GetMaxFaccionRangoSkin(faccionid, rangoid)
 }
 public GetPlayerStats(playerid, playeridshow)
 {
-	SendClientMessage(playeridshow, COLOR_TITULO_DE_AYUDA, "|»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»»» Estadísticas ««««««««««««««««««««««««««««««««««««««««««««««««|");
-	new StatsStrings[256];
-	new Float:Vida1, Float:Chaleco1;
-	GetPlayerHealth(playerid, Vida1);
-	GetPlayerArmour(playerid, Chaleco1);
+	new info[1500];
 
-	format(StatsStrings, 255, "ID: %i | Nombre: %s | Interior: %i | Mundo: %i | Warns: %i | Nivel: %i | Falta: [%i/%i]",
-			playerid,
-			PlayersDataOnline[playerid][NameOnline],
-			GetPlayerInteriorEx(playerid),
-			GetPlayerVirtualWorld(playerid),
-			PlayersData[playerid][Warn],
-			GetPlayerScoreEx(playerid),
-            GetPlayerScoreMin(playerid),
-            GetPlayerScoreMax(playerid)
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Horas Jugadas: %i | Edad: %i | Cansansio: %i/54 | Móvil: %i | Ciudad: %s",
-			PlayersData[playerid][HoursPlaying],
-			PlayersData[playerid][Edad],
-			PlayersData[playerid][Cansansio],
-			PlayersData[playerid][Phone],
-			Ciudades[PlayersData[playerid][Ciudad]]
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Sexo: %s | Skin: %i | Ganzúas: %i | Drogas: %i | Materiales: %i | Lata: %s | Bombas: %i",
+    strcat(info, "{"COLOR_AZUL"}ID\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Nombre\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Interior\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Mundo\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Warns\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Nivel\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Falta\t[%i/%i]\n");
+    
+    strcat(info, "{"COLOR_AZUL"}Horas Jugadas\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Edad\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Cansansio\t%i/54\n");
+    strcat(info, "{"COLOR_AZUL"}Movil\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Ciudad\t%s\n");
+    
+    strcat(info, "{"COLOR_AZUL"}Sexo\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Skin\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Ganzuas\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Drogas\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Materiales\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Lata\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Bombas\t%i\n");
+    
+	format(info, sizeof(info), info,
+		playerid,
+		PlayersDataOnline[playerid][NameOnline],
+		GetPlayerInteriorEx(playerid),
+		GetPlayerVirtualWorld(playerid),
+		PlayersData[playerid][Warn],
+		GetPlayerScoreEx(playerid),
+        GetPlayerScoreMin(playerid),
+        GetPlayerScoreMax(playerid),
+
+		PlayersData[playerid][HoursPlaying],
+		PlayersData[playerid][Edad],
+		PlayersData[playerid][Cansansio],
+		PlayersData[playerid][Phone],
+		Ciudades[PlayersData[playerid][Ciudad]],
+		
 		Sexos[PlayersData[playerid][Sexo]],
 		PlayersData[playerid][Skin],
 		PlayersData[playerid][Ganzuas],
 		PlayersData[playerid][Drogas],
 		PlayersData[playerid][Materiales],
 		LataName[PlayersData[playerid][Lata]],
-		PlayersData[playerid][Bombas]
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Facción: %s | Rango: %s | Dinero: $%i | Cuenta de Ahorros: $%i | Cuenta de Cheques: $%i",
-		FaccionData[PlayersData[playerid][Faccion]][NameFaccion],
+		PlayersData[playerid][Bombas]);
+		
+	strcat(info, "{"COLOR_AZUL"}Faccion\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Rango\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Dinero\t$%i\n");
+    strcat(info, "{"COLOR_AZUL"}Cuenta de Ahorros\t$%i\n");
+    strcat(info, "{"COLOR_AZUL"}Cuenta de Cheques\t$%i\n");
+
+    strcat(info, "{"COLOR_AZUL"}Habilidad\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Casado\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Hablar\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Caminar\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Saldo\t$%i\n");
+    strcat(info, "{"COLOR_AZUL"}Bolsa\t%s\n");
+    
+    strcat(info, "{"COLOR_AZUL"}Muerto\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Muertos\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Vehiculo 1\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Vehiculo 2\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Vehiculo 3\t%s\n");
+    
+    format(info, sizeof(info), info,
+    	FaccionData[PlayersData[playerid][Faccion]][NameFaccion],
 		FaccionesRangos[PlayersData[playerid][Faccion]][PlayersData[playerid][Rango]],
 		PlayersData[playerid][Dinero],
 		PlayersData[playerid][Banco],
-		Banking[playerid][Balance]
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Habilidad: %s | Casado: %s | Hablar: %s | Caminar: %s | Saldo: $%i | Bolsa: %s",
+		Banking[playerid][Balance],
+		
 		HabilidadesName[PlayersData[playerid][Habilidad]],
 		PlayersData[playerid][GirlFreind],
 		ModeTalkName[PlayersData[playerid][MyStyleTalk]],
 		ModeWalkName[PlayersData[playerid][MyStyleWalk]],
-//		ModeSprintName[PlayersData[playerid][MyStyleSprint]],
 		PlayersData[playerid][Saldo],
-		SiOrNo[PlayersData[playerid][HaveBolsa]]
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Muerto: %i | Muertos: %i | Vehículo 1: %s | Vehículo 2: %s | Vehículo 3: %s",
+		SiOrNo[PlayersData[playerid][HaveBolsa]],
+		
 		PlayersData[playerid][DeahtCount],
 		PlayersData[playerid][KilledCount],
-		/*Vida1, Vida: %.2f | Chaleco: %.2f
-		Chaleco1,*/
 		DataCars[PlayersData[playerid][Asignados][0]][MatriculaString],
 		DataCars[PlayersData[playerid][Asignados][1]][MatriculaString],
-		DataCars[PlayersData[playerid][Asignados][2]][MatriculaString]
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Enfermedad: %s | Horas de trabajo: %i | Email: %s | Audio: %s | Trabajo: %s",
-		EnfermedadName[PlayersData[playerid][Enfermedad]],
+		DataCars[PlayersData[playerid][Asignados][2]][MatriculaString]);
+
+    strcat(info, "{"COLOR_AZUL"}Enfermedad\t%s%s\n");
+    strcat(info, "{"COLOR_AZUL"}Horas de trabajo\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Email\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Audio\t%s\n");
+    strcat(info, "{"COLOR_AZUL"}Trabajo\t%s\n");
+    
+    strcat(info, "{"COLOR_AZUL"}Spawn Faccion\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Cuenta Bancaria\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Casa\t%i\n");
+    strcat(info, "{"COLOR_AZUL"}Local\t%i\n");
+    //strcat(info, "{"COLOR_AZUL"}\t%i\n");
+    
+    format(info, sizeof(info), info,
+        EnfermedadColores[PlayersData[playerid][Enfermedad]], EnfermedadName[PlayersData[playerid][Enfermedad]],
 		PlayersData[playerid][HorasWork],
 		PlayersData[playerid][Email],
 		SiOrNo[PlayersDataOnline[playerid][IsAudio]],
-		Jobs[PlayersData[playerid][Job]][NameJob]
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Spawn Facción: %i | Número de cuenta Bancaria: %i",
+		Jobs[PlayersData[playerid][Job]][NameJob],
+		
 		PlayersData[playerid][SpawnFac] + 1,
-		PlayersData[playerid][AccountBankingOpen]
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
-	format(StatsStrings, sizeof(StatsStrings), "Casa: %i | Local: %i",
-	    PlayersData[playerid][House],
-		PlayersData[playerid][Local]+1
-	);
-	SendInfoMessage(playeridshow, 1, StatsStrings, "Estadísticas: ");
+		PlayersData[playerid][AccountBankingOpen],	
+		PlayersData[playerid][House],
+		PlayersData[playerid][Local] +1);
+		
+	ShowPlayerDialogEx(playeridshow, 999, DIALOG_STYLE_TABLIST, "{"COLOR_AZUL"}Estadisticas", info, "Cerrar", "");
 }
 public IsCheatMoney(playerid, lastmoney)
 {
@@ -34341,10 +34362,21 @@ public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, const 
 
 			new Float:acX, Float:acY, Float:acZ;
 			GetPlayerPos(playerid, acX, acY, acZ);
-			if ( IsPlayerInAnyVehicle(playeridAC) && GetPlayerVehicleSeat(playeridAC) == 0 && GetPlayerInteriorEx(playerid) == 0 && GetPlayerInteriorEx(playeridAC) == 0)
+			if ( IsPlayerInAnyVehicle(playeridAC) && GetPlayerVehicleSeat(playeridAC) == 0)
 			{
 				new CocheTraer = GetPlayerVehicleID(playeridAC);
 				SetVehiclePos(CocheTraer, acX, acY + 2, acZ + 1);
+				LinkVehicleToInterior(CocheTraer, GetPlayerInteriorEx(playerid));
+				SetVehicleVirtualWorldEx(CocheTraer, GetPlayerVirtualWorld(playerid));
+				
+				for (new j=0, k=GetPlayerPoolSize(); j <= k; j++)
+				{
+				    if ( IsPlayerConnected(j) && IsPlayerInVehicle(j, CocheTraer))
+				    {
+			        	SetPlayerVirtualWorldEx(j, GetPlayerVirtualWorld(playerid));
+			        	SetPlayerInteriorEx(j, GetPlayerInteriorEx(playerid));
+				    }
+				}
 			}
 			else
 			{
@@ -34381,10 +34413,21 @@ public Comandos_Admin(Comando, playerid, playeridAC, LV, Cantidad_o_Tipo, const 
             new Float:meX, Float:meY, Float:meZ;
 			GetPlayerPos(playeridAC, meX, meY, meZ);
 
-			if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0 && GetPlayerInteriorEx(playeridAC) == 0 && GetPlayerInteriorEx(playerid) == 0)
+			if ( IsPlayerInAnyVehicle(playerid) && GetPlayerVehicleSeat(playerid) == 0)
 			{
 				new CocheTraer = GetPlayerVehicleID(playerid);
 				SetVehiclePos(CocheTraer, meX, meY + 2, meZ + 1);
+				LinkVehicleToInterior(CocheTraer, GetPlayerInteriorEx(playeridAC));
+				SetVehicleVirtualWorldEx(CocheTraer, GetPlayerVirtualWorld(playeridAC));
+
+				for (new j=0, k=GetPlayerPoolSize(); j <= k; j++)
+				{
+				    if ( IsPlayerConnected(j) && IsPlayerInVehicle(j, CocheTraer))
+				    {
+			        	SetPlayerVirtualWorldEx(j, GetPlayerVirtualWorld(playeridAC));
+			        	SetPlayerInteriorEx(j, GetPlayerInteriorEx(playeridAC));
+				    }
+				}
 			}
 			else
 			{
@@ -34997,7 +35040,7 @@ public SetTimerGlobal()
 
 	new NuevaHora = ( (60 - ((MinutosGLOBAL) + 1)) * 60000 ) + ( (60 - (SegundosGLOBAL + 1) ) * 1000);
 	SetTimer("SetTimerGlobal", NuevaHora, false); // Echamos andar el timer
-	printf("Nueva Hora: %i Minutos: %i Milisegundos: %i", HoraGLOBAL, (NuevaHora / 1000) / 60,NuevaHora );
+	printf("Nueva Hora: %i Minutos: %i Milisegundos: %i", HoraGLOBAL, (NuevaHora / 1000) / 60, NuevaHora );
 	MostrarHora(1, 0);
 	return 1;
 }
@@ -52139,10 +52182,9 @@ public DataLoadBizz(bizzid)
 	    cache_get_value_name_float(0, "PosOutY", NegociosData[bizzid][PosOutY]);
 	    cache_get_value_name_float(0, "PosOutZ", NegociosData[bizzid][PosOutZ]);
 	    cache_get_value_name_float(0, "PosOutZZ", NegociosData[bizzid][PosOutZZ]);
-	    new pickupid = CreateDynamicPickup(1272, 1, NegociosData[bizzid][PosOutX], NegociosData[bizzid][PosOutY], NegociosData[bizzid][PosOutZ], WORLD_NORMAL, 0);
+	    new pickupid = CreateDynamicPickup(19607, 1, NegociosData[bizzid][PosOutX], NegociosData[bizzid][PosOutY], NegociosData[bizzid][PosOutZ]-1, WORLD_NORMAL, 0);
 	    PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NEGOCIO;
 	    PickupIndex[pickupid][Tipoid] = bizzid;
-	    MAX_DYNAMIC_PICKUP++;
 	    NegociosData[bizzid][PickupOutId] = pickupid;
 	    cache_get_value_name_int(0, "InteriorOut", NegociosData[bizzid][InteriorOut]);
 	    cache_get_value_name_int(0, "Deposito", NegociosData[bizzid][Deposito]);
@@ -53175,33 +53217,6 @@ new Opciones_SavannaID[2][7];
 	AddMenuItem(RingDonuts, 0, "Cena de Pareja");				AddMenuItem(RingDonuts, 1, "$28");	RingDonutsPrecios[4] = 28;
 	AddMenuItem(RingDonuts, 0, "El especial del Chef");			AddMenuItem(RingDonuts, 1, "$45");	RingDonutsPrecios[5] = 45;
 	AddMenuItem(RingDonuts, 0, "Completa de Rings");			AddMenuItem(RingDonuts, 1, "$30");	RingDonutsPrecios[6] = 30;
-	// M24_7;
-    M24_7	 = CreateMenu("24/7", 2, 300.0, 200.0, 250.0, 70.0);
-	AddMenuItem(M24_7, 0, "Camara de Fotos");  		AddMenuItem(M24_7, 1, "$200"); 	M24_7_Precios[0] = 200;
-	AddMenuItem(M24_7, 0, "Patines");	  				AddMenuItem(M24_7, 1, "$150"); 	M24_7_Precios[1] = 150;
-	AddMenuItem(M24_7, 0, "Dados");						AddMenuItem(M24_7, 1, "$60"); 	M24_7_Precios[2] = 60;
-	AddMenuItem(M24_7, 0, "Movil"); 					AddMenuItem(M24_7, 1, "$300"); 	M24_7_Precios[3] = 300;
-	AddMenuItem(M24_7, 0, "Agenda"); 					AddMenuItem(M24_7, 1, "$100"); 	M24_7_Precios[4] = 100;
-	AddMenuItem(M24_7, 0, "Flores"); 					AddMenuItem(M24_7, 1, "$50"); 	M24_7_Precios[5] = 50;
-	AddMenuItem(M24_7, 0, "Comprar Saldo"); 			AddMenuItem(M24_7, 1, " ");
-	AddMenuItem(M24_7, 0, "Bolsa"); 				    AddMenuItem(M24_7, 1, "$150"); 	M24_7_Precios[7] = 150;
-	AddMenuItem(M24_7, 0, "Condones"); 				    AddMenuItem(M24_7, 1, "$80"); 	M24_7_Precios[8] = 80;
-	AddMenuItem(M24_7, 0, "Maleta"); 				    AddMenuItem(M24_7, 1, "$150"); 	M24_7_Precios[9] = 150;
-	AddMenuItem(M24_7, 0, "Modelos de Moviles"); 	AddMenuItem(M24_7, 1, "$200");	M24_7_Precios[10] = 200;
-
-	// Tipos de teléfonos móviles
-    TYPE_PHONES_MENU	 = CreateMenu("Modelos de Moviles", 1, 300.0, 200.0, 250.0, 70.0);
-   	AddMenuItem(TYPE_PHONES_MENU, 0, "Normal");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Color Oro");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Azul Claro");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Naranja");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Negro");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Rosa");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Rojo");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Verde");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Azul Oscuro");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Amarillo");
-	AddMenuItem(TYPE_PHONES_MENU, 0, "Blanco");
 
     SupermercadoArticulos	 = CreateMenu("Super Mercado San Fierro", 2, 300.0, 200.0, 250.0, 70.0);
 	AddMenuItem(SupermercadoArticulos, 0, "Pack 6 Cervezas");  			AddMenuItem(SupermercadoArticulos, 1, "$50"); 	SupermercadoArticulosPrecios[0] = 50;
@@ -53394,10 +53409,11 @@ new Opciones_SavannaID[2][7];
 }
 public CleanDataDeath(playerid)
 {
-	PlayersData[playerid][IsPlayerInBizz] 					= false;
+	PlayersData[playerid][IsPlayerInBizz] = false;
 	StopAudioPlayer(playerid, PlayersDataOnline[playerid][HandleAHouse]);
-	PlayersData[playerid][IsPlayerInHouse]      			= false;
-	PlayersData[playerid][IsPlayerInBank] 					= false;
+	PlayersData[playerid][IsPlayerInHouse] = false;
+	PlayersData[playerid][IsPlayerInBank] = false;
+	PlayersData[playerid][InLocal] = -1;
 
 	PlayersDataOnline[playerid][JobBonus] 					= false;
 	PlayersDataOnline[playerid][IsTeazer]      				= false;
@@ -56457,7 +56473,6 @@ public LoadHouse(houseid)
 		new pickupid = CreateDynamicPickup(1273, 1, HouseData[houseid][PosX], HouseData[houseid][PosY], HouseData[houseid][PosZ], WORLD_NORMAL, 0);
 		PickupIndex[pickupid][Tipo] = PICKUP_TYPE_CASA;
 		PickupIndex[pickupid][Tipoid] = houseid;
-		MAX_DYNAMIC_PICKUP++;
 		HouseData[houseid][PickupId] = pickupid;
 		cache_get_value_name_int(0, "PriceRent", HouseData[houseid][PriceRent]);
 		cache_get_value_name_int(0, "Level", HouseData[houseid][Level]);
@@ -57009,7 +57024,6 @@ public LoadPickupsAlmacenes(faccionid)
 	        new pickupid = CreateDynamicPickup(1575, 1, FaccionData[faccionid][AlmacenX][a], FaccionData[faccionid][AlmacenY][a], FaccionData[faccionid][AlmacenZ][a], FaccionData[faccionid][AlmacenWorld][a]);
 	        PickupIndex[pickupid][Tipo] = PICKUP_TYPE_FACCION_ALMACEN;
 			PickupIndex[pickupid][Tipoid] = faccionid;
-	        MAX_DYNAMIC_PICKUP++;
 	    }
 	}
 }
@@ -57046,869 +57060,7 @@ public UpdateFaccionTextLabel(faccionid, update)
 	}
 	return 1;
 }
-
-public LoadDoors()
-{
-	Doors[MAX_DOORS][objectmodel]    = 971;
-	Doors[MAX_DOORS][PosXTrue]       = 1548.05371100;
-	Doors[MAX_DOORS][PosYTrue]       = -1628.41015600;
-	Doors[MAX_DOORS][PosZTrue]       = 15.95274500;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = -89.99998128;
-	Doors[MAX_DOORS][PosXFalse]    = 1548.05981400;
-	Doors[MAX_DOORS][PosYFalse]    = -1635.40698200;
-	Doors[MAX_DOORS][PosZFalse]    = 15.95274500;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = -89.99998128;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = LSPD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 10558;
-	Doors[MAX_DOORS][PosXTrue]       = 1588.6960449219;
-	Doors[MAX_DOORS][PosYTrue]       = -1638.4265136719;
-	Doors[MAX_DOORS][PosZTrue]       = 14.494512557983;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 270;
-	Doors[MAX_DOORS][PosXFalse]    = 1588.6960449219;
-	Doors[MAX_DOORS][PosYFalse]    = -1638.4265136719;
-	Doors[MAX_DOORS][PosZFalse]    = 10.300000190735;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 270;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = LSPD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 3567;
-	Doors[MAX_DOORS][PosXTrue]       = 1571.212890625;
-	Doors[MAX_DOORS][PosYTrue]       = -1642.8984375;
-	Doors[MAX_DOORS][PosZTrue]       = 11.699999809265;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = 1571.212890625;
-	Doors[MAX_DOORS][PosYFalse]    = -1642.8984375;
-	Doors[MAX_DOORS][PosZFalse]    = 26.5;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = LSPD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 17951;
-	Doors[MAX_DOORS][PosXTrue]       = 1549.9720458984;
-	Doors[MAX_DOORS][PosYTrue]       = 17.601322174072;
-	Doors[MAX_DOORS][PosZTrue]       = 25;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 9;
-	Doors[MAX_DOORS][PosXFalse]    	 = 1549.9720458984;
-	Doors[MAX_DOORS][PosYFalse]      = 17.601322174072;
-	Doors[MAX_DOORS][PosZFalse]      = 21.5;
-	Doors[MAX_DOORS][PosRotXFalse]   = 0;
-	Doors[MAX_DOORS][PosRotYFalse]   = 0;
-	Doors[MAX_DOORS][PosRotZFalse]   = 9;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SICARIOS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = 764.77752700;
-	Doors[MAX_DOORS][PosYTrue]       = -1422.80786100;
-	Doors[MAX_DOORS][PosZTrue]       = 13.31906100;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90.24079544;
-	Doors[MAX_DOORS][PosRotZTrue]    = -0.85943669;
-	Doors[MAX_DOORS][PosXFalse]    = 764.83917200;
-	Doors[MAX_DOORS][PosYFalse]    = -1422.81286600;
-	Doors[MAX_DOORS][PosZFalse]    = 13.20376600;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = CONTRABANDISTAS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = 711.36908000;
-	Doors[MAX_DOORS][PosYTrue]       = -1422.32885700;
-	Doors[MAX_DOORS][PosZTrue]       = 13.31281300;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = -90.24079544;
-	Doors[MAX_DOORS][PosRotZTrue]    = -0.85943669;
-	Doors[MAX_DOORS][PosXFalse]    = 711.26141400;
-	Doors[MAX_DOORS][PosYFalse]    = -1422.32312000;
-	Doors[MAX_DOORS][PosZFalse]    = 13.26281400;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = CONTRABANDISTAS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -2599.382568;
-	Doors[MAX_DOORS][PosYTrue]       = 688.296081;
-	Doors[MAX_DOORS][PosZTrue]       = 27.612501;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 273;
-	Doors[MAX_DOORS][PosXFalse]    = -2599.363281;
-	Doors[MAX_DOORS][PosYFalse]    = 688.147033;
-	Doors[MAX_DOORS][PosZFalse]    = 27.606203;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 273;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = SFMD;
-
-	MAX_DOORS++; // CAMIONEROS
-	Doors[MAX_DOORS][objectmodel]    = 980;
-	Doors[MAX_DOORS][PosXTrue]       = -491.66204800;
-	Doors[MAX_DOORS][PosYTrue]       = -562.61877400;
-	Doors[MAX_DOORS][PosZTrue]       = 27.29682900;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = -481.11346400;
-	Doors[MAX_DOORS][PosYFalse]    = -562.62060500;
-	Doors[MAX_DOORS][PosZFalse]    = 27.29929200;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = CAMIONEROS;
-
-	MAX_DOORS++; // DETECTIVES
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -2081.65356400;
-	Doors[MAX_DOORS][PosYTrue]       = 1368.02685500;
-	Doors[MAX_DOORS][PosZTrue]       = 6.87718600;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 89.38135874;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = -2081.55151400;
-	Doors[MAX_DOORS][PosYFalse]    = 1368.05188000;
-	Doors[MAX_DOORS][PosZFalse]    = 6.84989000;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = ADP;
-
-	MAX_DOORS++; // Puerta 1 CNN
-	Doors[MAX_DOORS][objectmodel]    = 975;
-	Doors[MAX_DOORS][PosXTrue]       = 777.48919700;
-	Doors[MAX_DOORS][PosYTrue]       = -1384.51147500;
-	Doors[MAX_DOORS][PosZTrue]       = 14.39153300;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 180.00001985;
-	Doors[MAX_DOORS][PosXFalse]    = 770.48236100;
-	Doors[MAX_DOORS][PosYFalse]    = -1384.51147500;
-	Doors[MAX_DOORS][PosZFalse]    = 14.39153300;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 180.00001985;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = CNN;
-
-	MAX_DOORS++; // Puerta 2 CNN
-	Doors[MAX_DOORS][objectmodel]    = 975;
-	Doors[MAX_DOORS][PosXTrue]       = 777.42907700;
-	Doors[MAX_DOORS][PosYTrue]       = -1330.43664600;
-	Doors[MAX_DOORS][PosZTrue]       = 14.22926100;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 180.00001985;
-	Doors[MAX_DOORS][PosXFalse]    = 770.42224100;
-	Doors[MAX_DOORS][PosYFalse]    = -1330.43664600;
-	Doors[MAX_DOORS][PosZFalse]    = 14.22926100;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 180.00001985;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = CNN;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 16501;
-	Doors[MAX_DOORS][PosXTrue]       = 1045.3469238281;
-	Doors[MAX_DOORS][PosYTrue]       = -315.49578857422;
-	Doors[MAX_DOORS][PosZTrue]       = 73.599998474121;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 90;
-	Doors[MAX_DOORS][PosXFalse]    = 1045.3469238281;
-	Doors[MAX_DOORS][PosYFalse]    = -315.49578857422;
-	Doors[MAX_DOORS][PosZFalse]    = 70.8;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 90;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = TRAFICANTES;
-
-	MAX_DOORS++; // Puerta LCN
-	Doors[MAX_DOORS][objectmodel]    = 980;
-	Doors[MAX_DOORS][PosXTrue]       = 1426.89221200;
-	Doors[MAX_DOORS][PosYTrue]       = -1883.11084000;
-	Doors[MAX_DOORS][PosZTrue]       = 15.17355300;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = 1436.31323200;
-	Doors[MAX_DOORS][PosYFalse]    = -1883.09411600;
-	Doors[MAX_DOORS][PosZFalse]    = 15.15620400;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = LCN;
-
-	MAX_DOORS++; // Puerta TAXIS
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = 1811.60119600;
-	Doors[MAX_DOORS][PosYTrue]       = -1893.20629900;
-	Doors[MAX_DOORS][PosZTrue]       = 13.05351100;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 88.52192205;
-	Doors[MAX_DOORS][PosRotZTrue]    = 90.07733058;
-	Doors[MAX_DOORS][PosXFalse]    = 1811.62182600;
-	Doors[MAX_DOORS][PosYFalse]    = -1893.17382800;
-	Doors[MAX_DOORS][PosZFalse]    = 13.13908600;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 89.99998128;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = TAXI;
-
-	MAX_DOORS++; // Puerta LICENCIEROS
-	Doors[MAX_DOORS][objectmodel]    = 968; // LICENCIEROS 968
-	Doors[MAX_DOORS][PosXTrue]       = -2050.61669900;
-	Doors[MAX_DOORS][PosYTrue]       = -80.58327500;
-	Doors[MAX_DOORS][PosZTrue]       = 34.89353900;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 89.38135874;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = -2050.58203100;
-	Doors[MAX_DOORS][PosYFalse]    = -80.54467800;
-	Doors[MAX_DOORS][PosZFalse]    = 34.83792900;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = LICENCIEROS;
-
-	MAX_DOORS++; // YAKUZA
-	Doors[MAX_DOORS][objectmodel]    = 980;
-	Doors[MAX_DOORS][PosXTrue]       = -2273.18286100;
-	Doors[MAX_DOORS][PosYTrue]       = 2352.12988300;
-	Doors[MAX_DOORS][PosZTrue]       = 6.59360400;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = -124.60943960;
-	Doors[MAX_DOORS][PosXFalse]    = -2279.14233400;
-	Doors[MAX_DOORS][PosYFalse]    = 2343.25048800;
-	Doors[MAX_DOORS][PosZFalse]    = 6.59360500;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = -123.74994561;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = YKZ;
-
-	MAX_DOORS++; // LSPD
-	Doors[MAX_DOORS][objectmodel]    = 2952;
-	Doors[MAX_DOORS][PosXTrue]       = 245.26473999023;
-	Doors[MAX_DOORS][PosYTrue]       = 72.445518493652;
-	Doors[MAX_DOORS][PosZTrue]       = 1002.640625;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.25;
-	Doors[MAX_DOORS][PosXFalse]    = 245.26473999023;
-	Doors[MAX_DOORS][PosYFalse]    = 72.445518493652;
-	Doors[MAX_DOORS][PosZFalse]    = 999.9;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 89.25;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = LSPD;
-
-	MAX_DOORS++; // SFPD Interior
-	Doors[MAX_DOORS][objectmodel]    = 2952;
-	Doors[MAX_DOORS][PosXTrue]       = 239.74206542969;
-	Doors[MAX_DOORS][PosYTrue]       = 118.60485839844;
-	Doors[MAX_DOORS][PosZTrue]       = 1002.21875;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 359.24487304688;
-	Doors[MAX_DOORS][PosXFalse]    = 239.74206542969;
-	Doors[MAX_DOORS][PosYFalse]    = 116.58999633789;
-	Doors[MAX_DOORS][PosZFalse]    = 1002.21875;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 359.24487304688;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SFPD;
-
-	MAX_DOORS++; // SFPD Interior
-	Doors[MAX_DOORS][objectmodel]    = 2952;
-	Doors[MAX_DOORS][PosXTrue]       = 253.10383605957;
-	Doors[MAX_DOORS][PosYTrue]       = 110.14280700684;
-	Doors[MAX_DOORS][PosZTrue]       = 1002.21875;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 358.5;
-	Doors[MAX_DOORS][PosXFalse]    = 253.10383605957;
-	Doors[MAX_DOORS][PosYFalse]    = 108.099;
-	Doors[MAX_DOORS][PosZFalse]    = 1002.21875;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 358.5;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SFPD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 980;
-	Doors[MAX_DOORS][PosXTrue]       = -1571.82824700;
-	Doors[MAX_DOORS][PosYTrue]       = 662.45459000;
-	Doors[MAX_DOORS][PosZTrue]       = 8.96089200;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.99998128;
-	Doors[MAX_DOORS][PosXFalse]    = -1571.82824700;
-	Doors[MAX_DOORS][PosYFalse]    = 670.81274400;
-	Doors[MAX_DOORS][PosZFalse]    = 8.96089200;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 89.99998128;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SFPD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 971;
-	Doors[MAX_DOORS][PosXTrue]       = -1699.12365700;
-	Doors[MAX_DOORS][PosYTrue]       = 684.68402100;
-	Doors[MAX_DOORS][PosZTrue]       = 27.03052900;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.99998128;
-	Doors[MAX_DOORS][PosXFalse]    = -1699.12365700;
-	Doors[MAX_DOORS][PosYFalse]    = 691.41558800;
-	Doors[MAX_DOORS][PosZFalse]    = 27.03052900;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 89.99998128;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SFPD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    =980;
-	Doors[MAX_DOORS][PosXTrue]       = -2867.02661100;
-	Doors[MAX_DOORS][PosYTrue]       = 466.17459100;
-	Doors[MAX_DOORS][PosZTrue]       = 6.61044300;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.99998128;
-	Doors[MAX_DOORS][PosXFalse]    = -2866.99829100;
-	Doors[MAX_DOORS][PosYFalse]    = 476.60159300;
-	Doors[MAX_DOORS][PosZFalse]    = 6.62365700;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 89.99998128;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = TALLER_SF;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 10184;
-	Doors[MAX_DOORS][PosXTrue]       = -1631.7845458984;
-	Doors[MAX_DOORS][PosYTrue]       = 688.45935058594;
-	Doors[MAX_DOORS][PosZTrue]       = 8.7092628479004;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 269.62139892578;
-	Doors[MAX_DOORS][PosXFalse]    = -1631.7845458984;
-	Doors[MAX_DOORS][PosYFalse]    = 688.45935058594;
-	Doors[MAX_DOORS][PosZFalse]    = 3.69;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 269.62139892578;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SFPD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = 560.72650100;
-	Doors[MAX_DOORS][PosYTrue]       = -1254.12805200;
-	Doors[MAX_DOORS][PosZTrue]       = 16.76095800;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = -90.24079544;
-	Doors[MAX_DOORS][PosRotZTrue]    = 28.59340147;
-	Doors[MAX_DOORS][PosXFalse]    = 560.70147700;
-	Doors[MAX_DOORS][PosYFalse]    = -1254.15307600;
-	Doors[MAX_DOORS][PosZFalse]    = 16.66095900;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = -1.71887339;
-	Doors[MAX_DOORS][PosRotZFalse]    = 28.59340147;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = NFS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -1980.6829833984;
-	Doors[MAX_DOORS][PosYTrue]       = 291.67001342773;
-	Doors[MAX_DOORS][PosZTrue]       = 34.913047790527;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 270;
-	Doors[MAX_DOORS][PosXFalse]    = -1980.6829833984;
-	Doors[MAX_DOORS][PosYFalse]    = 291.67001342773;
-	Doors[MAX_DOORS][PosZFalse]    = 34.913047790527;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 270;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = NFS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -1911.4000244141;
-	Doors[MAX_DOORS][PosYTrue]       = 238.33041381836;
-	Doors[MAX_DOORS][PosZTrue]       = 35.033477783203;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = -1911.4000244141;
-	Doors[MAX_DOORS][PosYFalse]    = 238.33041381836;
-	Doors[MAX_DOORS][PosZFalse]    = 35.033477783203;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = NFS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 9093;
-	Doors[MAX_DOORS][PosXTrue]       = -2185.625;
-	Doors[MAX_DOORS][PosYTrue]       = 711.7080078125;
-	Doors[MAX_DOORS][PosZTrue]       = 54.661598205566;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 270;
-	Doors[MAX_DOORS][PosXFalse]    = -2185.625;
-	Doors[MAX_DOORS][PosYFalse]    = 711.7080078125;
-	Doors[MAX_DOORS][PosZFalse]    = 51.2;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 90;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = YKZ;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 14809;
-	Doors[MAX_DOORS][PosXTrue]       = -2184.2958984375;
-	Doors[MAX_DOORS][PosYTrue]       = 693.31774902344;
-	Doors[MAX_DOORS][PosZTrue]       = 51.5;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 180;
-	Doors[MAX_DOORS][PosRotZTrue]    = 270;
-	Doors[MAX_DOORS][PosXFalse]    = -2184.2958984375;
-	Doors[MAX_DOORS][PosYFalse]    = 693.31774902344;
-	Doors[MAX_DOORS][PosZFalse]    = 70.879997253418;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 180;
-	Doors[MAX_DOORS][PosRotZFalse]    = 270;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = YKZ;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 5779;
-	Doors[MAX_DOORS][PosXTrue]       = 1524.2001953125;
-	Doors[MAX_DOORS][PosYTrue]       = 13.541015625;
-	Doors[MAX_DOORS][PosZTrue]       = 24.710306167603;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 10.497436523438;
-	Doors[MAX_DOORS][PosXFalse]    = 1524.2001953125;
-	Doors[MAX_DOORS][PosYFalse]    = 13.541015625;
-	Doors[MAX_DOORS][PosZFalse]    = 21.510306167603;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 10.497436523438;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SICARIOS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 5779;
-	Doors[MAX_DOORS][PosXTrue]       = 1522.3798828125;
-	Doors[MAX_DOORS][PosYTrue]       = 24.546850204468;
-	Doors[MAX_DOORS][PosZTrue]       = 24.710306167603;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 10.497436523438;
-	Doors[MAX_DOORS][PosXFalse]    = 1522.3798828125;
-	Doors[MAX_DOORS][PosYFalse]    = 24.546850204468;
-	Doors[MAX_DOORS][PosZFalse]    = 21.510306167603;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 10.497436523438;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = SICARIOS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = 660.81268310547;
-	Doors[MAX_DOORS][PosYTrue]       = -1448.5954589844;
-	Doors[MAX_DOORS][PosZTrue]       = 14.639177322388;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 270;
-	Doors[MAX_DOORS][PosXFalse]    = 660.81268310547;
-	Doors[MAX_DOORS][PosYFalse]    = -1448.5954589844;
-	Doors[MAX_DOORS][PosZFalse]    = 14.639177322388;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 270;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = CONTRABANDISTAS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 8378;
-	Doors[MAX_DOORS][PosXTrue]       = 725.28582763672;
-	Doors[MAX_DOORS][PosYTrue]       = -1582.4216308594;
-	Doors[MAX_DOORS][PosZTrue]       = -6;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 180;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = 725.28582763672;
-	Doors[MAX_DOORS][PosYFalse]    = -1582.4216308594;
-	Doors[MAX_DOORS][PosZFalse]    = -13;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 180;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = CONTRABANDISTAS;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel]    = 980;
-	Doors[MAX_DOORS][PosXTrue]       = 1812.53637700;
-	Doors[MAX_DOORS][PosYTrue]       = -2071.71752900;
-	Doors[MAX_DOORS][PosZTrue]       = 15.30094700;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.99998128;
-	Doors[MAX_DOORS][PosXFalse]    = 1812.52856400;
-	Doors[MAX_DOORS][PosYFalse]    = -2062.86425800;
-	Doors[MAX_DOORS][PosZFalse]    = 15.30271700;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 89.99998128;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = TALLER_LS;
-
-	MAX_DOORS++; // GRUA 1
-	Doors[MAX_DOORS][objectmodel]    = 931;
-	Doors[MAX_DOORS][PosXTrue]       = 1801.35327100;
-	Doors[MAX_DOORS][PosYTrue]       = -2032.92175300;
-	Doors[MAX_DOORS][PosZTrue]       = 11.45743400;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = 1801.35327100;
-	Doors[MAX_DOORS][PosYFalse]    = -2032.92175300;
-	Doors[MAX_DOORS][PosZFalse]    = 13.45740300;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS_GRUAS;
-	Doors[MAX_DOORS][Dueno]       = TALLER_LS;
-
-	MAX_DOORS++; // GRUA 2
-	Doors[MAX_DOORS][objectmodel]    = 931;
-	Doors[MAX_DOORS][PosXTrue]       = 1801.34387200;
-	Doors[MAX_DOORS][PosYTrue]       = -2041.02465800;
-	Doors[MAX_DOORS][PosZTrue]       = 11.47949800;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.99998128;
-	Doors[MAX_DOORS][PosXFalse]    = 1801.34387200;
-	Doors[MAX_DOORS][PosYFalse]    = -2041.02465800;
-	Doors[MAX_DOORS][PosZFalse]    = 13.50446700;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS_GRUAS;
-	Doors[MAX_DOORS][Dueno]       = TALLER_LS;
-
-	MAX_DOORS++; // SFMD Dentro 1
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -2614.290039;
-	Doors[MAX_DOORS][PosYTrue]       = 589.133789;
-	Doors[MAX_DOORS][PosZTrue]       = 14.226739;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90.0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.500000;
-	Doors[MAX_DOORS][PosXFalse]    = -2614.290039;
-	Doors[MAX_DOORS][PosYFalse]    = 589.134460;
-	Doors[MAX_DOORS][PosZFalse]    = 14.137140;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 90.0;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = SFMD;
-
-	MAX_DOORS++; // SFMD Dentro 2
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -2614.091064;
-	Doors[MAX_DOORS][PosYTrue]       = 620.895751;
-	Doors[MAX_DOORS][PosZTrue]       = 14.226739;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 89.494628;
-	Doors[MAX_DOORS][PosXFalse]    = -2614.077880;
-	Doors[MAX_DOORS][PosYFalse]    = 620.949218;
-	Doors[MAX_DOORS][PosZFalse]    = 14.137140;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 90.0;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = SFMD;
-
-	MAX_DOORS++; // SFMD Afuera 1
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -2603.310302;
-	Doors[MAX_DOORS][PosYTrue]       = 579.041625;
-	Doors[MAX_DOORS][PosZTrue]       = 14.226739;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90.0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 179.974548;
-	Doors[MAX_DOORS][PosXFalse]    = -2603.381347;
-	Doors[MAX_DOORS][PosYFalse]    = 579.048706;
-	Doors[MAX_DOORS][PosZFalse]    = 14.125940;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 180.000000;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = SFMD;
-
-	MAX_DOORS++; // SFMD Afuera 2
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -2602.214355;
-	Doors[MAX_DOORS][PosYTrue]       = 695.707031;
-	Doors[MAX_DOORS][PosZTrue]       = 27.606340;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90.000000;
-	Doors[MAX_DOORS][PosRotZTrue]    = 179.132568;
-	Doors[MAX_DOORS][PosXFalse]    = -2602.296875;
-	Doors[MAX_DOORS][PosYFalse]    = 695.707580;
-	Doors[MAX_DOORS][PosZFalse]    = 27.565538;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 179.994506;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = SFMD;
-
-	MAX_DOORS++; // AK Puerta Principal
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = -2479.8527832031;
-	Doors[MAX_DOORS][PosYTrue]       = -132.69999694824;
-	Doors[MAX_DOORS][PosZTrue]       = 25.378147125244;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 89;
-	Doors[MAX_DOORS][PosRotZTrue]    = 90;
-	Doors[MAX_DOORS][PosXFalse]    = -2479.8527832031;
-	Doors[MAX_DOORS][PosYFalse]    = -132.69999694824;
-	Doors[MAX_DOORS][PosZFalse]    = 25.378147125244;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 90;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = AK;
-
-	MAX_DOORS++; // HEORS Almacén Garages
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]       = 2799.9714355469;
-	Doors[MAX_DOORS][PosYTrue]       = -1601.1790771484;
-	Doors[MAX_DOORS][PosZTrue]       = 10.720741271973;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 165;
-	Doors[MAX_DOORS][PosXFalse]    = 2799.9714355469;
-	Doors[MAX_DOORS][PosYFalse]    = -1601.1790771484;
-	Doors[MAX_DOORS][PosZFalse]    = 10.720741271973;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 165;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = HEORS;
-
-	MAX_DOORS++; // Puerta 2 Traficantes HQ 1 ENTRADA
-	Doors[MAX_DOORS][objectmodel]    = 988;
-	Doors[MAX_DOORS][PosXTrue]       = 1021.7734375;
-	Doors[MAX_DOORS][PosYTrue]       = -370.3291015625;
-	Doors[MAX_DOORS][PosZTrue]       = 73.70686340332;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = 1016.4899902344;
-	Doors[MAX_DOORS][PosYFalse]    = -370.3291015625;
-	Doors[MAX_DOORS][PosZFalse]    = 73.70686340332;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = TRAFICANTES;
-
-	MAX_DOORS++; // Puerta 2 Traficantes HQ 2 ENTRADA
-	Doors[MAX_DOORS][objectmodel]    = 988;
-	Doors[MAX_DOORS][PosXTrue]       = 1027.2705078125;
-	Doors[MAX_DOORS][PosYTrue]       = -370.3212890625;
-	Doors[MAX_DOORS][PosZTrue]       = 73.70686340332;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 0;
-	Doors[MAX_DOORS][PosRotZTrue]    = 0;
-	Doors[MAX_DOORS][PosXFalse]    = 1032.7099609375;
-	Doors[MAX_DOORS][PosYFalse]    = -370.3212890625;
-	Doors[MAX_DOORS][PosZFalse]    = 73.70686340332;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 0;
-	Doors[MAX_DOORS][typeanim]       = 0;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_DOORS;
-	Doors[MAX_DOORS][Dueno]       = TRAFICANTES;
-
-	MAX_DOORS++; // LSMD Bomberos 1
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]    = 1996.9759521484;
-	Doors[MAX_DOORS][PosYTrue]    = -1441.5166015625;
-	Doors[MAX_DOORS][PosZTrue]    = 13.359999656677;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 270;
-	Doors[MAX_DOORS][PosXFalse]       = 1996.9759521484;
-	Doors[MAX_DOORS][PosYFalse]       = -1441.5166015625;
-	Doors[MAX_DOORS][PosZFalse]       = 13.359999656677;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 270;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = LSMD;
-
-	MAX_DOORS++; // LSMD Bomberos 2
-	Doors[MAX_DOORS][objectmodel]    = 968;
-	Doors[MAX_DOORS][PosXTrue]    = 2006.6142578125;
-	Doors[MAX_DOORS][PosYTrue]    = -1450.9599609375;
-	Doors[MAX_DOORS][PosZTrue]    = 13.369999885559;
-	Doors[MAX_DOORS][PosRotXTrue]    = 0;
-	Doors[MAX_DOORS][PosRotYTrue]    = 90;
-	Doors[MAX_DOORS][PosRotZTrue]    = 180;
-	Doors[MAX_DOORS][PosXFalse]       = 2006.6142578125;
-	Doors[MAX_DOORS][PosYFalse]       = -1450.9599609375;
-	Doors[MAX_DOORS][PosZFalse]       = 13.369999885559;
-	Doors[MAX_DOORS][PosRotXFalse]    = 0;
-	Doors[MAX_DOORS][PosRotYFalse]    = 0;
-	Doors[MAX_DOORS][PosRotZFalse]    = 180;
-	Doors[MAX_DOORS][typeanim]       = 1;
-	Doors[MAX_DOORS][speedmove]    = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno]       = LSMD;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel] = 968;
-	Doors[MAX_DOORS][PosXTrue] = -2172.2902832031;
-	Doors[MAX_DOORS][PosYTrue] = 661.25555419922;
-	Doors[MAX_DOORS][PosZTrue] = 49.233001708984;
-	Doors[MAX_DOORS][PosRotXTrue] = 0;
-	Doors[MAX_DOORS][PosRotYTrue] = 90;
-	Doors[MAX_DOORS][PosRotZTrue] = 180;
-	Doors[MAX_DOORS][PosXFalse] = -2172.2902832031;
-	Doors[MAX_DOORS][PosYFalse] = 661.25555419922;
-	Doors[MAX_DOORS][PosZFalse] = 49.233001708984;
-	Doors[MAX_DOORS][PosRotXFalse] = 0;
-	Doors[MAX_DOORS][PosRotYFalse] = 0;
-	Doors[MAX_DOORS][PosRotZFalse] = 180;
-	Doors[MAX_DOORS][typeanim] = 1;
-	Doors[MAX_DOORS][speedmove] = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno] = YKZ;
-
-	MAX_DOORS++;
-	Doors[MAX_DOORS][objectmodel] = 968;
-	Doors[MAX_DOORS][PosXTrue] = -2037.2270507813;
-	Doors[MAX_DOORS][PosYTrue] = -102.7379989624;
-	Doors[MAX_DOORS][PosZTrue] = 34.959999084473;
-	Doors[MAX_DOORS][PosRotXTrue] = 0;
-	Doors[MAX_DOORS][PosRotYTrue] = 90;
-	Doors[MAX_DOORS][PosRotZTrue] = 180;
-	Doors[MAX_DOORS][PosXFalse] = -2037.2270507813;
-	Doors[MAX_DOORS][PosYFalse] = -102.7379989624;
-	Doors[MAX_DOORS][PosZFalse] = 34.959999084473;
-	Doors[MAX_DOORS][PosRotXFalse] = 0;
-	Doors[MAX_DOORS][PosRotYFalse] = 0;
-	Doors[MAX_DOORS][PosRotZFalse] = 180;
-	Doors[MAX_DOORS][typeanim] = 1;
-	Doors[MAX_DOORS][speedmove] = STANDARD_SPEED_BARRAS;
-	Doors[MAX_DOORS][Dueno] = LICENCIEROS;
-
-	for ( new i = 0; i <= MAX_DOORS; i++ )
-	{
-	    if ( Doors[i][PosXTrue] == Doors[i][PosXFalse] &&
-             Doors[i][PosYTrue] == Doors[i][PosYFalse] &&
-             Doors[i][PosZTrue] == Doors[i][PosZFalse] )
-		{
-/*		    Doors[i][PosXTrue] += 0.000001;
-		    Doors[i][PosYTrue] += 0.000001;
-		    Doors[i][PosZTrue] += 0.000001;*/
-		}
-		Doors[i][objectanimid]   = CreateDynamicObject(Doors[i][objectmodel], Doors[i][PosXTrue], Doors[i][PosYTrue], Doors[i][PosZTrue], Doors[i][PosRotXTrue], Doors[i][PosRotYTrue], Doors[i][PosRotZTrue], -1, -1, -1, MAX_RADIO_STREAM);
-	}
-	// END DOORS
-}
-public GetMyNearDoor(playerid, key, option)
+public GetMyNearDoor(playerid, key)
 {
 	new iBucle;
 	new i = -1;
@@ -57917,116 +57069,56 @@ public GetMyNearDoor(playerid, key, option)
     {
 	    RangoC++;
 	    iBucle = 0;
-		for (; iBucle <= MAX_DOORS; iBucle++)
-		{
-		    if ( (Doors[iBucle][speedmove] == STANDARD_SPEED_DOORS || Doors[iBucle][speedmove] == STANDARD_SPEED_BARRAS) && !option  || Doors[iBucle][speedmove] == STANDARD_SPEED_DOORS_GRUAS && option)
-		    {
-				if (IsPlayerInRangeOfPoint(playerid, RangoC, Doors[iBucle][PosXTrue], Doors[iBucle][PosYTrue], Doors[iBucle][PosZTrue]) ||
-				     IsPlayerInRangeOfPoint(playerid, RangoC, Doors[iBucle][PosXFalse], Doors[iBucle][PosYFalse], Doors[iBucle][PosZFalse]) )
-				{
-				    i = iBucle;
-				    RangoC = 15.0;
-			       	break;
-				}
-			}
-		}
+	    
+	    for (; iBucle != MAX_PUERTAS_COUNT; iBucle++)
+	    {
+	        if (Puerta[iBucle][Creada])
+	        {
+	            if (IsPlayerInRangeOfPoint(playerid, RangoC, Puerta[iBucle][PosX], Puerta[iBucle][PosY], Puerta[iBucle][PosZ]) ||
+	            	IsPlayerInRangeOfPoint(playerid, RangoC, Mapeo[Puerta[iBucle][ID_Mapeo]][PosX], Mapeo[Puerta[iBucle][ID_Mapeo]][PosY], Mapeo[Puerta[iBucle][ID_Mapeo]][PosZ]) )
+	            {
+	                i = iBucle;
+	                RangoC = 15.0;
+	                break;
+	            }
+	        }
+	    }
 	}
 	while ( RangoC != 15.0 );
 
 	if ( i != -1 )
 	{
-	    if ( Doors[i][Dueno] == CIVIL || Doors[i][Dueno] == PlayersData[playerid][Faccion] )
-	    {
-		    new Float:TempPosObject[3]; GetDynamicObjectPos(Doors[i][objectanimid], TempPosObject[0], TempPosObject[1], TempPosObject[2]);
-			new Float:TempRotObject[3]; GetDynamicObjectRot(Doors[i][objectanimid], TempRotObject[0], TempRotObject[1], TempRotObject[2]);
-
-		    if ( TempPosObject[0] == Doors[i][PosXTrue] 	&& TempPosObject[1] == Doors[i][PosYTrue] 		&& TempPosObject[2] == Doors[i][PosZTrue] &&
-			     TempRotObject[0] == Doors[i][PosRotXTrue] 	&& TempRotObject[1] == Doors[i][PosRotYTrue] 	&& TempRotObject[2] == Doors[i][PosRotZTrue]
-				||
-				 TempPosObject[0] == Doors[i][PosXFalse] 		&& TempPosObject[1] == Doors[i][PosYFalse] 		&& TempPosObject[2] == Doors[i][PosZFalse] &&
-			     TempRotObject[0] == Doors[i][PosRotXFalse] 	&& TempRotObject[1] == Doors[i][PosRotYFalse] 	&& TempRotObject[2] == Doors[i][PosRotZFalse] )
-			{
-				if ( Doors[i][typeanim] == 0)
-				{
-				    if ( TempPosObject[0] == Doors[i][PosXFalse] 	&& TempPosObject[1] == Doors[i][PosYFalse]		&& TempPosObject[2] == Doors[i][PosZFalse] &&
-			     		 TempRotObject[0] == Doors[i][PosRotXFalse] && TempRotObject[1] == Doors[i][PosRotYFalse] 	&& TempRotObject[2] == Doors[i][PosRotZFalse] )
-				    {
-						MoveDynamicObject(Doors[i][objectanimid], Doors[i][PosXTrue], Doors[i][PosYTrue], Doors[i][PosZTrue], Doors[i][speedmove], Doors[i][PosRotXTrue], Doors[i][PosRotYTrue], Doors[i][PosRotZTrue]);
-//						SetDynamicObjectRot(Doors[i][objectanimid], Doors[i][PosRotXTrue], Doors[i][PosRotYTrue], Doors[i][PosRotZTrue]);
-					}
-					else
-					{
-						MoveDynamicObject(Doors[i][objectanimid], Doors[i][PosXFalse], Doors[i][PosYFalse], Doors[i][PosZFalse], Doors[i][speedmove], Doors[i][PosRotXFalse], Doors[i][PosRotYFalse], Doors[i][PosRotZFalse]);
-//						SetDynamicObjectRot(Doors[i][objectanimid], Doors[i][PosRotXFalse], Doors[i][PosRotYFalse], Doors[i][PosRotZFalse]);
-					}
-				}
-				else if ( Doors[i][typeanim] == 1 )
-				{
-				    if ( TempPosObject[0] == Doors[i][PosXFalse] 		&& TempPosObject[1] == Doors[i][PosYFalse] 		&& TempPosObject[2] == Doors[i][PosZFalse] &&
-			     		 TempRotObject[0] == Doors[i][PosRotXFalse] 	&& TempRotObject[1] == Doors[i][PosRotYFalse] 	&& TempRotObject[2] == Doors[i][PosRotZFalse] )
-				    {
-						MoveDoorDynamicTwo(i, 0.0);
-//						MoveDynamicObject(Doors[i][objectanimid], Doors[i][PosXTrue], Doors[i][PosYTrue], Doors[i][PosZTrue], Doors[i][speedmove], Doors[i][PosRotXTrue], Doors[i][PosRotYTrue], Doors[i][PosRotZTrue]);
-				    }
-					else
-					{
-						MoveDoorDynamicOne(i, 0.0);
-//						MoveDynamicObject(Doors[i][objectanimid], Doors[i][PosXFalse], Doors[i][PosYFalse], Doors[i][PosZFalse], Doors[i][speedmove], Doors[i][PosRotXFalse], Doors[i][PosRotYFalse], Doors[i][PosRotZFalse]);
-					}
-				}
-				else if ( Doors[i][typeanim] == 2 )
-				{
-				    if ( TempPosObject[0] == Doors[i][PosXFalse] 		&& TempPosObject[1] == Doors[i][PosYFalse] 		&& TempPosObject[2] == Doors[i][PosZFalse] &&
-			     		 TempRotObject[0] == Doors[i][PosRotXFalse] 	&& TempRotObject[1] == Doors[i][PosRotYFalse] 	&& TempRotObject[2] == Doors[i][PosRotZFalse] )
-				    {
-				        SetDynamicObjectPos(Doors[i][objectanimid], Doors[i][PosXTrue], Doors[i][PosYTrue], Doors[i][PosZTrue]);
-						SetDynamicObjectRot(Doors[i][objectanimid], Doors[i][PosRotXTrue], Doors[i][PosRotYTrue], Doors[i][PosRotZTrue]);
-				    }
-					else
-					{
-						SetDynamicObjectPos(Doors[i][objectanimid], Doors[i][PosXFalse], Doors[i][PosYFalse], Doors[i][PosZFalse]);
-						SetDynamicObjectRot(Doors[i][objectanimid], Doors[i][PosRotXFalse], Doors[i][PosRotYFalse], Doors[i][PosRotZFalse]);
-					}
-				}
-				return i;
-			}
-			else
-			{
-			    if ( !option )
-			    {
-					SendInfoMessage(playerid, 0, "779", "La puerta que desea abrir o cerrar, todavía se esta abriendo o cerrando");
-				}
-				else
-				{
-					SendInfoMessage(playerid, 0, "1502", "La grúa que desea levantar o bajar, todavía esta bajando o subiendo");
-				}
-				return -1;
-			}
-		}
+	    if (Puerta[i][PosX] == 0) return SendInfoMessage(playerid, 0, "", "Esta puerta no tiene un recorrido valido!");
+	    
+	    if (Puerta[i][LlaveTipo] == 0 && Puerta[i][LlaveOwnerID] == CIVIL ||
+	    	Puerta[i][LlaveTipo] == 0 && PlayersData[playerid][Faccion] == Puerta[i][LlaveOwnerID] ||
+	    	Puerta[i][LlaveTipo] == 1 && IsMyBizz(playerid, Puerta[i][LlaveOwnerID], false) ||
+	    	Puerta[i][LlaveTipo] == 2 && PlayersData[playerid][House] == Puerta[i][LlaveOwnerID] ||
+	    	Puerta[i][LlaveTipo] == 3 && PlayersData[playerid][Local] == Puerta[i][LlaveOwnerID]   )
+    	{
+    	    if (Puerta[i][Abierta])
+    	    {
+    	        new mapeoid = Puerta[i][ID_Mapeo];
+    	        MoveDynamicObject(Mapeo[mapeoid][ID_Objeto], Mapeo[mapeoid][PosX], Mapeo[mapeoid][PosY], Mapeo[mapeoid][PosZ], Puerta[i][Velocidad], Mapeo[mapeoid][PosRX], Mapeo[mapeoid][PosRY], Mapeo[mapeoid][PosRZ]);
+    	        Puerta[i][Abierta] = false;
+    	    }
+    	    else
+    	    {
+    	        new objectid = Mapeo[Puerta[i][ID_Mapeo]][ID_Objeto];
+    	        MoveDynamicObject(objectid, Puerta[i][PosX], Puerta[i][PosY], Puerta[i][PosZ], Puerta[i][Velocidad], Puerta[i][PosRX], Puerta[i][PosRY], Puerta[i][PosRZ]);
+    	        Puerta[i][Abierta] = true;
+    	    }
+    	    return 1;
+    	}
 		else
 		{
-		    if ( !option )
-		    {
-				SendInfoMessage(playerid, 0, "778", "No tienes las llaves de esta puerta");
-			}
-			else
-			{
-				SendInfoMessage(playerid, 0, "1408", "No tienes el control de esta grúa");
-			}
+		    SendInfoMessage(playerid, 0, "778", "No tienes las llaves de esta puerta");
 			return -1;
 		}
 	}
-
 	if ( !key )
 	{
-	    if ( !option )
-	    {
-			SendInfoMessage(playerid, 0, "777", "No hay ninguna puerta a su alrededor");
-		}
-		else
-		{
-			SendInfoMessage(playerid, 0, "1395", "No hay ninguna grúa a su alrededor");
-		}
+	    SendInfoMessage(playerid, 0, "777", "No hay ninguna puerta a su alrededor");
 	}
 	return -1;
 }
@@ -58036,19 +57128,16 @@ public LoadPointsExtraction()
 	FaccionesMercancias[CAMIONEROS][PosY] = 1884.2264;
 	FaccionesMercancias[CAMIONEROS][PosZ] = 2.1854;
 	CreateDynamicPickup(1210, 1, FaccionesMercancias[CAMIONEROS][PosX], FaccionesMercancias[CAMIONEROS][PosY], FaccionesMercancias[CAMIONEROS][PosZ], WORLD_NORMAL, 0);
-	MAX_DYNAMIC_PICKUP++;
 
 	FaccionesMercancias[CONTRABANDISTAS][PosX] = 417.6441;
 	FaccionesMercancias[CONTRABANDISTAS][PosY] = 2541.6646;
 	FaccionesMercancias[CONTRABANDISTAS][PosZ] = 10.0000;
 	CreateDynamicPickup(1210, 1, FaccionesMercancias[CONTRABANDISTAS][PosX], FaccionesMercancias[CONTRABANDISTAS][PosY], FaccionesMercancias[CONTRABANDISTAS][PosZ]);
-	MAX_DYNAMIC_PICKUP++;
 
 	FaccionesMercancias[TRAFICANTES][PosX] = -1421.7528;
 	FaccionesMercancias[TRAFICANTES][PosY] = -964.7759;
 	FaccionesMercancias[TRAFICANTES][PosZ] = 200.7651;
  	CreateDynamicPickup(1210, 1, FaccionesMercancias[TRAFICANTES][PosX], FaccionesMercancias[TRAFICANTES][PosY], FaccionesMercancias[TRAFICANTES][PosZ], WORLD_NORMAL, 0);
-	MAX_DYNAMIC_PICKUP++;
 }
 public CleanVCP()
 {
@@ -58097,7 +57186,6 @@ public AddVCP(playerid, objectid, Float:Xv, Float:Yv, Float:Zv, Float:ZZv)
 				new pickupid = CreatePickupEx(1247, 1, VCP[i][ObjX], VCP[i][ObjY], VCP[i][ObjZ] - 1, WORLD_NORMAL, 0);
 				PickupIndex[pickupid][Tipo] = PICKUP_TYPE_PINCHO;
 				PickupIndex[pickupid][Tipoid] = i;
-				MAX_DYNAMIC_PICKUP++;
 
 				VCP[i][pickupidVCP] = pickupid;
 			}
@@ -58120,7 +57208,7 @@ public RemoveVCP(objectid)
     if ( VCP[objectid][pickupidVCP] != -1 )
 	{
 	    new pickupid = VCP[objectid][pickupidVCP];
-		DestroyPickupEx(pickupid);
+		DestroyDynamicPickup(pickupid);
 		PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NINGUNO;
 		PickupIndex[pickupid][Tipoid] = 0;
 	}
@@ -61012,241 +60100,6 @@ public ShowDepositarBancoFunction(playerid, option, amount)
 	}
 	return false;
 }
-public GetCountObjectMapping()
-{
-	new count;
-	for ( new i = 0; i < MAX_OBJECT_MAPPING_COUNT;i++)
-	{
-		if ( ObjectMapping[i][Objectid] != -1 )
-		{
-			count++;
-		}
-	}
-	return count;
-}
-public OnMoveObjectMapping(playerid, objectid, key, option, Float:mappoint)
-{
-	if ( ObjectMapping[objectid][Objectid] != -1 )
-	{
-		if ( option )
-		{
-			switch (key)
-			{
-			    // X
-				case 8192:   // 4 NUM PAD
-				{
-			    	ObjectMapping[objectid][PosX] = ObjectMapping[objectid][PosX] + mappoint;
-				}
-			    // Y
-				case 16384:  // 6 NUM PAD
-				{
-			    	ObjectMapping[objectid][PosY] = ObjectMapping[objectid][PosY] + mappoint;
-				}
-			    // Z
-				case 8: // SHIFT DERECHO
-				{
-			    	ObjectMapping[objectid][PosZ] = ObjectMapping[objectid][PosZ] + mappoint;
-				}
-			}
-		}
-		else
-		{
-			switch (key)
-			{
-			    // XZ
-				case 8192:   // 4 NUM PAD
-				{
-			    	ObjectMapping[objectid][PosRotX] = ObjectMapping[objectid][PosRotX] + mappoint;
-				}
-			    // YZ
-				case 16384:  // 6 NUM PAD
-				{
-			    	ObjectMapping[objectid][PosRotY] = ObjectMapping[objectid][PosRotY] + mappoint;
-				}
-			    // ZZ
-				case 8: // SHIFT DERECHO
-				{
-			    	ObjectMapping[objectid][PosRotZ] = ObjectMapping[objectid][PosRotZ] + mappoint;
-				}
-			}
-		}
-		SetObjectPos(ObjectMapping[objectid][Objectid], ObjectMapping[objectid][PosX], ObjectMapping[objectid][PosY], ObjectMapping[objectid][PosZ]);
-		SetObjectRot(ObjectMapping[objectid][Objectid], ObjectMapping[objectid][PosRotX], ObjectMapping[objectid][PosRotY], ObjectMapping[objectid][PosRotZ]);
-		UpdateText3DMapping(objectid);
-	}
-}
-public ShowHomeMapping(playerid)
-{
-	ShowPlayerDialogEx(playerid,37,DIALOG_STYLE_LIST, "{00A5FF}Inicio {E6E6E6} - {F50000}Mapping Editor", "{00A5FF}1 - {E6E6E6}Lista de Objetos\r\n{00A5FF}2 - {E6E6E6}Crear Objeto\r\n{00A5FF}3 - {E6E6E6}Eliminar Todos\r\n{00A5FF}4 - {E6E6E6}Mostrar Tag´s\r\n{00A5FF}5 - {E6E6E6}Ocultar Tag´s\r\n{00A5FF}6 - {E6E6E6}Abrir Proyecto\r\n{00A5FF}7 - {E6E6E6}Guardar Proyecto\r\n{00A5FF}8 - {E6E6E6}Estadísticas", "Seleccionar", "Salir");
-}
-public ShowCreateObjectMapping(playerid, model)
-{
-	for (new i = 0; i < MAX_OBJECT_MAPPING_COUNT; i++)
-	{
-		if ( ObjectMapping[i][Objectid] == -1 )
-		{
-		    new Float:PlayerPos[3]; GetPlayerPos(playerid, PlayerPos[0], PlayerPos[1], PlayerPos[2]);
-		    ObjectMapping[i][objectmodel] = model;
-   		    ObjectMapping[i][TextTagS]    = -1;
-		    ObjectMapping[i][Objectid] = CreateObjectEx(ObjectMapping[i][objectmodel], PlayerPos[0], PlayerPos[1], PlayerPos[2], 0.0, 0.0, 0.0, MAX_RADIO_STREAM);
-		    GetObjectPos(ObjectMapping[i][Objectid], ObjectMapping[i][PosX], ObjectMapping[i][PosY], ObjectMapping[i][PosZ]);
-			SetObjectRot(ObjectMapping[i][Objectid], ObjectMapping[i][PosRotX], ObjectMapping[i][PosRotY], ObjectMapping[i][PosRotZ]);
-		    PlayersDataOnline[playerid][ObjectAction] 	= i;
-
-		    new MsgCreateObject[MAX_TEXT_CHAT];
-		    format(MsgCreateObject, sizeof(MsgCreateObject), "{00F50A}Nuevo objeto creado correctamente!\n\nID: %i\nobjetcid: %i\nobjectmodel: %i", i, ObjectMapping[i][Objectid], ObjectMapping[i][objectmodel]);
-			ShowPlayerDialogEx(playerid,39,DIALOG_STYLE_MSGBOX, "{00A5FF}Crear Objeto {E6E6E6} - {F50000}Mapping Editor", MsgCreateObject, "Opciones", "Inicio");
-		    return true;
-		}
-	}
-	ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Crear Objeto {E6E6E6} - {F50000}Mapping Editor", "Ha alcanzado el límite de objetos!", "Aceptar", "Inicio");
-	return false;
-}
-public ShowListObjectMapping(playerid)
-{
-	new Count = -1;
-	new MsgListObject[550];
-	new TempString[15];
-	for (new i = 0; i < MAX_OBJECT_MAPPING_COUNT; i++)
-	{
-		if ( ObjectMapping[i][Objectid] != -1 )
-		{
-		    if ( Count != -1 )
-		    {
-		        format(TempString, sizeof(TempString), "\n\n%i:%i", i, ObjectMapping[i][objectmodel]);
-			}
-			else
-			{
-		        format(TempString, sizeof(TempString), "%i:%i", i, ObjectMapping[i][objectmodel]);
-			}
-			strcat(MsgListObject, TempString, sizeof(MsgListObject));
-	        Count++;
-			PlayersDataOnline[playerid][MappingRowSelected][Count] = i;
-		}
-	}
-	if ( Count != -1 )
-	{
-		ShowPlayerDialogEx(playerid,40,DIALOG_STYLE_LIST, "{00A5FF}Lista de Objetos {E6E6E6} - {F50000}Mapping Editor", MsgListObject, "Seleccionar", "Inicio");
-	}
-	else
-	{
-		ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Lista de Objetos {E6E6E6} - {F50000}Mapping Editor", "No se encontrarón objetos creados!", "Aceptar", "Inicio");
-	}
-}
-public RemoveObjectMapping(playerid, objectid)
-{
-	if ( ObjectMapping[objectid][Objectid] != -1 )
-	{
-	    DestroyObject(ObjectMapping[objectid][Objectid]);
-	    if ( ObjectMapping[objectid][TextTagS] != -1 )
-	    {
-		    Delete3DTextLabel(ObjectMapping[objectid][TextTag]);
-		    ObjectMapping[objectid][TextTagS] = -1;
-		}
-	    ObjectMapping[objectid][Objectid] = -1;
-	    return true;
-	}
-	return false;
-}
-public ShowRemoveAllMapping(playerid, IsMsg)
-{
-	new IsRemove;
-	for (new i = 0; i < MAX_OBJECT_MAPPING_COUNT; i++)
-	{
-		if ( ObjectMapping[i][Objectid] != -1 )
-		{
-			RemoveObjectMapping(playerid, i);
-		    IsRemove = true;
-		}
-	}
-	if ( IsMsg )
-	{
-		if ( IsRemove )
-		{
-			ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Eliminar Todos{E6E6E6} - {F50000}Mapping Editor", "Se han elimnado todos los objetos creados!", "Aceptar", "Inicio");
-		}
-		else
-		{
-			ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Eliminar Todos{E6E6E6} - {F50000}Mapping Editor", "No hay ningún objeto creado, no se eliminó nada!", "Aceptar", "Inicio");
-		}
-	}
-}
-public ShowDescriptionObjectMapping(playerid, objectid)
-{
-    new MsgDesctiptionObject[400];
-    format(MsgDesctiptionObject, sizeof(MsgDesctiptionObject), "{00F50A}Información del objeto:\n\nID: %i\nobjetcid: %i\nobjectmodel: %i\n\nPosX: %f\nPosY: %f\nPosZ: %f\nPosX-Z: %f\nPosY-Z: %f\nPosZ-Z: %f",
-	objectid,
-	ObjectMapping[objectid][Objectid],
-	ObjectMapping[objectid][objectmodel],
-	ObjectMapping[objectid][PosX],
-	ObjectMapping[objectid][PosY],
-	ObjectMapping[objectid][PosZ],
-	ObjectMapping[objectid][PosRotX],
-	ObjectMapping[objectid][PosRotY],
-	ObjectMapping[objectid][PosRotZ]);
-	PlayersDataOnline[playerid][ObjectAction] = objectid;
-	ShowPlayerDialogEx(playerid,43,DIALOG_STYLE_MSGBOX, "{00A5FF}Descripción del Objeto {E6E6E6} - {F50000}Mapping Editor", MsgDesctiptionObject, "Opciones", "Inicio");
-}
-public ShowObjectOptionsMapping(playerid, objectid)
-{
-	if ( ObjectMapping[PlayersDataOnline[playerid][ObjectAction]][TextTagS] == -1 )
-	{
-		ShowPlayerDialogEx(playerid,42,DIALOG_STYLE_LIST, "{00A5FF}Opciones del Objeto {E6E6E6} - {F50000}Mapping Editor", "{00A5FF}1 - {E6E6E6}Seleccionar\r\n{00A5FF}2 - {E6E6E6}Mostrar Tag\r\n{00A5FF}3 - {E6E6E6}Ir\r\n{00A5FF}4 - {E6E6E6}Traer\r\n{00A5FF}5 - {E6E6E6}Eliminar", "Seleccionar", "Inicio");
-	}
-	else
-	{
-		ShowPlayerDialogEx(playerid,42,DIALOG_STYLE_LIST, "{00A5FF}Opciones del Objeto {E6E6E6} - {F50000}Mapping Editor", "{00A5FF}1 - {E6E6E6}Seleccionar\r\n{00A5FF}2 - {E6E6E6}Ocultar Tag\r\n{00A5FF}3 - {E6E6E6}Ir\r\n{00A5FF}4 - {E6E6E6}Traer\r\n{00A5FF}5 - {E6E6E6}Eliminar", "Seleccionar", "Inicio");
-	}
-}
-public ShowAllMapping(playerid)
-{
-	for (new i = 0; i < MAX_OBJECT_MAPPING_COUNT; i++)
-	{
-		if ( ObjectMapping[i][Objectid] != -1 && ObjectMapping[i][TextTagS] == -1 )
-		{
-			ObjectMapping[i][TextTag] = Create3DTextLabel("New Text 3D Label", COLOR_FAMILY,ObjectMapping[i][PosX],ObjectMapping[i][PosY],ObjectMapping[i][PosZ],50.0,0);
-			ObjectMapping[i][TextTagS] = true;
-			UpdateText3DMapping(i);
-		}
-	}
-}
-public RemoveAllTagsMapping(playerid)
-{
-	for (new i = 0; i < MAX_OBJECT_MAPPING_COUNT; i++)
-	{
-		if ( ObjectMapping[i][Objectid] != -1 && ObjectMapping[i][TextTagS] != -1 )
-		{
-			Delete3DTextLabel(ObjectMapping[i][TextTag]);
-			ObjectMapping[i][TextTagS] = -1;
-		}
-	}
-}
-public UpdateText3DMapping(objectid)
-{
-	if ( ObjectMapping[objectid][TextTagS] != -1 )
-	{
-		Delete3DTextLabel(ObjectMapping[objectid][TextTag]);
-		new MsgObject3D[400];
-		format(MsgObject3D, sizeof(MsgObject3D), "ID: %i\nobjetcid: %i\nobjectmodel: %i\n\nPosX: %f\nPosY: %f\nPosZ: %f\nPosX-Z: %f\nPosY-Z: %f\nPosZ-Z: %f",
-		objectid,
-		ObjectMapping[objectid][Objectid],
-		ObjectMapping[objectid][objectmodel],
-		ObjectMapping[objectid][PosX],
-		ObjectMapping[objectid][PosY],
-		ObjectMapping[objectid][PosZ],
-		ObjectMapping[objectid][PosRotX],
-		ObjectMapping[objectid][PosRotY],
-		ObjectMapping[objectid][PosRotZ]);
-
-		ObjectMapping[objectid][TextTag] = Create3DTextLabel(MsgObject3D,COLOR_FAMILY,ObjectMapping[objectid][PosX],ObjectMapping[objectid][PosY],ObjectMapping[objectid][PosZ],50.0,0);
-	}
-}
-public ShowStatsMapping(playerid)
-{
-	new MsgStatsMapping[MAX_TEXT_CHAT];
-	format(MsgStatsMapping, sizeof(MsgStatsMapping), "{00F50A}Estadísticas:\n\nObjetos utilizados: %i", GetCountObjectMapping());
-	ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Estadísticas del Proyecto{E6E6E6} - {F50000}Mapping Editor", MsgStatsMapping, "Aceptar", "Inicio");
-}
 public SaveTelesLock()
 {
 	new DirBD[50];
@@ -61307,177 +60160,6 @@ public LoadGaragesExLock()
 			fclose(ReadDataT);
 			GaragesEx[i][Lock] = strval(DataRead);
 		}
-	}
-}
-
-public OpenProject(playerid, const name[])
-{
-	if ( IsValidName(name) )
-	{
-	    if ( strlen(name) <= 25 )
-	    {
-			new DirBD[50];
-			new MsgOpenProject[MAX_TEXT_CHAT];
-			format(DirBD, sizeof(DirBD), "%s%s.ulp", DIR_MAPS, name);
-			if ( fexist(DirBD) )
-			{
-			    ShowRemoveAllMapping(playerid, false);
-				new DataRead[256];
-				new File:ReadDataF;
-				new EndFile;
-				new PosAndModel[7][15];
-				new IsCreated;
-                ReadDataF = fopen(DirBD, io_read);
-                while ( !EndFile )
-                {
-                	fread(ReadDataF, DataRead);
-                	new PosFind = strfind(DataRead, "CreateDynamicObject(", false);
-                	if ( strlen(DataRead) >= 45 && PosFind != -1)
-                	{
-                	    IsCreated = false;
-						for (new i = 0; i < MAX_OBJECT_MAPPING_COUNT; i++)
-						{
-							if ( ObjectMapping[i][Objectid] == -1 )
-							{
-							    IsCreated = true;
-		 						new PosSplitAfter = 0;
-		 						strdel(DataRead, 0, PosFind + 20);
-								for ( new h = 0; h < 7; h++ )
-								{
-									PosSplitAfter = strfind(DataRead, ",", false);
-									strmid(PosAndModel[h], DataRead, 0, PosSplitAfter, sizeof(DataRead));
-									strdel(DataRead, 0, PosSplitAfter + 1);
-								}
-
-								ObjectMapping[i][objectmodel] = strval(PosAndModel[0]);
-								ObjectMapping[i][PosX] = floatstr(PosAndModel[1]);
-								ObjectMapping[i][PosY] = floatstr(PosAndModel[2]);
-								ObjectMapping[i][PosZ] = floatstr(PosAndModel[3]);
-								ObjectMapping[i][PosRotX] = floatstr(PosAndModel[4]);
-								ObjectMapping[i][PosRotY] = floatstr(PosAndModel[5]);
-								ObjectMapping[i][PosRotZ] = floatstr(PosAndModel[6]);
-					   		    ObjectMapping[i][TextTagS]    = -1;
-							    ObjectMapping[i][Objectid] = CreateObjectEx(ObjectMapping[i][objectmodel], ObjectMapping[i][PosX], ObjectMapping[i][PosY], ObjectMapping[i][PosZ], ObjectMapping[i][PosRotX], ObjectMapping[i][PosRotY], ObjectMapping[i][PosRotZ], MAX_RADIO_STREAM);
-								break;
-							}
-						}
-						if ( !IsCreated )
-						{
-							format(MsgOpenProject, sizeof(MsgOpenProject), "{00F50A}Al proyecto {F5FF00}\"%s\"{00F50A} le faltarón\nobjetos por cargar, exedió el límite de 50!", name);
-							ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Abrir Proyecto{E6E6E6} - {F50000}Mapping Editor", MsgOpenProject, "Aceptar", "Inicio");
-						    IsCreated = false;
-	                	    EndFile = true;
-						}
-						/*printf("%i\n%f\n%f\n%f\n%f\n%f\n%f",
-						strval(PosAndModel[0]),
-						floatstr(PosAndModel[1]),
-						floatstr(PosAndModel[2]),
-						floatstr(PosAndModel[3]),
-						floatstr(PosAndModel[4]),
-						floatstr(PosAndModel[5]),
-						floatstr(PosAndModel[6])
-						);*/
-					}
-					else
-					{
-                	    EndFile = true;
-					}
-                }
-                if ( IsCreated )
-                {
-					format(MsgOpenProject, sizeof(MsgOpenProject), "{00F50A}El proyecto {00A5FF}\"%s\"{00F50A} fue cargado con éxito!", name);
-					ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Abrir Proyecto{E6E6E6} - {F50000}Mapping Editor", MsgOpenProject, "Aceptar", "Inicio");
-				}
-				fclose(ReadDataF);
-			}
-			else
-			{
-				format(MsgOpenProject, sizeof(MsgOpenProject), "El proyecto {F50000}\"%s\"{E6E6E6} no existe!", name);
-				ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Abrir Proyecto{E6E6E6} - {F50000}Mapping Editor", MsgOpenProject, "Aceptar", "Inicio");
-			}
-		}
-		else
-		{
-			ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Abrir Proyecto{E6E6E6} - {F50000}Mapping Editor", "El nombre del proyecto ha abrir no puede exeder los 25 caracteres!", "Aceptar", "Inicio");
-		}
-	}
-	else
-	{
-		ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Abrir Proyecto{E6E6E6} - {F50000}Mapping Editor", "El nombre introducido para abrir el proyecto es inválido!", "Aceptar", "Inicio");
-	}
-}
-public SaveProject(playerid, const name[], pass)
-{
-	if ( IsValidName(name) )
-	{
-	    if ( strlen(name) <= 25 )
-	    {
-			new DirBD[50];
-			format(DirBD, sizeof(DirBD), "%s%s.ulp", DIR_MAPS, name);
-			if ( !fexist(DirBD) || pass )
-			{
-			    if ( GetCountObjectMapping() )
-			    {
-				    new File:SaveFP;
-				    new TempTextSave[250];
-				    new Count;
-				    SaveFP = fopen(DirBD, io_write);
-					for (new i = 0; i < MAX_OBJECT_MAPPING_COUNT; i++)
-					{
-						if ( ObjectMapping[i][Objectid] != -1)
-						{
-						    if ( Count )
-						    {
-							    format(TempTextSave, sizeof(TempTextSave), "\r\nCreateDynamicObject(%i,%f,%f,%f,%f,%f,%f,-1,-1,-1,MAX_RADIO_STREAM);",
-								ObjectMapping[i][objectmodel],
-								ObjectMapping[i][PosX],
-								ObjectMapping[i][PosY],
-								ObjectMapping[i][PosZ],
-								ObjectMapping[i][PosRotX],
-								ObjectMapping[i][PosRotY],
-								ObjectMapping[i][PosRotZ]
-								);
-						    }
-						    else
-						    {
-						        Count = true;
-							    format(TempTextSave, sizeof(TempTextSave), "CreateDynamicObject(%i,%f,%f,%f,%f,%f,%f,-1,-1,-1,MAX_RADIO_STREAM);",
-								ObjectMapping[i][objectmodel],
-								ObjectMapping[i][PosX],
-								ObjectMapping[i][PosY],
-								ObjectMapping[i][PosZ],
-								ObjectMapping[i][PosRotX],
-								ObjectMapping[i][PosRotY],
-								ObjectMapping[i][PosRotZ]
-								);
-							}
-						    fwrite(SaveFP, TempTextSave);
-						}
-					}
-				    fclose(SaveFP);
-					new MsgSaveProject[MAX_TEXT_CHAT];
-					format(MsgSaveProject, sizeof(MsgSaveProject), "{00F50A}El proyecto fue guaradado con éxito!\n\nNombre del proyecto: \"%s\"\nDirección: %s", name, DirBD);
-					ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Guardar Proyecto{E6E6E6} - {F50000}Mapping Editor", MsgSaveProject, "Aceptar", "Inicio");
-				}
-				else
-				{
-					ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Guardar Proyecto{E6E6E6} - {F50000}Mapping Editor", "Necesita mínimo un objeto para guardar el proyecto!", "Aceptar", "Inicio");
-				}
-			}
-			else
-			{
-			    format(PlayersDataOnline[playerid][NameProject], MAX_PLAYER_NAME, "%s", name);
-				ShowPlayerDialogEx(playerid,46,DIALOG_STYLE_MSGBOX, "{00A5FF}Guardar Proyecto{E6E6E6} - {F50000}Mapping Editor", "Este proyecto ya existe \n\n{F50000}¿Desea remplazarlo?", "Sí", "No");
-			}
-		}
-		else
-		{
-			ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Guardar Proyecto{E6E6E6} - {F50000}Mapping Editor", "El nombre del proyecto no puede exeder los 25 caracteres!", "Aceptar", "Inicio");
-		}
-	}
-	else
-	{
-		ShowPlayerDialogEx(playerid,38,DIALOG_STYLE_MSGBOX, "{00A5FF}Guardar Proyecto{E6E6E6} - {F50000}Mapping Editor", "El nombre introducido para guardar el proyecto es inválido!", "Aceptar", "Inicio");
 	}
 }
 public SetPlayerHealthEx(playerid, Float:Health)
@@ -62936,6 +61618,7 @@ public OnGameModeExitEx()
 		SaveHouse(i, true);
 	}
 	// Otros
+	SaveMapeos();
 	SaveGasolineras();
 	SaveIncendios();
 	SaveBombas();
@@ -64386,8 +63069,8 @@ public IsPlayerNearGarage(vehicleid, playerid)
 							    {
 						        	SetPlayerVirtualWorldEx(s, Garages[h][i][WorldG]);
 						        	SetPlayerInteriorEx(s, TypeGarage[Garages[h][i][TypeGarageE]][Interior]);
-				            		PlayersData[s][IsPlayerInHouse]  =  h;
-		                    		PlayersData[s][IsPlayerInGarage] =  i;
+				            		PlayersData[s][IsPlayerInHouse]  = h;
+		                    		PlayersData[s][IsPlayerInGarage] = i;
 									OnPlayerEnterInHouse(s);
 							    }
 							}
@@ -64502,7 +63185,6 @@ public LoadGarages()
 	            PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_CASA;
 	            PickupIndex[pickupid][Tipoid] = i;
 	            PickupIndex[pickupid][Tipoidextra] = h;
-	            MAX_DYNAMIC_PICKUP++;
 
 		        Garages[h][i][PickupidOut] = pickupid;
 
@@ -64512,7 +63194,6 @@ public LoadGarages()
 	            PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_CASA;
 	            PickupIndex[pickupid][Tipoid] = i;
 	            PickupIndex[pickupid][Tipoidextra] = h;
-	            MAX_DYNAMIC_PICKUP++;
 
 		        Garages[h][i][PickupidIn] = pickupid;
 
@@ -67151,7 +65832,7 @@ public ShowServerStats(playerid)
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}02- MAX_OBJECTS {00F50A}(%i)", CountDynamicObjects());
+		"\r\n{E6E6E6}02- MAX_DYNAMIC_OBJECTS {00F50A}(%i)", Streamer_CountItems(STREAMER_TYPE_OBJECT, 1));
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
@@ -67159,87 +65840,91 @@ public ShowServerStats(playerid)
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}04- MAX_DYNAMIC_PICKUP {00F50A}(%i)", MAX_DYNAMIC_PICKUP);
+		"\r\n{E6E6E6}04- MAX_DYNAMIC_PICKUP {00F50A}(%i)", Streamer_CountItems(STREAMER_TYPE_PICKUP, 1));
+		strcat(ListDialog, TempConvert, sizeof(ListDialog));
+		
+		format(TempConvert, sizeof(TempConvert),
+		"\r\n{E6E6E6}05- MAX_DYNAMIC_TEXTLABEL {00F50A}(%i)", Streamer_CountItems(STREAMER_TYPE_3D_TEXT_LABEL, 1));
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}05- MAX_OBJECT_FIJOS {00F50A}(%i)", MAX_OBJECT_FIJOS);
+		"\r\n{E6E6E6}06- MAX_OBJECT_FIJOS {00F50A}(%i)", MAX_OBJECT_FIJOS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}06- MAX_TELE {00F50A}(%i)", MAX_TELE);
+		"\r\n{E6E6E6}07- MAX_TELE {00F50A}(%i)", MAX_TELE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}07- MAX_CAMERAS {00F50A}(%i)", MAX_CAMERAS);
+		"\r\n{E6E6E6}08- MAX_CAMERAS {00F50A}(%i)", MAX_CAMERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}08- MAX_PEAJE {00F50A}(%i)", MAX_PEAJE);
+		"\r\n{E6E6E6}09- MAX_PEAJE {00F50A}(%i)", MAX_PEAJE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}09- MAX_BIZZ_TYPE {00F50A}(%i)", MAX_BIZZ_TYPE);
+		"\r\n{E6E6E6}10- MAX_BIZZ_TYPE {00F50A}(%i)", MAX_BIZZ_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}10- MAX_HOUSE_TYPE {00F50A}(%i)", MAX_HOUSE_TYPE);
+		"\r\n{E6E6E6}11- MAX_HOUSE_TYPE {00F50A}(%i)", MAX_HOUSE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}11- MAX_GARAGE_TYPE {00F50A}(%i)", MAX_GARAGE_TYPE);
+		"\r\n{E6E6E6}12- MAX_GARAGE_TYPE {00F50A}(%i)", MAX_GARAGE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}12- MAX_BIZZ {00F50A}(%i)", MAX_BIZZ);
+		"\r\n{E6E6E6}13- MAX_BIZZ {00F50A}(%i)", MAX_BIZZ);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}13- MAX_HOUSE {00F50A}(%i)", MAX_HOUSE);
+		"\r\n{E6E6E6}14- MAX_HOUSE {00F50A}(%i)", MAX_HOUSE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}14- MAX_GARAGES {00F50A}(%i)", MAX_GARAGES);
+		"\r\n{E6E6E6}15- MAX_GARAGES {00F50A}(%i)", MAX_GARAGES);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}15- MAX_CAJEROS {00F50A}(%i)", MAX_CAJEROS);
+		"\r\n{E6E6E6}16- MAX_CAJEROS {00F50A}(%i)", MAX_CAJEROS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}16- MAX_DOORS {00F50A}(%i)", MAX_DOORS);
+		"\r\n{E6E6E6}17- MAX_PUERTAS {00F50A}(%i)", MAX_PUERTAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}17- MAX_CAR {00F50A}(%i)", MAX_CAR);
+		"\r\n{E6E6E6}18- MAX_CAR {00F50A}(%i)", MAX_CAR);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}18- MAX_CAR_DUENO {00F50A}(%i)", MAX_CAR_DUENO);
+		"\r\n{E6E6E6}19- MAX_CAR_DUENO {00F50A}(%i)", MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}19- MAX_CAR_FACCION {00F50A}(%i)", MAX_CAR_FACCION - MAX_CAR_DUENO);
+		"\r\n{E6E6E6}20- MAX_CAR_FACCION {00F50A}(%i)", MAX_CAR_FACCION - MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}20- MAX_CAR_PUBLIC {00F50A}(%i)", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
+		"\r\n{E6E6E6}21- MAX_CAR_PUBLIC {00F50A}(%i)", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}21- MAX_GARAGES_EX {00F50A}(%i)", MAX_GARAGES_EX);
+		"\r\n{E6E6E6}22- MAX_GARAGES_EX {00F50A}(%i)", MAX_GARAGES_EX);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}22- MAX_GASOLINERAS {00F50A}(%i)", MAX_GASOLINERAS);
+		"\r\n{E6E6E6}23- MAX_GASOLINERAS {00F50A}(%i)", MAX_GASOLINERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}23- MAX_LOCAL {00F50A}(%i)", MAX_LOCAL);
+		"\r\n{E6E6E6}24- MAX_LOCAL {00F50A}(%i)", MAX_LOCAL);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n{E6E6E6}24- MAX_LOCAL_ID {00F50A}(%i)", MAX_LOCAL_ID+1);
+		"\r\n{E6E6E6}25- MAX_LOCAL_ID {00F50A}(%i)", MAX_LOCAL_ID+1);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		ShowPlayerDialogEx(playerid,999,DIALOG_STYLE_LIST,"{00A5FF}Estadísticas del servidor - "WEBPAGE" || RolePlay", ListDialog, "Ok", "");
@@ -67251,7 +65936,7 @@ public ShowServerStats(playerid)
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n02- MAX_OBJECTS\t\t\t%i", CountDynamicObjects());
+		"\r\n02- MAX_DYNAMIC_OBJECTS\t\t%i", Streamer_CountItems(STREAMER_TYPE_OBJECT, 1));
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
@@ -67259,87 +65944,91 @@ public ShowServerStats(playerid)
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n04- MAX_DYNAMIC_PICKUP\t\t%i", MAX_DYNAMIC_PICKUP);
+		"\r\n04- MAX_DYNAMIC_PICKUP\t\t%i", Streamer_CountItems(STREAMER_TYPE_PICKUP, 1));
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n05- MAX_OBJECT_FIJOS\t\t%i", MAX_OBJECT_FIJOS);
+		"\r\n05- MAX_DYNAMIC_TEXTLABEL\t%i", Streamer_CountItems(STREAMER_TYPE_3D_TEXT_LABEL, 1));
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n06- MAX_TELE\t\t\t%i", MAX_TELE);
+		"\r\n06- MAX_OBJECT_FIJOS\t\t%i", MAX_OBJECT_FIJOS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n07- MAX_CAMERAS\t\t\t%i", MAX_CAMERAS);
+		"\r\n07- MAX_TELE\t\t\t%i", MAX_TELE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n08- MAX_PEAJE\t\t\t%i", MAX_PEAJE);
+		"\r\n08- MAX_CAMERAS\t\t\t%i", MAX_CAMERAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n09- MAX_BIZZ_TYPE\t\t%i", MAX_BIZZ_TYPE);
+		"\r\n09- MAX_PEAJE\t\t\t%i", MAX_PEAJE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n10- MAX_HOUSE_TYPE\t\t%i", MAX_HOUSE_TYPE);
+		"\r\n10- MAX_BIZZ_TYPE\t\t%i", MAX_BIZZ_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n11- MAX_GARAGE_TYPE\t\t%i", MAX_GARAGE_TYPE);
+		"\r\n11- MAX_HOUSE_TYPE\t\t%i", MAX_HOUSE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n12- MAX_BIZZ\t\t\t%i", MAX_BIZZ);
+		"\r\n12- MAX_GARAGE_TYPE\t\t%i", MAX_GARAGE_TYPE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n13- MAX_HOUSE\t\t\t%i", MAX_HOUSE);
+		"\r\n13- MAX_BIZZ\t\t\t%i", MAX_BIZZ);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n14- MAX_GARAGES\t\t\t%i", MAX_GARAGES);
+		"\r\n14- MAX_HOUSE\t\t\t%i", MAX_HOUSE);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n15- MAX_CAJEROS\t\t\t%i", MAX_CAJEROS);
+		"\r\n15- MAX_GARAGES\t\t\t%i", MAX_GARAGES);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n16- MAX_DOORS\t\t\t%i", MAX_DOORS);
+		"\r\n16- MAX_CAJEROS\t\t\t%i", MAX_CAJEROS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n17- MAX_CAR\t\t\t%i", MAX_CAR);
+		"\r\n17- MAX_PUERTAS\t\t\t%i", MAX_PUERTAS);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n18- MAX_CAR_DUENO\t\t%i", MAX_CAR_DUENO);
+		"\r\n18- MAX_CAR\t\t\t%i", MAX_CAR);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n19- MAX_CAR_FACCION\t\t%i", MAX_CAR_FACCION - MAX_CAR_DUENO);
+		"\r\n19- MAX_CAR_DUENO\t\t%i", MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n20- MAX_CAR_PUBLIC\t\t%i", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
+		"\r\n20- MAX_CAR_FACCION\t\t%i", MAX_CAR_FACCION - MAX_CAR_DUENO);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n21- MAX_GARAGES_EX\t\t%i", MAX_GARAGES_EX);
+		"\r\n21- MAX_CAR_PUBLIC\t\t%i", MAX_CAR_PUBLIC - MAX_CAR_FACCION);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n22- MAX_GASOLINERAS\t\t%i", MAX_GASOLINERAS);
+		"\r\n22- MAX_GARAGES_EX\t\t%i", MAX_GARAGES_EX);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 		format(TempConvert, sizeof(TempConvert),
-		"\r\n23- MAX_LOCAL\t\t\t%i", MAX_LOCAL);
+		"\r\n23- MAX_GASOLINERAS\t\t%i", MAX_GASOLINERAS);
+		strcat(ListDialog, TempConvert, sizeof(ListDialog));
+
+		format(TempConvert, sizeof(TempConvert),
+		"\r\n24- MAX_LOCAL\t\t\t%i", MAX_LOCAL);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
         format(TempConvert, sizeof(TempConvert),
-		"\r\n24- MAX_LOCAL_ID\t\t%i", MAX_LOCAL_ID);
+		"\r\n25- MAX_LOCAL_ID\t\t%i", MAX_LOCAL_ID);
 		strcat(ListDialog, TempConvert, sizeof(ListDialog));
 
 
@@ -68617,12 +67306,6 @@ public LoadLastOptionsServer()
 {
 	SetTimer("CheckVehicleGas", TIME_CHECK_GAS_VEHICLES, false);
 
-	for ( new i = 0; i < MAX_OBJECT_MAPPING_COUNT;i++)
-	{
-		ObjectMapping[i][Objectid] = -1;
-		ObjectMapping[i][TextTagS] = -1;
-	}
-
 	// TextDraw DeathMatch TEAM 1
 	ModeDMTextDraw[0] = TextDrawCreateEx(498.0, 105.0,"~W~Jugador   ~G~Puntos~N~~R~Jugador~N~~Y~Jugador~N~~P~Jugador~N~~N~~G~Total: ~W~0");
 	TextDrawUseBox(ModeDMTextDraw[0], 1);
@@ -68848,194 +67531,46 @@ public ShowPlayerEmailChange(playerid, option)
 }
 public IsValidStringServer(playerid, const string[])
 {
-	 for ( new i = 0; i < strlen(string); i++ )
-	 {
-	    if ( string[i] == ',' ||
+    if (strfind(string, InvalidSting, true) != -1)
+    {
+        SendInfoMessage(playerid, 0, "1380", "Ha introducido un carácter inválido.");
+        return false;
+    }
+    for ( new i = 0; i < strlen(string); i++ )
+	{
+		if ( string[i] == ',' ||
 	     	 string[i] == '³' ||
-	     	 string[i] == '\n' ||
-	     	 string[i] == '\r' )
+	     	 string[i] == '|' )
 		{
-			SendInfoMessage(playerid, 0, "1379", "Ha introducido un carácter inválido.");
+		    SendInfoMessage(playerid, 0, "1380", "Ha introducido un carácter inválido.");
 		    return false;
 		}
-	 }
-	 return true;
+	}
+	return true;
 }
 public IsValidStringServerOther(playerid, const string[])
 {
-	 for ( new i = 0; i < strlen(string); i++ )
-	 {
+    if (strfind(string, InvalidSting, true) != -1)
+    {
+        SendInfoMessage(playerid, 0, "1380", "Ha introducido un carácter inválido.");
+        return false;
+    }
+	for ( new i = 0; i < strlen(string); i++ )
+	{
 	    if ( string[i] == '³' ||
-	     	 string[i] == '\n' ||
-			 string[i] == '\r' ||
-			 string[i] == ''')
+			 string[i] == ''' ||
+	     	 string[i] == '|' )
 		{
-			SendInfoMessage(playerid, 0, "1380", "Ha introducido un carácter inválido.");
+		    SendInfoMessage(playerid, 0, "1380", "Ha introducido un carácter inválido.");
 		    return false;
 		}
-	 }
-	 return true;
+	}
+	return true;
 }
 public CreateObjectEx(modelid, Float:X, Float:Y, Float:Z, Float:rX, Float:rY, Float:rZ, Float:DrawDistance)
 {
 	MAX_OBJECT_FIJOS++;
 	return CreateObject(modelid, X, Y, Z, rX, rY, rZ, DrawDistance);
-}
-public MoveDoorDynamicOne(doorid, Float:Progress)
-{
-	new Float:NextPos[6];
-	NextPos[0] = Doors[doorid][PosXTrue];
-	NextPos[1] = Doors[doorid][PosYTrue];
-	NextPos[2] = Doors[doorid][PosZTrue];
-	NextPos[3] = Doors[doorid][PosRotXTrue];
-	NextPos[4] = Doors[doorid][PosRotYTrue];
-	NextPos[5] = Doors[doorid][PosRotZTrue];
-
-	Progress += VELOCITY_DOORS_PORCENT;
-	/////////////////////////////// X POS
-	if ( Doors[doorid][PosXTrue] > Doors[doorid][PosXFalse] )
-	{
-        NextPos[0] -= ((Doors[doorid][PosXTrue] - Doors[doorid][PosXFalse]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[0] += ((Doors[doorid][PosXFalse] - Doors[doorid][PosXTrue]) * Progress) / 100;
-	}
-	/////////////////////////////// Y POS
-	if ( Doors[doorid][PosYTrue] > Doors[doorid][PosYFalse] )
-	{
-        NextPos[1] -= ((Doors[doorid][PosYTrue] - Doors[doorid][PosYFalse]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[1] += ((Doors[doorid][PosYFalse] - Doors[doorid][PosYTrue]) * Progress) / 100;
-	}
-	/////////////////////////////// Z POS
-	if ( Doors[doorid][PosZTrue] > Doors[doorid][PosZFalse] )
-	{
-        NextPos[2] -= ((Doors[doorid][PosZTrue] - Doors[doorid][PosZFalse]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[2] += ((Doors[doorid][PosZFalse] - Doors[doorid][PosZTrue]) * Progress) / 100;
-	}
-	/////////////////////////////// X ROT
-	if ( Doors[doorid][PosRotXTrue] > Doors[doorid][PosRotXFalse] )
-	{
-        NextPos[3] -= ((Doors[doorid][PosRotXTrue] - Doors[doorid][PosRotXFalse]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[3] += ((Doors[doorid][PosRotXFalse] - Doors[doorid][PosRotXTrue]) * Progress) / 100;
-	}
-	/////////////////////////////// Y ROT
-	if ( Doors[doorid][PosRotYTrue] > Doors[doorid][PosRotYFalse] )
-	{
-        NextPos[4] -= ((Doors[doorid][PosRotYTrue] - Doors[doorid][PosRotYFalse]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[4] += ((Doors[doorid][PosRotYFalse] - Doors[doorid][PosRotYTrue]) * Progress) / 100;
-	}
-	/////////////////////////////// Z ROT
-	if ( Doors[doorid][PosRotZTrue] > Doors[doorid][PosRotZFalse] )
-	{
-        NextPos[5] -= ((Doors[doorid][PosRotZTrue] - Doors[doorid][PosRotZFalse]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[5] += ((Doors[doorid][PosRotZFalse] - Doors[doorid][PosRotZTrue]) * Progress) / 100;
-	}
-
-	if ( Progress < 100.0 )
-	{
-        SetDynamicObjectPos(Doors[doorid][objectanimid], NextPos[0], NextPos[1], NextPos[2]);
-		SetDynamicObjectRot(Doors[doorid][objectanimid], NextPos[3], NextPos[4], NextPos[5]);
-		SetTimerEx("MoveDoorDynamicOne", VELOCITY_DOORS_TIME, false, "df", doorid, Progress);
-	}
-	else
-	{
-        SetDynamicObjectPos(Doors[doorid][objectanimid], Doors[doorid][PosXFalse], Doors[doorid][PosYFalse], Doors[doorid][PosZFalse]);
-		SetDynamicObjectRot(Doors[doorid][objectanimid], Doors[doorid][PosRotXFalse], Doors[doorid][PosRotYFalse], Doors[doorid][PosRotZFalse]);
-	}
-}
-public MoveDoorDynamicTwo(doorid, Float:Progress)
-{
-	new Float:NextPos[6];
-	NextPos[0] = Doors[doorid][PosXFalse];
-	NextPos[1] = Doors[doorid][PosYFalse];
-	NextPos[2] = Doors[doorid][PosZFalse];
-	NextPos[3] = Doors[doorid][PosRotXFalse];
-	NextPos[4] = Doors[doorid][PosRotYFalse];
-	NextPos[5] = Doors[doorid][PosRotZFalse];
-
-	Progress += VELOCITY_DOORS_PORCENT;
-	/////////////////////////////// X POS
-	if ( Doors[doorid][PosXFalse] > Doors[doorid][PosXTrue] )
-	{
-        NextPos[0] -= ((Doors[doorid][PosXFalse] - Doors[doorid][PosXTrue]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[0] += ((Doors[doorid][PosXTrue] - Doors[doorid][PosXFalse]) * Progress) / 100;
-	}
-	/////////////////////////////// Y POS
-	if ( Doors[doorid][PosYFalse] > Doors[doorid][PosYTrue] )
-	{
-        NextPos[1] -= ((Doors[doorid][PosYFalse] - Doors[doorid][PosYTrue]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[1] += ((Doors[doorid][PosYTrue] - Doors[doorid][PosYFalse]) * Progress) / 100;
-	}
-	/////////////////////////////// Z POS
-	if ( Doors[doorid][PosZFalse] > Doors[doorid][PosZTrue] )
-	{
-        NextPos[2] -= ((Doors[doorid][PosZFalse] - Doors[doorid][PosZTrue]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[2] += ((Doors[doorid][PosZTrue] - Doors[doorid][PosZFalse]) * Progress) / 100;
-	}
-	/////////////////////////////// X ROT
-	if ( Doors[doorid][PosRotXFalse] > Doors[doorid][PosRotXTrue] )
-	{
-        NextPos[3] -= ((Doors[doorid][PosRotXFalse] - Doors[doorid][PosRotXTrue]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[3] += ((Doors[doorid][PosRotXTrue] - Doors[doorid][PosRotXFalse]) * Progress) / 100;
-	}
-	/////////////////////////////// Y ROT
-	if ( Doors[doorid][PosRotYFalse] > Doors[doorid][PosRotYTrue] )
-	{
-        NextPos[4] -= ((Doors[doorid][PosRotYFalse] - Doors[doorid][PosRotYTrue]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[4] += ((Doors[doorid][PosRotYTrue] - Doors[doorid][PosRotYFalse]) * Progress) / 100;
-	}
-	/////////////////////////////// Z ROT
-	if ( Doors[doorid][PosRotZFalse] > Doors[doorid][PosRotZTrue] )
-	{
-        NextPos[5] -= ((Doors[doorid][PosRotZFalse] - Doors[doorid][PosRotZTrue]) * Progress) / 100;
-	}
-	else
-	{
-        NextPos[5] += ((Doors[doorid][PosRotZTrue] - Doors[doorid][PosRotZFalse]) * Progress) / 100;
-	}
-
-	if ( Progress < 100.0 )
-	{
-        SetDynamicObjectPos(Doors[doorid][objectanimid], NextPos[0], NextPos[1], NextPos[2]);
-		SetDynamicObjectRot(Doors[doorid][objectanimid], NextPos[3], NextPos[4], NextPos[5]);
-		SetTimerEx("MoveDoorDynamicTwo", VELOCITY_DOORS_TIME, false, "df", doorid, Progress);
-	}
-	else
-	{
-        SetDynamicObjectPos(Doors[doorid][objectanimid], Doors[doorid][PosXTrue], Doors[doorid][PosYTrue], Doors[doorid][PosZTrue]);
-		SetDynamicObjectRot(Doors[doorid][objectanimid], Doors[doorid][PosRotXTrue], Doors[doorid][PosRotYTrue], Doors[doorid][PosRotZTrue]);
-	}
 }
 public MovePeajeDynamicOne(peajeid, Float:Progress)
 {
@@ -73486,14 +72021,11 @@ public OnPlayerClickMap(playerid, Float:fX, Float:fY, Float:fZ)
 {
 	if (PlayersDataOnline[playerid][AdminOn])
 	{
+	    if (GetPlayerInterior(playerid) != 0 || GetPlayerVirtualWorld(playerid) != 0) return SendInfoMessage(playerid, 0, "", "Solo te puedes tpear estando en exteriores.");
+	    
 	    if (IsPlayerInAnyVehicle(playerid))
-	    {
-	        new Float:Pos[3];
-	        GetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
-	        SetPlayerPos(playerid, Pos[0], Pos[1], Pos[2]);
-	    }
-	    SetPlayerPosFindZ(playerid, fX, fY, fZ);
-	    SetPlayerInteriorEx(playerid, 0);
+		SetVehiclePos(GetPlayerVehicleID(playerid), fX, fY, fZ);
+	    else SetPlayerPosFindZ(playerid, fX, fY, fZ);
 	}
     return 1;
 }
@@ -73575,14 +72107,7 @@ stock ConvertToRGBColor(string[])
 
 public CreatePickupEx(modelid, type, Float:x, Float:y, Float:z, worldid, interiorid)
 {
-	MAX_DYNAMIC_PICKUP++;
 	return CreateDynamicPickup(modelid, type, x, y, z, worldid, interiorid);
-}
-
-public DestroyPickupEx(pickupid)
-{
-    DestroyDynamicPickup(pickupid);
-	MAX_DYNAMIC_PICKUP--;
 }
 
 public CreateFaccionDynamicPickup(modelid, faccionid, Float:x, Float:y, Float:z, worldid, interiorid, playerid, Float:streamdistance)
@@ -73590,7 +72115,6 @@ public CreateFaccionDynamicPickup(modelid, faccionid, Float:x, Float:y, Float:z,
     new pickupid = CreateDynamicPickup(modelid, 1, x, y, z, worldid, interiorid, playerid, streamdistance);
 	PickupIndex[pickupid][Tipo] = PICKUP_TYPE_FACCION;
 	PickupIndex[pickupid][Tipoid] = faccionid;
-	MAX_DYNAMIC_PICKUP++;
     return pickupid;
 }
 
@@ -73599,7 +72123,6 @@ public CreateTeleDynamicPickup(modelid, teleid, Float:x, Float:y, Float:z, world
     new pickupid = CreateDynamicPickup(modelid, 1, x, y, z, worldid, interiorid);
 	PickupIndex[pickupid][Tipo] = PICKUP_TYPE_TELE;
 	PickupIndex[pickupid][Tipoid] = teleid;
-	MAX_DYNAMIC_PICKUP++;
     return pickupid;
 }
 
@@ -73608,7 +72131,6 @@ public CreateNegocioDynamicPickup(modelid, negociotipo, Float:x, Float:y, Float:
     new pickupid = CreateDynamicPickup(19607, 1, x, y ,z - 1, worldid, NegociosType[negociotipo][InteriorId]);
     PickupIndex[pickupid][Tipo] = PICKUP_TYPE_NEGOCIO_TYPE;
 	PickupIndex[pickupid][Tipoid] = negociotipo;
-	MAX_DYNAMIC_PICKUP++;
 	return pickupid;
 }
 
@@ -73617,7 +72139,6 @@ public CreateCasaTipoDynamicPickup(modelid, casatipo, Float:x, Float:y, Float:z,
 	new pickupid = CreateDynamicPickup(19606, 1, x, y, z - 1, worldid, TypeHouse[casatipo][Interior]);
     PickupIndex[pickupid][Tipo] = PICKUP_TYPE_CASA_TYPE;
 	PickupIndex[pickupid][Tipoid] = casatipo;
-	MAX_DYNAMIC_PICKUP++;
 	return pickupid;
 }
 
@@ -73626,7 +72147,6 @@ public CreateGarageTipoDynamicPickup(modelid, garagetipo, Float:x, Float:y, Floa
 	new pickupid = CreateDynamicPickup(modelid, 1, x, y, z, worldid, TypeGarage[garagetipo][Interior]);
     PickupIndex[pickupid][Tipo] = PICKUP_TYPE_GARAGE_CASA_TYPE;
 	PickupIndex[pickupid][Tipoid] = garagetipo;
-	MAX_DYNAMIC_PICKUP++;
 	return pickupid;
 }
 
@@ -73670,3 +72190,137 @@ public IsPlayerInPickup(playerid)
 		return 0;
 	}
 }
+
+public OnPlayerEditDynamicObject(playerid, objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
+{
+    new mapeoid = GetPVarInt(playerid, "editingmapeo");
+    if (response == EDIT_RESPONSE_CANCEL)
+    {
+        if (Mapeo[mapeoid][ID_Objeto] == objectid && GetPVarInt(playerid, "editingobject") == objectid)
+        {
+            SetDynamicObjectPos(objectid, Mapeo[mapeoid][PosX], Mapeo[mapeoid][PosY], Mapeo[mapeoid][PosZ]);
+        	SetDynamicObjectRot(objectid, Mapeo[mapeoid][PosRX], Mapeo[mapeoid][PosRY], Mapeo[mapeoid][PosRZ]);
+        	ShowObjectMenu(playerid, 1);
+			SetPVarInt(playerid, "editingmovement", 0);
+        }
+    }
+	if (response == EDIT_RESPONSE_FINAL)
+	{
+	    if (Mapeo[mapeoid][ID_Objeto] == objectid && GetPVarInt(playerid, "editingobject") == objectid)
+		{
+		    if (GetPVarInt(playerid, "editingmovement") == 0)
+		    {
+			    Mapeo[mapeoid][PosX] = x;
+				Mapeo[mapeoid][PosY] = y;
+				Mapeo[mapeoid][PosZ] = z;
+				Mapeo[mapeoid][PosRX] = rx;
+				Mapeo[mapeoid][PosRY] = ry;
+				Mapeo[mapeoid][PosRZ] = rz;
+				SetDynamicObjectPos(objectid, x, y, z);
+        		SetDynamicObjectRot(objectid, rx, ry, rz);
+				SetPVarInt(playerid, "editingmapeo", -1);
+				SetPVarInt(playerid, "editingobject", 0);
+			}
+   			else if (GetPVarInt(playerid, "editingmovement"))
+			{
+			    if (Mapeo[mapeoid][Tipo] == 1)
+			    {
+			        new puertaid = Mapeo[mapeoid][Tipoid];
+	       			Puerta[puertaid][PosX] = x;
+					Puerta[puertaid][PosY] = y;
+					Puerta[puertaid][PosZ] = z;
+					Puerta[puertaid][PosRX] = rx;
+					Puerta[puertaid][PosRY] = ry;
+					Puerta[puertaid][PosRZ] = rz;
+					SavePuerta(puertaid);
+			    }
+				SetDynamicObjectPos(objectid, Mapeo[mapeoid][PosX], Mapeo[mapeoid][PosY], Mapeo[mapeoid][PosZ]);
+	        	SetDynamicObjectRot(objectid, Mapeo[mapeoid][PosRX], Mapeo[mapeoid][PosRY], Mapeo[mapeoid][PosRZ]);
+				SetPVarInt(playerid, "editingmovement", 0);
+			}
+		}
+	}
+	if (response == EDIT_RESPONSE_UPDATE)
+	{
+	    if (Mapeo[mapeoid][ID_Objeto] == objectid && GetPVarInt(playerid, "editingobject") == objectid)
+		{
+		    SetPVarFloat(playerid, "editingobjectX", x);
+			SetPVarFloat(playerid, "editingobjectY", y);
+			SetPVarFloat(playerid, "editingobjectZ", z);
+			SetPVarFloat(playerid, "editingobjectRX", rx);
+			SetPVarFloat(playerid, "editingobjectRY", ry);
+			SetPVarFloat(playerid, "editingobjectRZ", rz);
+		}
+	}
+	return 1;
+}
+
+public OnPlayerSelectDynamicObject(playerid, objectid, modelid, Float:x, Float:y, Float:z)
+{
+	for(new mapeoid=0; mapeoid != MAX_MAPEOS_COUNT; mapeoid++)
+	{
+	    if (Mapeo[mapeoid][ID_Objeto] == objectid)
+		{
+		    new string[144];
+		    CancelEdit(playerid);
+		    SetPVarInt(playerid, "editingmapeo", mapeoid);
+		    SetPVarInt(playerid, "editingobject", objectid);
+		    ShowObjectMenu(playerid, 1);
+		    format(string, sizeof(string), "Seleccionaste el objetoid %i[%i]", objectid, mapeoid);
+		    SendAdviseMessage(playerid, string);
+		    break;
+		}
+	}
+	return 1;
+}
+
+public ShowDialog247(playerid)
+{
+	new info[500];
+	strcat(info, "Camara de Fotos\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Patines\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Dados\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Movil\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Agenda\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Flores\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "{"COLOR_ROSA"}Comprar Saldo\t\n");
+	strcat(info, "Bolsa\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Condones\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Maleta\t{"COLOR_VERDE"}$%i\n");
+	strcat(info, "Modelo de Moviles\t{"COLOR_VERDE"}$%i\n");
+
+	format(info, 500, info,
+		M24_7_Precios[0],
+		M24_7_Precios[1],
+		M24_7_Precios[2],
+		M24_7_Precios[3],
+		M24_7_Precios[4],
+		M24_7_Precios[5],
+		M24_7_Precios[7],
+		M24_7_Precios[8],
+		M24_7_Precios[9],
+		M24_7_Precios[10]);
+
+	ShowPlayerDialogEx(playerid, 162, DIALOG_STYLE_TABLIST, "{"COLOR_AZUL"}24/7", info, "Comprar", "Salir");
+}
+
+stock ShowDialogTypePhones(playerid)
+{
+	new info[100];
+	strcat(info, "Normal\n");
+	strcat(info, "Color Oro\n");
+	strcat(info, "Azul Claro\n");
+	strcat(info, "Naranja\n");
+	strcat(info, "Negro\n");
+	strcat(info, "Rosa\n");
+	strcat(info, "Rojo\n");
+	strcat(info, "Verde\n");
+	strcat(info, "Azul Oscuro\n");
+	strcat(info, "Amarillo\n");
+	strcat(info, "Blanco");
+	ShowPlayerDialogEx(playerid, 163, DIALOG_STYLE_LIST, "{"COLOR_AZUL"}24/7 -> Modelo de Moviles", info, "Comprar", "Volver");
+}
+
+
+
+

@@ -57092,9 +57092,10 @@ public GetMyNearDoor(playerid, key)
 	    
 	    if (Puerta[i][LlaveTipo] == 0 && Puerta[i][LlaveOwnerID] == CIVIL ||
 	    	Puerta[i][LlaveTipo] == 0 && PlayersData[playerid][Faccion] == Puerta[i][LlaveOwnerID] ||
-	    	Puerta[i][LlaveTipo] == 1 && IsMyBizz(playerid, Puerta[i][LlaveOwnerID], false) ||
-	    	Puerta[i][LlaveTipo] == 2 && PlayersData[playerid][House] == Puerta[i][LlaveOwnerID] ||
-	    	Puerta[i][LlaveTipo] == 3 && PlayersData[playerid][Local] == Puerta[i][LlaveOwnerID]   )
+	    	Puerta[i][LlaveTipo] == 1 && PlayersData[playerid][House] == Puerta[i][LlaveOwnerID] ||
+	    	Puerta[i][LlaveTipo] == 1 && PlayersData[playerid][Alquiler] == Puerta[i][LlaveOwnerID] ||
+	    	Puerta[i][LlaveTipo] == 1 && IsPlayerInHouseFriend(playerid, Puerta[i][LlaveOwnerID]) != -1 ||
+	    	Puerta[i][LlaveTipo] == 2 && PlayerHaveLocalKeys(playerid, Puerta[i][LlaveOwnerID])   )
     	{
     	    if (Puerta[i][Abierta])
     	    {

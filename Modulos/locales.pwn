@@ -16,7 +16,9 @@ forward PlayerHaveLocalKeys(playerid, localid);
 forward AddArticleLRefrigerador(playerid, localid, bolsaid);
 forward RemoveArticleLRefrigerador(playerid, localid, refrigeradorid);
 forward ClearLocalData(localid);
-//forward StopMusicOnLocal(localid);
+forward StopMusicOnLocal(localid);
+forward ChangeMusicOnLocal(localid);
+forward ChangeLocal(playerid, localid);
 
 enum LocalDataEnum
 {
@@ -129,6 +131,10 @@ public SaveLocal(localID, update)
 	}
 
 	//, LocalData[localID][]
+	format(LocalData[localID][LlavesAmigos], 2, "");
+	format(LocalData[localID][LArmarioArmas], 2, "");
+	format(LocalData[localID][RefrigeradorData], 2, "");
+	format(LocalData[localID][LGavetaData], 2, "");
 	for(new i=0; i != MAX_LOCAL_KEYS; i++)
     {
         format(LocalData[localID][LlavesAmigos], 125, "%s%s,", LocalData[localID][LlavesAmigos], LocalKeys[localID][i]);
@@ -293,7 +299,7 @@ public LoadLocales()
 			for(new keyid=0; keyid != MAX_LOCAL_KEYS; keyid++)
 			{
 			    SplitPos[0] = strfind(LocalData[i][LlavesAmigos], ",");
-			    strmid(LocalKeys[i][keyid], LocalData[i][LlavesAmigos], 0, SplitPos[0], MAX_PLAYER_NAME);
+			    strmid(LocalKeys[i][keyid], LocalData[i][LlavesAmigos], 0, SplitPos[0]);
 			    strdel(LocalData[i][LlavesAmigos], 0, SplitPos[0]+1);
 			}
 			//ArmarioArmas - LArmarioArmas
@@ -388,17 +394,15 @@ public IsPlayerInLocalKeys(playerid, localID)
 
 public AddPlayerInLocalKeys(playerid, localID)
 {
-	new FreeLocalKey = false;
 	for (new i=0; i != MAX_LOCAL_KEYS; i++)
 	{
 	    if (strlen(LocalKeys[localID][i]) <= 5)
 		{
 		    format(LocalKeys[localID][i], MAX_PLAYER_NAME, "%s", PlayersDataOnline[playerid][NameOnline]);
-		    FreeLocalKey = true;
-		    break;
+		    return true;
 		}
 	}
-	return FreeLocalKey;
+	return false;
 }
 
 public GetPlayerCloseLocal(playerid)
@@ -569,14 +573,13 @@ public ClearLocalData(localid)
 	LocalData[localid][LGavetaObjects][g] = 0;
 	LocalData[localid][StationID] = -1;
 }
-/*
 public StopMusicOnLocal(localid)
 {
 	for ( new i=0, j=GetPlayerPoolSize(); i <= j; i++)
 	{
 		if ( IsPlayerConnected(i) && PlayersData[i][InLocal] == localid )
 		{
-			StopAudioPlayer(i, true);
+			StopAudioStreamForPlayer(i);
 		}
 	}
 }
@@ -587,14 +590,23 @@ public ChangeMusicOnLocal(localid)
 	{
 		if ( IsPlayerConnected(i) && PlayersData[i][InLocal] == localid )
 		{
-			StopAudioPlayer(i, 1);
-			PlayAudioPlayerHouse(i);
+			PlayAudioStreamForPlayer(i, Stations[ LocalData[localid][StationID] ][1]);
 		}
 	}
 }
-*/
 
-
+public ChangeLocal(playerid, localid)
+{
+	if (localid == -1)
+	{
+	    StopAudioStreamForPlayer(playerid);
+	}
+	else
+	{
+	    if( LocalData[localid][StationID] != -1 )
+		PlayAudioStreamForPlayer(playerid, Stations[ LocalData[localid][StationID] ][1]);
+	}
+}
 
 
 

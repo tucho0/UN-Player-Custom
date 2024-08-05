@@ -1,29 +1,49 @@
 #define MAX_MAPEOS_COUNT 1000
+#define MAX_PUERTAS_COUNT 100
+#define MAX_PEAJES_COUNT 10
+#define MAX_PARQUEOS_COUNT 10
 #define MAX_MATERIALINDEX 16
 #define DIR_MAPEOS "Mapeos/%i.map"
 #define DIR_PUERTAS "Puertas/%i.door"
-
-#define MAX_PUERTAS_COUNT 100
+#define DIR_PEAJES "Peajes/%i.toll"
+#define DIR_PARQUEOS "Parqueos/%i.ini"
+#define MAPEO_TYPE_OBJETO 0
+#define MAPEO_TYPE_PUERTA 1
+#define MAPEO_TYPE_PEAJE 2
+#define MAPEO_TYPE_PARQUEO 3
+#define EDITING_TYPE_MAPEO 1
 
 /*
-SetPVarInt(playerid, "editingmapeo", mapeoid);
-SetPVarInt(playerid, "editingobject", objectid);
-SetPVarInt(playerid, "editingindex", mapeoid);
-SetPVarInt(playerid, "editingoption", mapeoid);
-SetPVarInt(playerid, "editingmovement", 1);
+PlayersDataOnline[playerid][EditingType]
+PlayersDataOnline[playerid][EditingMapeo]
+PlayersDataOnline[playerid][EditingObjectID]
+PlayersDataOnline[playerid][EditingIndex]
+PlayersDataOnline[playerid][EditingOption]
+PlayersDataOnline[playerid][EditingMovement]
 
-GetPVarInt(playerid, "editingmapeo");
-GetPVarInt(playerid, "editingobject");
-GetPVarInt(playerid, "editingindex");
-GetPVarInt(playerid, "editingoption");
-GetPVarInt(playerid, "editingmovement");
-
-new mapeoid = GetPVarInt(playerid, "editingmapeo");
-new objectid = GetPVarInt(playerid, "editingobject");
+new mapeoid = PlayersDataOnline[playerid][EditingMapeo];
+new objectid = PlayersDataOnline[playerid][EditingObjectID];
 new objectid = Mapeo[mapeoid][ID_Objeto];
-new indexid = GetPVarInt(playerid, "editingindex");
-new option = GetPVarInt(playerid, "editingoption");
+new indexid = PlayersDataOnline[playerid][EditingIndex];
+new option = PlayersDataOnline[playerid][EditingOption];
 */
+
+forward LoadPeaje(peajeid, mapeoid);
+forward LoadPuertaMapeo(id, mapeoid);
+forward LoadMapeos();
+forward ShowMapeoTypeDialog(playerid);
+forward LoadParqueo(parqueoid, mapeoid);
+forward SaveParqueo(parqueoid);
+forward ShowMapeoPropiedades(playerid, mapeoid);
+forward ShowMapeoPropiedadChange(playerid, mapeoid, option);
+
+forward BorrarPuerta(puertaid);
+forward BorrarPeaje(peajeid);
+forward BorrarParqueo(parqueoid);
+
+forward CrearPuerta(mapeoid);
+forward CrearPeaje(mapeoid);
+forward CrearParqueo(mapeoid);
 
 enum ObjetosEnum
 {
@@ -88,7 +108,45 @@ enum PuertaEnum
 new Puerta[MAX_PUERTAS_COUNT][PuertaEnum];
 new MAX_PUERTAS;
 
-stock LoadMapeos()
+enum PeajesParqueoEnum
+{
+	ID_Mapeo,
+	Creado,
+	Float:PosXFalse,
+	Float:PosYFalse,
+	Float:PosZFalse,
+	Float:PosRotXFalse,
+	Float:PosRotYFalse,
+	Float:PosRotZFalse,
+	Float:PosCommandX,
+	Float:PosCommandY,
+	Float:PosCommandZ,
+	Float:Velocidad,
+	Abierto
+};
+
+new Peajes[MAX_PEAJES_COUNT][PeajesParqueoEnum];
+new MAX_PEAJES;
+new PRECIO_PEAJE = 10;
+/*
+enum ParqueosEnum
+{
+    ID_Mapeo,
+	Creado,
+	Float:PosXFalse,
+	Float:PosYFalse,
+	Float:PosZFalse,
+	Float:PosRotXFalse,
+	Float:PosRotYFalse,
+	Float:PosRotZFalse,
+	Float:Velocidad,
+	Abierto
+};
+*/
+new Parqueo[MAX_PARQUEOS_COUNT][PeajesParqueoEnum];
+new MAX_PARQUEOS;
+
+public LoadMapeos()
 {
 	new
 		path[30],
@@ -176,15 +234,107 @@ stock LoadMapeos()
 
 		    fclose(handle);
 		    
-		    if (Mapeo[i][Tipo] == 1)
+		    if (Mapeo[i][Tipo] == MAPEO_TYPE_PUERTA)
 		    {
 		        if (MAX_PUERTAS < MAX_PUERTAS_COUNT)
 		        {
 		            LoadPuertaMapeo(Mapeo[i][Tipoid], i);
 		        }
 		    }
+		    else if (Mapeo[i][Tipo] == MAPEO_TYPE_PEAJE)
+		    {
+		        if (MAX_PEAJES < MAX_PEAJES_COUNT)
+		        {
+		            LoadPeaje(Mapeo[i][Tipoid], i);
+		        }
+		    }
+		    else if (Mapeo[i][Tipo] == MAPEO_TYPE_PARQUEO)
+		    {
+		        if (MAX_PARQUEOS < MAX_PARQUEOS_COUNT)
+		        {
+		            LoadParqueo(Mapeo[i][Tipoid], i);
+		        }
+		    }
 		}
 	}
+}
+
+public LoadPeaje(peajeid, mapeoid)
+{
+	new
+		datos[120],
+		peajeDir[30];
+	format(peajeDir, 30, DIR_PEAJES, peajeid);
+	new File:peajeFile = fopen(peajeDir, io_read);
+
+	if(peajeFile)
+	{
+	    fread(peajeFile, datos); fclose(peajeFile);
+
+	    new datoPeaje[11][30], splitpos;
+	    for(new x=0; x!=11; x++)
+	    {
+	        splitpos = strfind(datos, "|", true);
+	        strmid(datoPeaje[x], datos, 0, splitpos);
+	        strdel(datos, 0, splitpos+1);
+	    }
+	    Peajes[peajeid][ID_Mapeo] = strval(datoPeaje[0]);
+	    Peajes[peajeid][Creado] = true;
+	    Peajes[peajeid][PosXFalse] = floatstr(datoPeaje[1]);
+	    Peajes[peajeid][PosYFalse] = floatstr(datoPeaje[2]);
+	    Peajes[peajeid][PosZFalse] = floatstr(datoPeaje[3]);
+	    Peajes[peajeid][PosRotXFalse] = floatstr(datoPeaje[4]);
+	    Peajes[peajeid][PosRotYFalse] = floatstr(datoPeaje[5]);
+	    Peajes[peajeid][PosRotZFalse] = floatstr(datoPeaje[6]);
+	    Peajes[peajeid][PosCommandX] = floatstr(datoPeaje[7]);
+	    Peajes[peajeid][PosCommandY] = floatstr(datoPeaje[8]);
+	    Peajes[peajeid][PosCommandZ] = floatstr(datoPeaje[9]);
+	    Peajes[peajeid][Velocidad] = floatstr(datoPeaje[10]);
+			
+	    MAX_PEAJES++;
+	}
+	else
+	{
+	    Mapeo[mapeoid][Tipo] = MAPEO_TYPE_OBJETO;
+	}
+}
+
+public LoadParqueo(parqueoid, mapeoid)
+{
+    new
+		datos[120],
+		parqueoDir[30];
+	format(parqueoDir, 30, DIR_PARQUEOS, parqueoid);
+	new File:parqueoFile = fopen(parqueoDir, io_read);
+	if (parqueoFile)
+	{
+	    fread(parqueoFile, datos); fclose(parqueoFile);
+
+	    new datoParqueo[8][30], splitpos;
+	    for(new x=0; x!=8; x++)
+	    {
+	        splitpos = strfind(datos, "|", true);
+	        strmid(datoParqueo[x], datos, 0, splitpos);
+	        strdel(datos, 0, splitpos+1);
+	    }
+     	Parqueo[parqueoid][ID_Mapeo] = strval(datoParqueo[0]);
+     	Parqueo[parqueoid][Creado] = true;
+     	Parqueo[parqueoid][PosXFalse] = floatstr(datoParqueo[1]);
+     	Parqueo[parqueoid][PosYFalse] = floatstr(datoParqueo[2]);
+     	Parqueo[parqueoid][PosZFalse] = floatstr(datoParqueo[3]);
+     	Parqueo[parqueoid][PosRotXFalse] = floatstr(datoParqueo[4]);
+     	Parqueo[parqueoid][PosRotYFalse] = floatstr(datoParqueo[5]);
+     	Parqueo[parqueoid][PosRotZFalse] = floatstr(datoParqueo[6]);
+     	Parqueo[parqueoid][Velocidad] = floatstr(datoParqueo[7]);
+     	Parqueo[parqueoid][Abierto] = false;
+	    
+	    MAX_PARQUEOS++;
+	}
+	else
+	{
+	    Mapeo[mapeoid][Tipo] = MAPEO_TYPE_OBJETO;
+	}
+	return 1;
 }
 
 stock LoadMapeosEx()
@@ -224,7 +374,7 @@ stock LoadMapeosEx()
 	}
 }
 
-stock LoadPuertaMapeo(id, mapeoid)
+public LoadPuertaMapeo(id, mapeoid)
 {
     new
 		puertadir[30],
@@ -265,7 +415,7 @@ stock LoadPuertaMapeo(id, mapeoid)
 	}
 	else
 	{
-	    Mapeo[mapeoid][Tipo] = 0;
+	    Mapeo[mapeoid][Tipo] = MAPEO_TYPE_OBJETO;
 	}
 }
 
@@ -322,12 +472,86 @@ stock SaveMapeos()
 		    }
 		    fclose(handle);
 		    
-		    if (Mapeo[i][Tipo] == 1)
+		    if (Mapeo[i][Tipo] == MAPEO_TYPE_PUERTA)
 		    {
 		        SavePuerta(Mapeo[i][Tipoid]);
 		    }
+		    else if(Mapeo[i][Tipo] == MAPEO_TYPE_PEAJE)
+		    {
+		        SavePeaje(Mapeo[i][Tipoid]);
+		    }
+		    else if(Mapeo[i][Tipo] == MAPEO_TYPE_PARQUEO)
+		    {
+		        SaveParqueo(Mapeo[i][Tipoid]);
+		    }
 	    }
 	}
+}
+
+stock SaveMapeo(mapeoid)
+{
+    new
+		path[30],
+		objectData[500];
+    if (Mapeo[mapeoid][Modelo] != 0)
+    {
+        format(path,sizeof(path), DIR_MAPEOS, mapeoid);
+		//////////
+	    format(objectData, sizeof(objectData),
+			"%i|%f|%f|%f|%f|%f|%f|%i|%i|%s|%i|%i|\n",
+			Mapeo[mapeoid][Modelo],
+			Mapeo[mapeoid][PosX],
+			Mapeo[mapeoid][PosY],
+			Mapeo[mapeoid][PosZ],
+			Mapeo[mapeoid][PosRX],
+			Mapeo[mapeoid][PosRY],
+			Mapeo[mapeoid][PosRZ],
+			Mapeo[mapeoid][Mundo],
+			Mapeo[mapeoid][Interior],
+			Mapeo[mapeoid][CreatedBy],
+			Mapeo[mapeoid][Tipo],
+			Mapeo[mapeoid][Tipoid]);
+
+		new File:handle = fopen(path);
+	    fwrite(handle, objectData);
+
+	    for(new indexid=0; indexid != MAX_MATERIALINDEX; indexid++)
+	    {
+	        format(objectData, sizeof(objectData),
+		        "%i|%i|%s|%s|%i|\
+				%s|%i|%s|%i|%i|%i|%i|%i|\n",
+				Mapeo[mapeoid][materialtype][indexid],
+				Mapeo[mapeoid][texturemodel][indexid],
+				MapeoTxdName[mapeoid][indexid],
+				MapeoTextureName[mapeoid][indexid],
+				Mapeo[mapeoid][materialcolor][indexid],
+				//////////
+				MapeoText[mapeoid][indexid],
+				Mapeo[mapeoid][materialsize][indexid],
+				MapeoFont[mapeoid][indexid],
+				Mapeo[mapeoid][fontsize][indexid],
+				Mapeo[mapeoid][bold][indexid],
+				Mapeo[mapeoid][fontcolor][indexid],
+				Mapeo[mapeoid][backgroundcolor][indexid],
+				Mapeo[mapeoid][textalignment][indexid]);
+
+			fwrite(handle, objectData);
+	    }
+	    fclose(handle);
+
+	    if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PUERTA)
+	    {
+	        SavePuerta(Mapeo[mapeoid][Tipoid]);
+	    }
+	    else if(Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PEAJE)
+	    {
+	        SavePeaje(Mapeo[mapeoid][Tipoid]);
+	    }
+	    else if(Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PARQUEO)
+	    {
+	        SaveParqueo(Mapeo[mapeoid][Tipoid]);
+	    }
+    }
 }
 
 stock SavePuerta(id)
@@ -353,27 +577,52 @@ stock SavePuerta(id)
 	fclose(puertafile);
 }
 
+stock SavePeaje(peajeid)
+{
+	new
+		datos[120],
+		peajeDir[30];
+	format(peajeDir, 30, DIR_PEAJES, peajeid);
+	new File:peajeFile = fopen(peajeDir, io_write);
+	format(datos, sizeof(datos), "%i|%f|%f|%f|%f|%f|%f|%f|%f|%f|%f|",
+	    Peajes[peajeid][ID_Mapeo],
+	    Peajes[peajeid][PosXFalse],
+	    Peajes[peajeid][PosYFalse],
+	    Peajes[peajeid][PosZFalse],
+	    Peajes[peajeid][PosRotXFalse],
+	    Peajes[peajeid][PosRotYFalse],
+	    Peajes[peajeid][PosRotZFalse],
+	    Peajes[peajeid][PosCommandX],
+	    Peajes[peajeid][PosCommandY],
+	    Peajes[peajeid][PosCommandZ],
+	    Peajes[peajeid][Velocidad]);
+	    
+	fwrite(peajeFile, datos);
+	fclose(peajeFile);
+}
+
 stock ShowObjectMenu(playerid, tipoObjeto)
 {
-    new objectid = GetPVarInt(playerid, "editingobject");
-	if (tipoObjeto == 1)
+    new objectid = PlayersDataOnline[playerid][EditingObjectID];
+	if (tipoObjeto == EDITING_TYPE_MAPEO)
 	{
-	    new mapeoid = GetPVarInt(playerid, "editingmapeo");
+	    new mapeoid = PlayersDataOnline[playerid][EditingMapeo];
 	    if (Mapeo[mapeoid][ID_Objeto] == objectid && objectid != 0)
 	    {
 	        new string[1024], caption[100];
 
-	        if (Mapeo[mapeoid][Tipo] == 0)//Objeto
+	        if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_OBJETO)//Objeto
 	        {
 	            format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto modelo %i (ID: %i[%i])", Mapeo[mapeoid][Modelo], Mapeo[mapeoid][ID_Objeto], mapeoid);
 	            format(string, sizeof(string), "Editar\n");
 			 	format(string, sizeof(string), "%sIndexs\n", string);
 			 	format(string, sizeof(string), "%sDuplicar\n", string);
+			 	format(string, sizeof(string), "%sPropiedades\n", string);
 			 	format(string, sizeof(string), "%sCreado por: {"COLOR_AZUL"}%s\n", string, Mapeo[mapeoid][CreatedBy]);
 			 	format(string, sizeof(string), "%sTipo: {"COLOR_AZUL"}%s\n \n", string, MapeoType[Mapeo[mapeoid][Tipo]]);
 			 	format(string, sizeof(string), "%s{FF0000}Borrar", string);
 	        }
-			else if (Mapeo[mapeoid][Tipo] == 1)//Puerta
+			else if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PUERTA)//Puerta
 	        {
 	            new puertaid = Mapeo[mapeoid][Tipoid];
 	            format(caption, sizeof(caption), "{"COLOR_AZUL"}Puerta [%i] modelo %i (ID: %i[%i])", puertaid, Mapeo[mapeoid][Modelo], Mapeo[mapeoid][ID_Objeto], mapeoid);
@@ -390,6 +639,33 @@ stock ShowObjectMenu(playerid, tipoObjeto)
 			 	format(string, sizeof(string), "%sVelocidad: {"COLOR_AZUL"}%.2f\n \n", string, Puerta[puertaid][Velocidad]);
 			 	format(string, sizeof(string), "%s{FF0000}Borrar", string);
 	        }
+			else if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PEAJE)//Peaje
+	        {
+	            new peajeid = Mapeo[mapeoid][Tipoid];
+	            format(caption, sizeof(caption), "{"COLOR_AZUL"}Peaje [%i] modelo %i (ID: %i[%i])", peajeid, Mapeo[mapeoid][Modelo], Mapeo[mapeoid][ID_Objeto], mapeoid);
+	            format(string, sizeof(string), "Editar\n");
+			 	format(string, sizeof(string), "%sIndexs\n", string);
+			 	format(string, sizeof(string), "%sDuplicar\n", string);
+			 	format(string, sizeof(string), "%sCreada por: {"COLOR_AZUL"}%s\n", string, Mapeo[mapeoid][CreatedBy]);
+			 	format(string, sizeof(string), "%sTipo: {"COLOR_AZUL"}%s\n \n", string, MapeoType[Mapeo[mapeoid][Tipo]]);
+			 	format(string, sizeof(string), "%sEditar Recorrido\n", string);
+			 	format(string, sizeof(string), "%sVelocidad: {"COLOR_AZUL"}%.2f\n", string, Peajes[peajeid][Velocidad]);
+			 	format(string, sizeof(string), "%sPosicion del comando\n \n", string);
+			 	format(string, sizeof(string), "%s{FF0000}Borrar", string);
+	        }
+			else if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PARQUEO)
+	        {
+	            new parqueoid = Mapeo[mapeoid][Tipoid];
+	            format(caption, sizeof(caption), "{"COLOR_AZUL"}Parqueo [%i] modelo %i (ID: %i[%i])", parqueoid, Mapeo[mapeoid][Modelo], Mapeo[mapeoid][ID_Objeto], mapeoid);
+	            format(string, sizeof(string), "Editar\n");
+			 	format(string, sizeof(string), "%sIndexs\n", string);
+			 	format(string, sizeof(string), "%sDuplicar\n", string);
+			 	format(string, sizeof(string), "%sCreada por: {"COLOR_AZUL"}%s\n", string, Mapeo[mapeoid][CreatedBy]);
+			 	format(string, sizeof(string), "%sTipo: {"COLOR_AZUL"}%s\n \n", string, MapeoType[Mapeo[mapeoid][Tipo]]);
+			 	format(string, sizeof(string), "%sEditar Recorrido\n", string);
+			 	format(string, sizeof(string), "%sVelocidad: {"COLOR_AZUL"}%.2f\n \n", string, Parqueo[parqueoid][Velocidad]);
+			 	format(string, sizeof(string), "%s{FF0000}Borrar", string);
+	        }
 		    ShowPlayerDialogEx(playerid, 156, DIALOG_STYLE_LIST, caption, string, "Seleccionar", "Cancelar");
 	    }
 	}
@@ -397,12 +673,12 @@ stock ShowObjectMenu(playerid, tipoObjeto)
 
 stock ShowObjectIndexes(playerid)
 {
-	new objectid = GetPVarInt(playerid, "editingobject");
+	new objectid = PlayersDataOnline[playerid][EditingObjectID];
 	new string[1024], caption[100];
 
-	if (GetPVarInt(playerid, "editingmapeo") != -1)
+	if (PlayersDataOnline[playerid][EditingType] == EDITING_TYPE_MAPEO)
 	{
-	    new mapeoid = GetPVarInt(playerid, "editingmapeo");
+	    new mapeoid = PlayersDataOnline[playerid][EditingMapeo];
 
 	    format(caption, sizeof(caption), "{0075FF}Indexs del objeto modelo %i (ID: %i[%i])", Mapeo[mapeoid][Modelo], objectid, mapeoid);
 
@@ -417,9 +693,9 @@ stock ShowObjectIndexes(playerid)
 stock ShowObjectIndex(playerid, indexid)
 {
 	new string[1024], caption[100];
-	if (GetPVarInt(playerid, "editingmapeo") != -1)
+	if (PlayersDataOnline[playerid][EditingType] == EDITING_TYPE_MAPEO)
 	{
-	    new mapeoid = GetPVarInt(playerid, "editingmapeo");
+	    new mapeoid = PlayersDataOnline[playerid][EditingMapeo];
 
 	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Index %i del objeto modelo %i (ID: %i[%i])", indexid, Mapeo[mapeoid][Modelo], Mapeo[mapeoid][ID_Objeto], mapeoid);
 	    format(string, sizeof(string), "{"COLOR_AZUL"}TEXTURAS\n");
@@ -502,8 +778,9 @@ stock ShowEditObjectMaerial(playerid, indexid, option)
 stock ShowVelocidadObjetoMenu(playerid, mapeoid)
 {
 	new caption[64];
-    format(caption, sizeof(caption), "{"COLOR_AZUL"}Puerta %i -> Velocidad", Mapeo[mapeoid][Tipoid]);
-    ShowPlayerDialogEx(playerid, 160, DIALOG_STYLE_INPUT, caption, "Ingrese la velocidad a la que se movera la puerta:\n", "Aceptar", "Cancelar");
+    format(caption, sizeof(caption), "{"COLOR_AZUL"}%s %i -> Velocidad", MapeoType[Mapeo[mapeoid][Tipo]], Mapeo[mapeoid][Tipoid]);
+    
+    ShowPlayerDialogEx(playerid, 160, DIALOG_STYLE_INPUT, caption, "Ingrese la velocidad a la que se movera el objeto:\n", "Aceptar", "Cancelar");
 }
 
 stock ShowPuertaOwnerMenu(playerid, mapeoid)
@@ -520,6 +797,7 @@ stock ShowPuertaOwnerMenu(playerid, mapeoid)
 stock CrearMapeo(playerid, modelid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, worldid, interiorid)
 {
 	new mapeoid = GetNextMapeoID();
+	if (mapeoid == -1) return -1;
     new objectid = CreateDynamicObject(modelid, x, y, z, rx, ry, rz, worldid, interiorid);
 	//////////
 	Mapeo[mapeoid][Modelo] = modelid;
@@ -535,6 +813,7 @@ stock CrearMapeo(playerid, modelid, Float:x, Float:y, Float:z, Float:rx, Float:r
 	//////////
 	Mapeo[mapeoid][ID_Objeto] = objectid;
 	MAX_MAPEOS++;
+	SaveMapeo(mapeoid);
 	return mapeoid;
 }
 
@@ -549,6 +828,12 @@ stock GetNextMapeoID()
 
 stock DuplicarMapeo(playerid, mapeoid)
 {
+    if (MAX_MAPEOS == MAX_MAPEOS_COUNT)
+	{
+	    new string[144];
+	    format(string, sizeof(string), "Se alcanzo el maximo de mapeos (%i)", MAX_MAPEOS_COUNT);
+	    return SendInfoMessage(playerid, 0, "", string);
+	}
 	new mapeoid_new = CrearMapeo(playerid, Mapeo[mapeoid][Modelo],
 		Mapeo[mapeoid][PosX], Mapeo[mapeoid][PosY], Mapeo[mapeoid][PosZ],
 		Mapeo[mapeoid][PosRX], Mapeo[mapeoid][PosRY], Mapeo[mapeoid][PosRZ],
@@ -593,17 +878,24 @@ stock DuplicarMapeo(playerid, mapeoid)
     if (playerid != -1)
     {
         CancelEdit(playerid);
-		SetPVarInt(playerid, "editingmapeo", mapeoid_new);
-        SetPVarInt(playerid, "editingobject", Mapeo[mapeoid_new][ID_Objeto]);
+		PlayersDataOnline[playerid][EditingMapeo] = mapeoid_new;
+		PlayersDataOnline[playerid][EditingObjectID] = Mapeo[mapeoid_new][ID_Objeto];
         EditDynamicObject(playerid, Mapeo[mapeoid_new][ID_Objeto]);
         new string[144];
-        format(string, sizeof(string), "Creaste un objeto modelo %i, con el ID %i[%i]", Mapeo[mapeoid_new][Modelo], Mapeo[mapeoid_new][ID_Objeto], mapeoid_new);
+        format(string, sizeof(string), "Creaste un mapeo modelo %i, Objetoid %i con el ID %i (Duplicar %i)", Mapeo[mapeoid_new][Modelo], Mapeo[mapeoid_new][ID_Objeto], mapeoid_new, mapeoid);
 		SendAdviseMessage(playerid, string);
     }
+    return 1;
 }
 
 stock DuplicarMapeoEx(playerid, mapeoid)
 {
+    if (MAX_MAPEOS == MAX_MAPEOS_COUNT)
+	{
+	    new string[144];
+	    format(string, sizeof(string), "Se alcanzo el maximo de mapeos (%i)", MAX_MAPEOS_COUNT);
+	    return SendInfoMessage(playerid, 0, "", string);
+	}
     new Float:Pos[6];
 	Pos[0] = GetPVarFloat(playerid, "editingobjectX");
 	Pos[1] = GetPVarFloat(playerid, "editingobjectY");
@@ -665,59 +957,263 @@ stock DuplicarMapeoEx(playerid, mapeoid)
 	if (playerid != -1)
     {
         CancelEdit(playerid);
-		SetPVarInt(playerid, "editingmapeo", mapeoid_new);
-        SetPVarInt(playerid, "editingobject", Mapeo[mapeoid_new][ID_Objeto]);
+		PlayersDataOnline[playerid][EditingMapeo] = mapeoid_new;
+		PlayersDataOnline[playerid][EditingObjectID] = Mapeo[mapeoid_new][ID_Objeto];
         EditDynamicObject(playerid, Mapeo[mapeoid_new][ID_Objeto]);
         new string[144];
-        format(string, sizeof(string), "Creaste un objeto modelo %i, con el ID %i[%i]", Mapeo[mapeoid_new][Modelo], Mapeo[mapeoid_new][ID_Objeto], mapeoid_new);
+        format(string, sizeof(string), "Creaste un mapeo modelo %i, Objetoid %i con el ID %i (Duplicar %i)", Mapeo[mapeoid_new][Modelo], Mapeo[mapeoid_new][ID_Objeto], mapeoid_new, mapeoid);
 		SendAdviseMessage(playerid, string);
     }
+    return 1;
 }
 
-stock CambiarMapeoTipo(playerid, mapeoid)
+public ShowMapeoTypeDialog(playerid)
 {
-	new tipoid = Mapeo[mapeoid][Tipoid];
-
-	if (Mapeo[mapeoid][Tipo] == 1)//Puerta
+	new mapeoid = PlayersDataOnline[playerid][EditingMapeo];
+	new caption[60], info[80];
+	
+	format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto modelo %i (ID: %i[%i]) -> Tipo", Mapeo[mapeoid][Modelo], Mapeo[mapeoid][ID_Objeto], mapeoid);
+	for(new i=0; i!=4; i++)
 	{
-		new path[30];
-	    format(path, 30, DIR_PUERTAS, tipoid); fremove(path);
-		Puerta[tipoid][ID_Mapeo] = -1;
-	    Puerta[tipoid][Creada] = false;
-	    Puerta[tipoid][PosX] = 0;
-	    Puerta[tipoid][Velocidad] = 0;
-	    Puerta[tipoid][Abierta] = false;
-	    Puerta[tipoid][LlaveTipo] = 0;
-	    Puerta[tipoid][LlaveOwnerID] = 0;
+	    if (Mapeo[mapeoid][Tipo] == i)
+	    format(info, sizeof(info), "%s{"COLOR_AZUL"}%s\n", info, MapeoType[i]);
+	    else
+	    format(info, sizeof(info), "%s%s\n", info, MapeoType[i]);
 	}
+	ShowPlayerDialogEx(playerid, 164, DIALOG_STYLE_LIST, caption, info, "Cambiar", "Volver");
+}
 
-	Mapeo[mapeoid][Tipo] = (Mapeo[mapeoid][Tipo] == 1) ? (0) : (Mapeo[mapeoid][Tipo] + 1);
+public ShowMapeoPropiedades(playerid, mapeoid)
+{
+	new caption[60], info[500];
+	
+	format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto modelo %i (ID: %i[%i]) -> Propiedades", Mapeo[mapeoid][Modelo], Mapeo[mapeoid][ID_Objeto], mapeoid);
+	format(info, sizeof(info), "Modelo:\t%i\n", Mapeo[mapeoid][Modelo]);
+	format(info, sizeof(info), "%sMundo:\t%i\n", info, Mapeo[mapeoid][Mundo]);
+	format(info, sizeof(info), "%sInterior:\t%i\n", info, Mapeo[mapeoid][Interior]);
+	format(info, sizeof(info), "%sX:\t%f\n", info, Mapeo[mapeoid][PosX]);
+	format(info, sizeof(info), "%sY:\t%f\n", info, Mapeo[mapeoid][PosY]);
+	format(info, sizeof(info), "%sZ:\t%f\n", info, Mapeo[mapeoid][PosZ]);
+	format(info, sizeof(info), "%sRX:\t%f\n", info, Mapeo[mapeoid][PosRX]);
+	format(info, sizeof(info), "%sRY:\t%f\n", info, Mapeo[mapeoid][PosRY]);
+	format(info, sizeof(info), "%sRZ:\t%f\n", info, Mapeo[mapeoid][PosRZ]);
+	
+    ShowPlayerDialogEx(playerid, 165, DIALOG_STYLE_TABLIST, caption, info, "Aceptar", "Volver");
+	return 1;
+}
 
-	if (Mapeo[mapeoid][Tipo] == 1)//Puerta
+public ShowMapeoPropiedadChange(playerid, mapeoid, option)
+{
+	new caption[60], info[144];
+	
+	if (option == 0)
 	{
-	    tipoid = GetNextPuertaID();
-	    if(tipoid == -1)
-	    {
-	        SendInfoMessage(playerid, 0, "", "Se Alcanzo el maximo de puertas");
-	        Mapeo[mapeoid][Tipo] = 0;
-	        return 1;
-	    }
-	    Puerta[tipoid][ID_Mapeo] = mapeoid;
-	    Puerta[tipoid][Creada] = true;
-	    Puerta[tipoid][Velocidad] = 1.0;
-	    Puerta[tipoid][Abierta] = false;
-	    SavePuerta(tipoid);
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> Modelo", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese un nuevo Model_ID para el objeto:");
+	}
+	else if (option == 1)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> Mundo", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese un nuevo mundo para el objeto:");
+	}
+	else if (option == 2)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> Interior", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese un nuevo interior para el objeto:");
+	}
+	else if (option == 3)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> PosX", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese una nueva coordenada X para el objeto:");
+	}
+	else if (option == 4)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> PosY", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese una nueva coordenada Y para el objeto:");
+	}
+	else if (option == 5)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> PosZ", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese una nueva coordenada Z para el objeto:");
+	}
+	else if (option == 6)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> RotX", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese una nueva rotacion X para el objeto:");
+	}
+	else if (option == 7)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> RotY", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese una nueva rotacion Y para el objeto:");
+	}
+	else if (option == 8)
+	{
+	    format(caption, sizeof(caption), "{"COLOR_AZUL"}Objeto %i[%i] -> Propiedades -> RotZ", Mapeo[mapeoid][ID_Objeto], mapeoid);
+		format(info, sizeof(info), "Ingrese una nueva rotacion Z para el objeto:");
+	}
+	ShowPlayerDialogEx(playerid, 166, DIALOG_STYLE_INPUT, caption, info, "Aceptar", "Cancelar");
+	return 1;
+}
 
-	    Mapeo[mapeoid][Tipoid] = tipoid;
+stock CambiarMapeoTipo(playerid, mapeoid, tipo)
+{
+	if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PUERTA)
+	{
+	    BorrarPuerta(Mapeo[mapeoid][Tipoid]);
+	}
+	else if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PEAJE)
+	{
+	    BorrarPeaje(Mapeo[mapeoid][Tipoid]);
+	}
+	else if (Mapeo[mapeoid][Tipo] == MAPEO_TYPE_PARQUEO)
+	{
+	    BorrarParqueo(Mapeo[mapeoid][Tipoid]);
+	}
+	if (Mapeo[mapeoid][Tipo] == tipo) return SendInfoMessage(playerid, 0, "", "Ese objeto ya es del mismo tipo");
+
+    if (tipo == MAPEO_TYPE_OBJETO)
+    {
+        Mapeo[mapeoid][Tipo] = MAPEO_TYPE_OBJETO;
+    }
+	else if (tipo == MAPEO_TYPE_PUERTA)
+	{
+	    if(MAX_PUERTAS == MAX_PUERTAS_COUNT) return SendInfoMessage(playerid, 0, "", "Se Alcanzo el maximo de puertas");
+
+		new puertaid = CrearPuerta(mapeoid);
+		if (puertaid != -1)
+		{
+		    Mapeo[mapeoid][Tipo] = MAPEO_TYPE_PUERTA;
+		    Mapeo[mapeoid][Tipoid] = puertaid;
+		}
+	}
+	else if (tipo == MAPEO_TYPE_PEAJE)
+	{
+	    if (MAX_PEAJES == MAX_PEAJES_COUNT) return SendInfoMessage(playerid, 0, "", "Se Alcanzo el maximo de peajes");
+	    
+	    new peajeid = CrearPeaje(mapeoid);
+	    if (peajeid != -1)
+	    {
+		    Mapeo[mapeoid][Tipo] = MAPEO_TYPE_PEAJE;
+		    Mapeo[mapeoid][Tipoid] = peajeid;
+	    }
+	}
+	else if (tipo == MAPEO_TYPE_PARQUEO)
+	{
+	    if (MAX_PARQUEOS == MAX_PARQUEOS_COUNT) return SendInfoMessage(playerid, 0, "", "Se Alcanzo el maximo de parqueos");
+	    
+	    new parqueoid = CrearParqueo(mapeoid);
+	    if (parqueoid != -1)
+	    {
+		    Mapeo[mapeoid][Tipo] = MAPEO_TYPE_PARQUEO;
+		    Mapeo[mapeoid][Tipoid] = parqueoid;
+	    }
 	}
 	return 1;
 }
 
+public BorrarPuerta(puertaid)
+{
+	new path[30];
+	format(path, 30, DIR_PUERTAS, puertaid); fremove(path);
+	Puerta[puertaid][ID_Mapeo] = -1;
+    Puerta[puertaid][Creada] = false;
+    Puerta[puertaid][PosX] = 0;
+    Puerta[puertaid][Velocidad] = 0;
+    Puerta[puertaid][Abierta] = false;
+    Puerta[puertaid][LlaveTipo] = 0;
+    Puerta[puertaid][LlaveOwnerID] = 0;
+	return 1;
+}
+
+public BorrarPeaje(peajeid)
+{
+	new path[30];
+    format(path, 30, DIR_PEAJES, peajeid); fremove(path);
+	Peajes[peajeid][Creado] = false;
+	Peajes[peajeid][PosXFalse] = 0.0;
+	Peajes[peajeid][PosCommandX] = 0.0;
+	return 1;
+}
+
+public BorrarParqueo(parqueoid)
+{
+	new path[30];
+    format(path, 30, DIR_PARQUEOS, parqueoid); fremove(path);
+	Parqueo[parqueoid][Creado] = false;
+	Parqueo[parqueoid][PosXFalse] = 0.0;
+	return 1;
+}
+
+public CrearPuerta(mapeoid)
+{
+    new puertaid = GetNextPuertaID();
+    if (puertaid != -1)
+    {
+        Puerta[puertaid][ID_Mapeo] = mapeoid;
+	    Puerta[puertaid][Creada] = true;
+	    Puerta[puertaid][Velocidad] = 1.0;
+	    Puerta[puertaid][Abierta] = false;
+	    SavePuerta(puertaid);
+	    return puertaid;
+    }
+    return -1;
+}
+
+public CrearPeaje(mapeoid)
+{
+    new peajeid = GetNextPeajeID();
+	if (peajeid != -1)
+    {
+        Peajes[peajeid][ID_Mapeo] = mapeoid;
+		Peajes[peajeid][Creado] = true;
+		Peajes[peajeid][PosXFalse] = 0.0;
+		Peajes[peajeid][PosCommandX] = 0.0;
+		Peajes[peajeid][Velocidad] = 0.2;
+		SavePeaje(peajeid);
+		return peajeid;
+    }
+	return -1;
+}
+
+public CrearParqueo(mapeoid)
+{
+    new parqueoid = GetNextParqueoID();
+	if (parqueoid != -1)
+    {
+        Parqueo[parqueoid][ID_Mapeo] = mapeoid;
+        Parqueo[parqueoid][Creado] = true;
+        Parqueo[parqueoid][PosXFalse] = 0.0;
+        Parqueo[parqueoid][Velocidad] = 0.2;
+        Parqueo[parqueoid][Abierto] = false;
+        SaveParqueo(parqueoid);
+		return parqueoid;
+    }
+	return -1;
+}
+	    
 stock GetNextPuertaID()
 {
 	for(new i=0; i!=MAX_PUERTAS_COUNT; i++)
 	{
 	    if (!Puerta[i][Creada]) return i;
+	}
+	return -1;
+}
+
+stock GetNextPeajeID()
+{
+	for(new i=0; i!=MAX_PEAJES_COUNT; i++)
+	{
+	    if (!Peajes[i][Creado]) return i;
+	}
+	return -1;
+}
+
+stock GetNextParqueoID()
+{
+    for(new i=0; i!=MAX_PARQUEOS_COUNT; i++)
+	{
+	    if (!Parqueo[i][Creado]) return i;
 	}
 	return -1;
 }
@@ -746,10 +1242,9 @@ stock BorrarMapeo(playerid, mapeoid)
     format(path, 30, DIR_MAPEOS, mapeoid);
     fremove(path);
     
-	if (tipo == 1)
+	if (tipo == MAPEO_TYPE_PUERTA)
 	{
 	    format(path, 30, DIR_PUERTAS, tipoid); fremove(path);
-	    Puerta[tipoid][ID_Mapeo] = -1;
 	    Puerta[tipoid][Creada] = 0;
 	    Puerta[tipoid][PosX] = 0;
 	    Puerta[tipoid][Velocidad] = 0;
@@ -757,24 +1252,31 @@ stock BorrarMapeo(playerid, mapeoid)
 	    Puerta[tipoid][LlaveTipo] = 0;
 	    Puerta[tipoid][LlaveOwnerID] = 0;
 	}
+	else if(tipo == MAPEO_TYPE_PEAJE)
+	{
+	    format(path, 30, DIR_PEAJES, tipoid); fremove(path);
+		Peajes[tipoid][Creado] = false;
+		Peajes[tipoid][PosXFalse] = 0.0;
+		Peajes[tipoid][PosCommandX] = 0.0;
+	}
 	
 	if (playerid != -1)
 	{
 		new string[144];
-		format(string, sizeof(string), "Has borrado un objeto ID %i[%i]", objectid, mapeoid);
+		format(string, sizeof(string), "Borraste el mapeo ID %i, Objetoid %i", mapeoid, objectid);
 		SendAdviseMessage(playerid, string);
-		SetPVarInt(playerid, "editingmapeo", -1);
-		SetPVarInt(playerid, "editingobject", false);
+		PlayersDataOnline[playerid][EditingType] = false;
+		PlayersDataOnline[playerid][EditingObjectID] = 0;
 	}
 }
 
 stock BorrarObjetoIndex(playerid, tipo, indexid)
 {
-    new objectid = GetPVarInt(playerid, "editingobject");
+    new objectid = PlayersDataOnline[playerid][EditingObjectID];
     
-	if (tipo == 1)//Mapeo
+	if (tipo == EDITING_TYPE_MAPEO)//Mapeo
 	{
-		new mapeoid = GetPVarInt(playerid, "editingmapeo");
+		new mapeoid = PlayersDataOnline[playerid][EditingMapeo];
 		
 		Mapeo[mapeoid][materialtype][indexid] = 0;
 		
@@ -795,8 +1297,42 @@ stock BorrarObjetoIndex(playerid, tipo, indexid)
 	RemoveDynamicObjectMaterialText(objectid, indexid);
 }
 
+forward CerrarPeaje(peajeid);
+public CerrarPeaje(peajeid)
+{
+	new mapeoid = Peajes[peajeid][ID_Mapeo];
+	MoveDynamicObject(Mapeo[mapeoid][ID_Objeto], Mapeo[mapeoid][PosX], Mapeo[mapeoid][PosY], Mapeo[mapeoid][PosZ], Peajes[peajeid][Velocidad], Mapeo[mapeoid][PosRX], Mapeo[mapeoid][PosRY], Mapeo[mapeoid][PosRZ]);
+	Peajes[peajeid][Abierto] = false;
+	return 1;
+}
 
+forward CerrarParqueo(parqueoid);
+public CerrarParqueo(parqueoid)
+{
+	new mapeoid = Parqueo[parqueoid][ID_Mapeo];
+	MoveDynamicObject(Mapeo[mapeoid][ID_Objeto], Mapeo[mapeoid][PosX], Mapeo[mapeoid][PosY], Mapeo[mapeoid][PosZ], Parqueo[parqueoid][Velocidad], Mapeo[mapeoid][PosRX], Mapeo[mapeoid][PosRY], Mapeo[mapeoid][PosRZ]);
+	Parqueo[parqueoid][Abierto] = false;
+	return 1;
+}
 
+public SaveParqueo(parqueoid)
+{
+    new
+		datos[120],
+		parqueoDir[30];
+	format(parqueoDir, 30, DIR_PARQUEOS, parqueoid);
+	new File:parqueoFile = fopen(parqueoDir, io_write);
+	format(datos, sizeof(datos), "%i|%f|%f|%f|%f|%f|%f|%f|",
+	    Parqueo[parqueoid][ID_Mapeo],
+	    Parqueo[parqueoid][PosXFalse],
+	    Parqueo[parqueoid][PosYFalse],
+	    Parqueo[parqueoid][PosZFalse],
+	    Parqueo[parqueoid][PosRotXFalse],
+	    Parqueo[parqueoid][PosRotYFalse],
+	    Parqueo[parqueoid][PosRotZFalse],
+	    Parqueo[parqueoid][Velocidad]);
 
-
-
+	fwrite(parqueoFile, datos);
+	fclose(parqueoFile);
+	return 1;
+}

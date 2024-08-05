@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Host: 127.0.0.1
--- Generation Time: Aug 05, 2024 at 09:01 AM
+-- Generation Time: Aug 05, 2024 at 09:58 AM
 -- Server version: 10.1.9-MariaDB
 -- PHP Version: 7.0.0
 
@@ -298,7 +298,8 @@ CREATE TABLE `locales` (
   `RefriSeguro` int(11) NOT NULL,
   `Refrigerador` text NOT NULL,
   `GavetaSeguro` int(11) NOT NULL,
-  `GavetaObjetos` text NOT NULL
+  `GavetaObjetos` text NOT NULL,
+  `StationID` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
